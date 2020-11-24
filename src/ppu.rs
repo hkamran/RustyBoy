@@ -11,5 +11,6 @@ impl Ppu {
     }
 
     pub fn tick(&self) -> () {
+        println!("Ppu ticked");
     }
 }

@@ -1,4 +1,4 @@
-use crate::cpu::{Cpu, Registers};
+use crate::cpu::{Cpu};
 use crate::bus::{Bus};
 use crate::ppu::{Ppu};
 use crate::cartridge::{Cartridge};
@@ -27,7 +27,7 @@ impl Console {
     pub fn tick(&self) -> () {
         &self.cpu.tick();
 
-        for x in 0..3 {
+        for _x in 0..3 {
             &self.ppu.tick();
         }
     }

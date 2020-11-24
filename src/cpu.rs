@@ -24,6 +24,8 @@ impl Cpu {
     }
 
     pub fn tick(&self) -> () {
+        println!("Cpu ticked");
     }
 
 }
+
