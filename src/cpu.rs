@@ -1,12 +1,9 @@
 use crate::bus::Bus;
+use crate::cpu::registers::Registers;
 
 pub mod addressing;
 pub mod operations;
-
-pub struct Registers {
-
-
-}
+pub mod registers;
 
 pub struct Cpu {
     pub registers: Registers,
@@ -18,7 +15,7 @@ impl Cpu {
 
     pub fn new() -> Self {
         return Cpu {
-            registers: Registers {},
+            registers: Registers::new(),
             bus: Bus::new(),
         }
     }
