@@ -1,6 +1,7 @@
 use crate::bus::Bus;
-use crate::cpu::registers::Registers;
+use std::collections::HashMap;
 
+#[allow(dead_code)]
 pub struct Registers {
     a: u8,
     b: u8,
@@ -10,6 +11,8 @@ pub struct Registers {
     f: u8,
     h: u8,
     l: u8,
+    sp: u16,
+    pc: u16,
 }
 
 impl Registers {
@@ -23,72 +26,10 @@ impl Registers {
             e: 0,
             f: 0,
             h: 0,
-            l: 0
+            l: 0,
+            sp: 0,
+            pc: 0,
         }
-    }
-
-    pub fn get_a(&mut self) -> u8 {
-        return self.a;
-    }
-
-    pub fn set_a(&mut self, value: u8) -> () {
-        self.a = value;
-    }
-
-    pub fn get_b(&mut self) -> u8 {
-        return self.a;
-    }
-
-    pub fn set_b(&mut self, value: u8) -> () {
-        self.a = value;
-    }
-
-    pub fn get_c(&mut self) -> u8 {
-        return self.a;
-    }
-
-    pub fn set_c(&mut self, value: u8) -> () {
-        self.a = value;
-    }
-
-    pub fn get_d(&mut self) -> u8 {
-        return self.a;
-    }
-
-    pub fn set_d(&mut self, value: u8) -> () {
-        self.a = value;
-    }
-
-    pub fn get_e(&mut self) -> u8 {
-        return self.a;
-    }
-
-    pub fn set_e(&mut self, value: u8) -> () {
-        self.a = value;
-    }
-
-    pub fn get_f(&mut self) -> u8 {
-        return self.a;
-    }
-
-    pub fn set_f(&mut self, value: u8) -> () {
-        self.a = value;
-    }
-
-    pub fn get_h(&mut self) -> u8 {
-        return self.a;
-    }
-
-    pub fn set_h(&mut self, value: u8) -> () {
-        self.a = value;
-    }
-
-    pub fn get_l(&mut self) -> u8 {
-        return self.a;
-    }
-
-    pub fn set_l(&mut self, value: u8) -> () {
-        self.a = value;
     }
 
     pub fn get_af(&mut self) -> u16 {
@@ -180,25 +121,85 @@ impl Registers {
     }
 }
 
-pub struct Cpu {
-    pub registers: Registers,
-    pub bus: Bus
-
+#[allow(unused)]
+pub struct Cpu<'a> {
+    pub registers: Box<Registers>,
+    pub bus: &'a Bus<'a>,
+    pub operations: Operations<'a>
 }
 
-impl Cpu {
+#[allow(unused)]
+impl<'a> Cpu<'a> {
 
-    pub fn new() -> Self {
+    pub fn new(bus: &'a Bus) -> Self {
+        let registers = Box::new(Registers::new());
         return Cpu {
-            registers: Registers::new(),
-            bus: Bus::new(),
+            registers,
+            bus,
+            operations: Operations::new(registers.as_ref(), bus)
         }
     }
 
     pub fn tick(&mut self) -> () {
-        self.registers.get_a();
-        println!("Cpu ticked");
+        let mut pc = self.registers.pc;
+        let opcode = self.bus.read_byte(pc);
+
+        self.operations.execute(opcode);
+
+        let offset = self.operations.offset;
+        let cycles = self.operations.cycles;
     }
 
 }
 
+#[allow(dead_code)]
+pub struct Operations<'a> {
+    pub cycles: u8,
+    pub offset: u8,
+
+    pub registers: &'a Registers,
+    pub bus: &'a Bus<'a>,
+    pub codes: HashMap<u8, fn() -> ()>,
+}
+
+#[allow(unused)]
+impl<'a> Operations<'a> {
+
+    pub fn new(registers: &'a Registers, bus: &'a Bus) -> Self {
+        let mut codes: HashMap<u8, fn() -> ()> = HashMap::new();
+
+        for code in 0..0xFF {
+        }
+
+        return Operations {
+            cycles: 0,
+            offset: 0,
+            registers,
+            bus,
+            codes,
+        }
+    }
+
+    pub fn execute(&mut self, opcode: u8) {
+        let op: Option<&mut fn()> = self.codes.get_mut(&opcode);
+        if op.is_none() {
+            panic!(format!("Unknown opcode given: {}", opcode))
+        }
+        op.unwrap()();
+    }
+
+    fn get_operand(&mut self, index: u8) -> u8 {
+        let pc = self.registers.pc;
+        let operand = self.bus.read_byte(pc + index as u16);
+
+        return operand;
+    }
+
+    fn nop(&mut self) {
+        let operand = self.get_operand(1);
+
+        self.cycles = 2;
+        self.offset = 1;
+    }
+
+}

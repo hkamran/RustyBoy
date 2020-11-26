@@ -9,6 +9,6 @@ use crate::console::{Console};
 
 fn main() {
 
-    let console: Console = Console::new();
+    let mut console: Console = Console::new();
     console.tick();
 }
