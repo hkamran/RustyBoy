@@ -1,26 +1,22 @@
-use crate::cpu::operations::OperationType;
-
-use std::collections::HashMap;
 use crate::mmu::Mmu;
+use crate::operations;
 
 #[allow(unused)]
 pub struct Cpu {
-    a: u8,
-    b: u8,
-    c: u8,
-    d: u8,
-    e: u8,
-    f: u8,
-    h: u8,
-    l: u8,
-    sp: u16,
-    pc: u16,
+    pub a: u8,
+    pub b: u8,
+    pub c: u8,
+    pub d: u8,
+    pub e: u8,
+    pub f: u8,
+    pub h: u8,
+    pub l: u8,
+    pub sp: u16,
+    pub pc: u16,
 
-    halted: bool,
-    ime: bool,
-    cycles: u16,
-
-    operations: HashMap<u8, OperationType>,
+    pub halted: bool,
+    pub ime: bool,
+    pub cycles: u16,
 }
 
 #[allow(unused)]
@@ -41,20 +37,17 @@ impl Cpu {
             halted: false,
             ime: false,
             cycles: 0,
-            operations: operations::create(),
         }
     }
 
-    pub fn tick(&mut self, bus: &mut Mmu) -> u8 {
+    pub fn tick(&mut self, mmu: &mut Mmu) -> u8 {
         let cycles = self.cycles;
         let pc = self.pc;
-        let opcode: u8 = 0;
-
-        let operations = (*self.operations);
-        let operation = operations.get(&opcode).unwrap();
+        let opcode: u8 = mmu.read_byte(pc);
+        let operation = operations::get_operation(opcode);
 
         // execute
-        operation(self, bus);
+        operation(self, mmu);
 
         return (self.cycles - cycles) as u8;
     }
@@ -157,7 +150,7 @@ impl Cpu {
         return self.f & 0x80 > 0;
     }
 
-    pub fn inc8_with_flags(&mut self, arg: u8) -> u8 {
+    pub fn apply_inc8_with_flags(&mut self, arg: u8) -> u8 {
         let value = arg.wrapping_add(1);
 
         self.set_f_zero(value == 0);
@@ -167,7 +160,7 @@ impl Cpu {
         return value;
     }
 
-    pub fn dec8_with_flags(&mut self, arg: u8) -> u8 {
+    pub fn apply_dec8_with_flags(&mut self, arg: u8) -> u8 {
         let value = arg.wrapping_sub(1);
 
         self.set_f_zero(value == 0);
@@ -179,56 +172,3 @@ impl Cpu {
 
 }
 
-pub mod operations {
-    use std::collections::HashMap;
-    use crate::mmu::Mmu;
-    use crate::cpu::Cpu;
-
-    pub type OperationType = fn(cpu: &mut Cpu, bus: &mut Mmu) -> ();
-
-    pub fn create() -> HashMap<u8, OperationType> {
-        let mut map: HashMap<u8, OperationType> = HashMap::new();
-
-        for x in 0u8..=0xFF {
-            map.insert(x, opcode_00_nop);
-        }
-
-        return map;
-    }
-
-    pub fn op_00_nop(cpu: &mut Cpu, mmu: &mut Mmu) {
-        cpu.pc += 1;
-        cpu.cycles += 2;
-    }
-
-    pub fn op_01_lda_bc_xx(cpu: &mut Cpu, mmu: &mut Mmu) {
-        cpu.set_bc(mmu.read_word(cpu.pc));
-        cpu.pc += 2;
-        cpu.cycles += 3;
-    }
-
-    pub fn op_02_lda_bc_a(cpu: &mut Cpu, mmu: &mut Mmu) {
-        mmu.write_byte(cpu.get_bc(), cpu.a);
-        cpu.pc += 1;
-        cpu.cycles += 7
-    }
-
-    pub fn op_03_inc_bc(cpu: &mut Cpu, mmu: &mut Mmu) {
-        cpu.set_bc(cpu.get_bc().wrapping_add(1));
-        cpu.pc += 1;
-        cpu.cyles += 6;
-    }
-
-    pub fn op_04_inc_b(cpu: &mut Cpu, mmu: &mut Mmu) {
-        cpu.b = cpu.inc8_with_flags(cpu.b);
-        cpu.pc += 1;
-        cpu.cyles += 4;
-    }
-
-    pub fn op_05_dec_b(cpu: &mut Cpu, mmu: &mut Mmu) {
-        cpu.b = cpu.dec8_with_flags(cpu.b);
-        cpu.pc += 1;
-        cpu.cyles += 4;
-    }
-
-}

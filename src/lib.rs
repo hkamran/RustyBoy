@@ -4,6 +4,7 @@ mod console;
 mod ppu;
 mod cartridge;
 mod io;
+mod operations;
 
 use wasm_bindgen::prelude::*;
 use web_sys;

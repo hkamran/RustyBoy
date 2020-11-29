@@ -13,6 +13,7 @@ impl Ppu {
         };
     }
 
+    #[allow(unused)]
     pub fn tick(&mut self, bus: &mut Mmu) -> () {
         println!("Ppu ticked");
     }
