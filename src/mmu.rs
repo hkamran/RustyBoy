@@ -4,14 +4,14 @@
 // use crate::io::Io;
 
 #[allow(unused)]
-pub struct Bus {
+pub struct Mmu {
 }
 
 #[allow(unused)]
-impl Bus {
+impl Mmu {
 
     pub fn new() -> Self {
-        return Bus {
+        return Mmu {
         };
     }
 

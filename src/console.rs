@@ -1,11 +1,12 @@
 use crate::cpu::Cpu;
-use crate::bus::Bus;
+use crate::mmu::Mmu;
+use crate::ppu::Ppu;
 
 #[allow(dead_code)]
 pub struct Console {
     pub cpu: Cpu,
-    pub bus: Bus,
-    // pub ppu: Box<Ppu<'a>>,
+    pub bus: Mmu,
+    pub ppu: Ppu,
     // pub cartridge: Box<Cartridge<'a>>,
     // pub io: Box<Io<'a>>,
 }
@@ -14,9 +15,9 @@ impl Console {
 
     pub fn new() -> Self {
         return Console {
-            bus: Bus::new(),
+            bus: Mmu::new(),
             cpu: Cpu::new(),
-            // ppu,
+            ppu: Ppu::new(),
             // io,
             // cartridge,
         }
@@ -26,7 +27,7 @@ impl Console {
         self.cpu.tick(&mut self.bus);
 
         for _x in 0..3 {
-            // &self.ppu.tick();
+            self.ppu.tick(&mut self.bus);
         }
     }
 

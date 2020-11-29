@@ -1,8 +1,7 @@
-// use crate::bus::Bus;
+use crate::mmu::Mmu;
 
 #[allow(dead_code)]
 pub struct Ppu {
-    // pub bus: &'a Bus<'a>,
 }
 
 #[allow(dead_code)]
@@ -14,7 +13,7 @@ impl Ppu {
         };
     }
 
-    pub fn tick(&self) -> () {
+    pub fn tick(&mut self, bus: &mut Mmu) -> () {
         println!("Ppu ticked");
     }
 }
