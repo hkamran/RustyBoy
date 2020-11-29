@@ -1,15 +1,16 @@
-use crate::bus::Bus;
+// use crate::bus::Bus;
 
 #[allow(dead_code)]
-pub struct Io<'a> {
-    pub bus: &'a Bus<'a>,
+pub struct Io {
+    // pub bus: &'a Bus<'a>,
 }
 
-impl<'a> Io<'a> {
+#[allow(dead_code)]
+impl Io {
 
-    pub fn new(bus: &'a Bus) -> Self {
+    pub fn new() -> Self {
         return Io {
-            bus
+            // bus
         };
     }
 

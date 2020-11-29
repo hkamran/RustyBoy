@@ -1,25 +1,17 @@
-use crate::cpu::Cpu;
-use crate::cartridge::Cartridge;
-use crate::ppu::Ppu;
-use crate::io::Io;
+// use crate::cpu::Cpu;
+// use crate::cartridge::Cartridge;
+// use crate::ppu::Ppu;
+// use crate::io::Io;
 
 #[allow(unused)]
-pub struct Bus<'a> {
-    cpu: Option<&'a Cpu<'a>>,
-    ppu: Option<&'a Ppu<'a>>,
-    cartridge: Option<&'a Cartridge<'a>>,
-    io: Option<&'a Io<'a>>
+pub struct Bus {
 }
 
 #[allow(unused)]
-impl<'a> Bus<'a> {
+impl Bus {
 
     pub fn new() -> Self {
         return Bus {
-            cpu: None,
-            ppu: None,
-            cartridge: None,
-            io: None
         };
     }
 
@@ -45,13 +37,6 @@ impl<'a> Bus<'a> {
 
     pub fn pop_byte(&mut self) {
 
-    }
-
-    pub fn connect(&mut self, cpu: &'a Cpu, ppu: &'a Ppu, io: &'a Io, cartridge: &'a Cartridge) {
-        self.cpu = Option::from(cpu);
-        self.ppu = Option::from(ppu);
-        self.io = Option::from(io);
-        self.cartridge = Option::from(cartridge);
     }
 
 }

@@ -1,48 +1,32 @@
-use crate::cpu::{Cpu};
-use crate::bus::{Bus};
-use crate::ppu::{Ppu};
-use crate::cartridge::{Cartridge};
-use crate::io::{Io};
+use crate::cpu::Cpu;
+use crate::bus::Bus;
 
 #[allow(dead_code)]
-pub struct Console<'a> {
-    pub cpu: Box<Cpu<'a>>,
-    pub ppu: Box<Ppu<'a>>,
-    pub cartridge: Box<Cartridge<'a>>,
-    pub io: Box<Io<'a>>,
-    pub bus: Box<Bus<'a>>,
+pub struct Console {
+    pub cpu: Cpu,
+    pub bus: Bus,
+    // pub ppu: Box<Ppu<'a>>,
+    // pub cartridge: Box<Cartridge<'a>>,
+    // pub io: Box<Io<'a>>,
 }
 
-impl<'a> Console<'a> {
+impl Console {
 
     pub fn new() -> Self {
-
-        let mut bus = Box::new(Bus::new());
-        let cpu = Box::new(Cpu::new(bus.as_ref()));
-        let ppu = Box::new(Ppu::new(bus.as_ref()));
-        let io = Box::new(Io::new(bus.as_ref()));
-        let cartridge = Box::new(Cartridge::new(bus.as_ref()));
-
-        bus.connect(
-            cpu.as_ref(),
-            ppu.as_ref(),
-            io.as_ref(),
-            cartridge.as_ref());
-
         return Console {
-            cpu,
-            ppu,
-            io,
-            cartridge,
-            bus,
+            bus: Bus::new(),
+            cpu: Cpu::new(),
+            // ppu,
+            // io,
+            // cartridge,
         }
     }
 
     pub fn tick(&mut self) -> () {
-        &self.cpu.tick();
+        self.cpu.tick(&mut self.bus);
 
         for _x in 0..3 {
-            &self.ppu.tick();
+            // &self.ppu.tick();
         }
     }
 

@@ -1,8 +1,10 @@
-use crate::bus::Bus;
-use std::collections::HashMap;
+use crate::cpu::operations::OperationType;
 
-#[allow(dead_code)]
-pub struct Registers {
+use std::collections::HashMap;
+use crate::bus::Bus;
+
+#[allow(unused)]
+pub struct Cpu {
     a: u8,
     b: u8,
     c: u8,
@@ -13,12 +15,19 @@ pub struct Registers {
     l: u8,
     sp: u16,
     pc: u16,
+
+    halted: bool,
+    ime: bool,
+    cycles: u16,
+
+    operations: HashMap<u8, OperationType>,
 }
 
-impl Registers {
+#[allow(unused)]
+impl Cpu {
 
     pub fn new() -> Self {
-        return Registers {
+        return Cpu {
             a: 0,
             b: 0,
             c: 0,
@@ -29,8 +38,38 @@ impl Registers {
             l: 0,
             sp: 0,
             pc: 0,
+            halted: false,
+            ime: false,
+            cycles: 0,
+            operations: operations::create(),
         }
     }
+
+    pub fn tick(&mut self, bus: &mut Bus) -> () {
+        let cycle = self.cycles;
+        let pc = self.pc;
+        let opcode: u8 = 0;
+        let operation: OperationType = *self.operations.get(&opcode).unwrap();
+
+        println!("before");
+        self.print();
+
+        // execute
+        operation(self, bus);
+
+        println!("after");
+        self.print();
+    }
+
+    pub fn to_string(&mut self) -> String {
+        return format!("PC: {:#06X}, ", self.pc);
+    }
+
+    pub fn print(&mut self) {
+        println!("{}", self.to_string());
+    }
+
+    // Register functions
 
     pub fn get_af(&mut self) -> u16 {
         return (self.a as u16) << 8
@@ -119,87 +158,30 @@ impl Registers {
     pub fn get_f_zero(&mut self) -> bool {
         return self.f & 0x80 > 0;
     }
-}
-
-#[allow(unused)]
-pub struct Cpu<'a> {
-    pub registers: Box<Registers>,
-    pub bus: &'a Bus<'a>,
-    pub operations: Operations<'a>
-}
-
-#[allow(unused)]
-impl<'a> Cpu<'a> {
-
-    pub fn new(bus: &'a Bus) -> Self {
-        let registers = Box::new(Registers::new());
-        return Cpu {
-            registers,
-            bus,
-            operations: Operations::new(registers.as_ref(), bus)
-        }
-    }
-
-    pub fn tick(&mut self) -> () {
-        let mut pc = self.registers.pc;
-        let opcode = self.bus.read_byte(pc);
-
-        self.operations.execute(opcode);
-
-        let offset = self.operations.offset;
-        let cycles = self.operations.cycles;
-    }
 
 }
 
-#[allow(dead_code)]
-pub struct Operations<'a> {
-    pub cycles: u8,
-    pub offset: u8,
+pub mod operations {
+    use std::collections::HashMap;
+    use crate::bus::Bus;
+    use crate::cpu::Cpu;
 
-    pub registers: &'a Registers,
-    pub bus: &'a Bus<'a>,
-    pub codes: HashMap<u8, fn() -> ()>,
-}
+    pub type OperationType = fn(cpu: &mut Cpu, bus: &mut Bus) -> ();
 
-#[allow(unused)]
-impl<'a> Operations<'a> {
+    pub fn create() -> HashMap<u8, OperationType> {
+        let mut map: HashMap<u8, OperationType> = HashMap::new();
 
-    pub fn new(registers: &'a Registers, bus: &'a Bus) -> Self {
-        let mut codes: HashMap<u8, fn() -> ()> = HashMap::new();
-
-        for code in 0..0xFF {
+        for x in 0u8..=0xFF {
+            map.insert(x, opcode_00_nop);
         }
 
-        return Operations {
-            cycles: 0,
-            offset: 0,
-            registers,
-            bus,
-            codes,
-        }
+        return map;
     }
 
-    pub fn execute(&mut self, opcode: u8) {
-        let op: Option<&mut fn()> = self.codes.get_mut(&opcode);
-        if op.is_none() {
-            panic!(format!("Unknown opcode given: {}", opcode))
-        }
-        op.unwrap()();
-    }
-
-    fn get_operand(&mut self, index: u8) -> u8 {
-        let pc = self.registers.pc;
-        let operand = self.bus.read_byte(pc + index as u16);
-
-        return operand;
-    }
-
-    fn nop(&mut self) {
-        let operand = self.get_operand(1);
-
-        self.cycles = 2;
-        self.offset = 1;
+    pub fn opcode_00_nop(cpu: &mut Cpu, bus: &mut Bus) {
+        cpu.pc += 1;
+        bus.read_byte(0);
+        println!("executing nop");
     }
 
 }
