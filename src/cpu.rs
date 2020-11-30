@@ -44,7 +44,7 @@ impl Cpu {
         let cycles = self.cycles;
         let pc = self.pc;
         let opcode: u8 = mmu.read_byte(pc);
-        let operation = operations::get_operation(opcode);
+        let operation = operations::get(opcode);
 
         // execute
         operation(self, mmu);
