@@ -21,7 +21,7 @@ impl Mmu {
         };
     }
 
-    pub fn read_byte(&mut self, address: u16) -> u8 {
+    pub fn read_byte(&self, address: u16) -> u8 {
         match address {
             (0x0000 ..= 0x7FFF) => { 0 },
             (0x8000 ..= 0x9FFF) => { 0 },
@@ -71,7 +71,7 @@ impl Mmu {
         };
     }
 
-    pub fn read_word(&mut self, address: u16) -> u16 {
+    pub fn read_word(&self, address: u16) -> u16 {
         let low = (self.read_byte(address) as u16);
         let high  = (self.read_byte(address + 1) as u16);
 

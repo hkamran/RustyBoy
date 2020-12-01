@@ -92,7 +92,7 @@ impl Cpu {
         self.e = (value & 0xFF) as u8;
     }
 
-    pub fn get_hl(&mut self) -> u16 {
+    pub fn get_hl(&self) -> u16 {
         return (self.h as u16) << 8
             | self.l as u16;
     }
@@ -134,7 +134,7 @@ impl Cpu {
         }
     }
 
-    pub fn get_f_carry(&mut self) -> bool {
+    pub fn get_f_carry(&self) -> bool {
         return self.f & 0x10 > 0;
     }
 

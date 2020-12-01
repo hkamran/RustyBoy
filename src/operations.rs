@@ -285,7 +285,6 @@ pub fn op_02(cpu: &mut Cpu, mmu: &mut Mmu) {
 }
 
 pub fn op_03(cpu: &mut Cpu, mmu: &mut Mmu) {
-    //let value = ;
     cpu.set_bc(cpu.get_bc().wrapping_add(1));
     cpu.pc += 1;
     cpu.cycles += 6;
@@ -298,8 +297,7 @@ pub fn op_04(cpu: &mut Cpu, mmu: &mut Mmu) {
 }
 
 pub fn op_05(cpu: &mut Cpu, mmu: &mut Mmu) {
-    let value = cpu.apply_dec8_with_flags(cpu.b);
-    cpu.b = value;
+    cpu.b = cpu.apply_dec8_with_flags(cpu.b);
     cpu.pc += 1;
     cpu.cycles += 4;
 }
@@ -2084,8 +2082,7 @@ pub fn op_cb_02(cpu: &mut Cpu, mmu: &mut Mmu) {
 }
 
 pub fn op_cb_03(cpu: &mut Cpu, mmu: &mut Mmu) {
-    let value = cpu.get_bc().wrapping_add(1);
-    cpu.set_bc(value);
+    cpu.set_bc(cpu.get_bc().wrapping_add(1));
     cpu.pc += 1;
     cpu.cycles += 6;
 }
