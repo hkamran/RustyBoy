@@ -62,7 +62,7 @@ impl Cpu {
 
     // Register functions
 
-    pub fn get_af(&mut self) -> u16 {
+    pub fn get_af(&self) -> u16 {
         return (self.a as u16) << 8
             | self.f as u16;
     }
@@ -72,7 +72,7 @@ impl Cpu {
         self.f = (value & 0xFF) as u8;
     }
 
-    pub fn get_bc(&mut self) -> u16 {
+    pub fn get_bc(&self) -> u16 {
         return (self.b as u16) << 8
             | self.c as u16;
     }
@@ -82,7 +82,7 @@ impl Cpu {
         self.c = (value & 0xFF) as u8;
     }
 
-    pub fn get_de(&mut self) -> u16 {
+    pub fn get_de(&self) -> u16 {
         return (self.d as u16) << 8
             | self.e as u16;
     }
@@ -138,15 +138,15 @@ impl Cpu {
         return self.f & 0x10 > 0;
     }
 
-    pub fn get_f_substract(&mut self) -> bool {
+    pub fn get_f_substract(&self) -> bool {
         return self.f & 0x40 > 0;
     }
 
-    pub fn get_f_half_carry(&mut self) -> bool {
+    pub fn get_f_half_carry(&self) -> bool {
         return self.f & 0x20 > 0;
     }
 
-    pub fn get_f_zero(&mut self) -> bool {
+    pub fn get_f_zero(&self) -> bool {
         return self.f & 0x80 > 0;
     }
 

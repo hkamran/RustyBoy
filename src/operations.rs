@@ -285,8 +285,8 @@ pub fn op_02(cpu: &mut Cpu, mmu: &mut Mmu) {
 }
 
 pub fn op_03(cpu: &mut Cpu, mmu: &mut Mmu) {
-    let value = cpu.get_bc().wrapping_add(1);
-    cpu.set_bc(value);
+    //let value = ;
+    cpu.set_bc(cpu.get_bc().wrapping_add(1));
     cpu.pc += 1;
     cpu.cycles += 6;
 }
