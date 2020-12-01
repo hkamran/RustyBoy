@@ -15,8 +15,8 @@ impl Mmu {
 
     pub fn new() -> Self {
         return Mmu {
-            wram: [0; WRAM_SIZE],
-            zram: [0; ZRAM_SIZE],
+            wram: [0; 0x8000],
+            zram: [0; 0x7F],
             wram_bank: 1,
         };
     }
@@ -39,9 +39,9 @@ impl Mmu {
             (0xFF51 ..= 0xFF55) => { 0 },
             (0xFF68 ..= 0xFF6B) => { 0 },
             (0xFF0F ..= 0xFF0F) => { 0 },
-            (0xFF70 ..= 0xFF70) => { self.wram_bank as u },
+            (0xFF70 ..= 0xFF70) => { self.wram_bank as u8 },
             (0xFF80 ..= 0xFFFE) => { self.zram[address as usize & 0x007F] },
-            (0xFFFF ..= 0xFF80) => { 0 },
+            (0xFFFF ..= 0xFFFF) => { 0 },
             _ => 0,
         }
     }
@@ -59,19 +59,19 @@ impl Mmu {
             (0xFF04 ..= 0xFF07) => {},
             (0xFF10 ..= 0xFF3F) => {},
             (0xFF46 ..= 0xFF46) => {},
-            (0xFF4D ..= 0xFF4D) => { if value & 0x1 == 0x1 { self.speed_switch_req = true; } },
+            (0xFF4D ..= 0xFF4D) => {},
             (0xFF40 ..= 0xFF4F) => {},
             (0xFF51 ..= 0xFF55) => {},
             (0xFF68 ..= 0xFF6B) => {},
             (0xFF0F ..= 0xFF0F) => {},
             (0xFF70 ..= 0xFF70) => { self.wram_bank = match value & 0x7 { 0 => 1, n => n as usize }; },
             (0xFF80 ..= 0xFFFE) => { self.zram[address as usize & 0x007F] = value },
-            (0xFFFF ..= 0xFF80) => {},
+            (0xFFFF ..= 0xFFFF) => {},
             _ => {},
         };
     }
 
-    pub fn read_word(&mut self, addr: u16) -> u16 {
+    pub fn read_word(&mut self, address: u16) -> u16 {
         let low = (self.read_byte(address) as u16);
         let high  = (self.read_byte(address + 1) as u16);
 
