@@ -8,6 +8,12 @@ pub struct Mmu {
     wram: [u8; 0x8000],
     wram_bank: usize,
     zram: [u8; 0x7F],
+    speed: Speed,
+}
+
+#[derive(PartialEq)]
+pub enum Speed {
+    FAST, SLOW
 }
 
 #[allow(unused)]
@@ -18,6 +24,7 @@ impl Mmu {
             wram: [0; 0x8000],
             zram: [0; 0x7F],
             wram_bank: 1,
+            speed: Speed::SLOW
         };
     }
 
@@ -84,6 +91,10 @@ impl Mmu {
 
         self.write_byte(address, low);
         self.write_byte(address + 1, high);
+    }
+
+    pub fn toggle_speed(&mut self) {
+        self.speed = if Speed::FAST == self.speed { Speed::SLOW } else { Speed::FAST };
     }
 
 }

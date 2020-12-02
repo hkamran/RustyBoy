@@ -309,7 +309,7 @@ pub fn op_06(cpu: &mut Cpu, mmu: &mut Mmu) {
 }
 
 pub fn op_07(cpu: &mut Cpu, mmu: &mut Mmu) {
-    cpu.a = cpu.apply_rotate_left_with_flags(cpu.a);
+    cpu.a = cpu.apply_rotate_left_with_flags(cpu.a, false);
 
     cpu.pc += 1;
     cpu.cycles += 1;
@@ -332,101 +332,102 @@ pub fn op_09(cpu: &mut Cpu, mmu: &mut Mmu) {
 }
 
 pub fn op_0a(cpu: &mut Cpu, mmu: &mut Mmu) {
-    // TODO
-    mmu.read_byte(cpu.pc + 1);
+    cpu.a = mmu.read_byte(cpu.get_bc());
+
     cpu.pc += 1;
     cpu.cycles += 2;
 }
 
 pub fn op_0b(cpu: &mut Cpu, mmu: &mut Mmu) {
-    // TODO
-    mmu.read_byte(cpu.pc + 1);
+    let value: u16 = cpu.get_bc().wrapping_add(1);
+    cpu.set_bc(value);
+
     cpu.pc += 1;
     cpu.cycles += 2;
 }
 
 pub fn op_0c(cpu: &mut Cpu, mmu: &mut Mmu) {
-    // TODO
-    mmu.read_byte(cpu.pc + 1);
+    cpu.c = cpu.apply_inc8_with_flags(cpu.c);
+
     cpu.pc += 1;
-    cpu.cycles += 2;
+    cpu.cycles += 1;
 }
 
 pub fn op_0d(cpu: &mut Cpu, mmu: &mut Mmu) {
-    // TODO
-    mmu.read_byte(cpu.pc + 1);
+    cpu.c = cpu.apply_dec8_with_flags(cpu.c);
+
     cpu.pc += 1;
-    cpu.cycles += 2;
+    cpu.cycles += 1;
 }
 
 pub fn op_0e(cpu: &mut Cpu, mmu: &mut Mmu) {
-    // TODO
-    mmu.read_byte(cpu.pc + 1);
-    cpu.pc += 1;
+    cpu.c = mmu.read_byte(cpu.pc + 1);
+
+    cpu.pc += 2;
     cpu.cycles += 2;
 }
 
 pub fn op_0f(cpu: &mut Cpu, mmu: &mut Mmu) {
-    // TODO
-    mmu.read_byte(cpu.pc + 1);
+    cpu.a = cpu.apply_rotate_right_with_flags(cpu.a, false);
+
     cpu.pc += 1;
-    cpu.cycles += 2;
+    cpu.cycles += 1;
 }
 
 pub fn op_10(cpu: &mut Cpu, mmu: &mut Mmu) {
-    // TODO
-    mmu.read_byte(cpu.pc + 1);
+    mmu.toggle_speed();
+
     cpu.pc += 1;
     cpu.cycles += 2;
 }
 
 pub fn op_11(cpu: &mut Cpu, mmu: &mut Mmu) {
-    // TODO
-    mmu.read_byte(cpu.pc + 1);
-    cpu.pc += 1;
-    cpu.cycles += 2;
+    cpu.set_de(mmu.read_word(cpu.pc + 1));
+
+    cpu.pc += 3;
+    cpu.cycles += 3;
 }
 
 pub fn op_12(cpu: &mut Cpu, mmu: &mut Mmu) {
-    // TODO
-    mmu.read_byte(cpu.pc + 1);
+    mmu.write_byte(cpu.get_de(), cpu.a);
+
     cpu.pc += 1;
     cpu.cycles += 2;
 }
 
 pub fn op_13(cpu: &mut Cpu, mmu: &mut Mmu) {
-    // TODO
-    mmu.read_byte(cpu.pc + 1);
+    cpu.set_de(cpu.get_de().wrapping_add(1));
+
     cpu.pc += 1;
     cpu.cycles += 2;
 }
 
 pub fn op_14(cpu: &mut Cpu, mmu: &mut Mmu) {
-    // TODO
-    mmu.read_byte(cpu.pc + 1);
+    cpu.d = cpu.apply_inc8_with_flags(cpu.d);
+
     cpu.pc += 1;
-    cpu.cycles += 2;
+    cpu.cycles += 1;
 }
 
 pub fn op_15(cpu: &mut Cpu, mmu: &mut Mmu) {
-    // TODO
-    mmu.read_byte(cpu.pc + 1);
+    cpu.d = cpu.apply_dec8_with_flags(cpu.d);
+
     cpu.pc += 1;
-    cpu.cycles += 2;
+    cpu.cycles += 1;
 }
 
 pub fn op_16(cpu: &mut Cpu, mmu: &mut Mmu) {
-    // TODO
-    mmu.read_byte(cpu.pc + 1);
-    cpu.pc += 1;
+    cpu.d = mmu.read_byte(cpu.pc + 1);
+
+    cpu.pc += 2;
     cpu.cycles += 2;
 }
 
 pub fn op_17(cpu: &mut Cpu, mmu: &mut Mmu) {
-    // TODO
-    mmu.read_byte(cpu.pc + 1);
+    cpu.a = cpu.apply_rotate_left_with_flags(cpu.a, true);
+
     cpu.pc += 1;
-    cpu.cycles += 2;
+    cpu.cycles += 1;
 }
 
 pub fn op_18(cpu: &mut Cpu, mmu: &mut Mmu) {
@@ -437,52 +438,53 @@ pub fn op_18(cpu: &mut Cpu, mmu: &mut Mmu) {
 }
 
 pub fn op_19(cpu: &mut Cpu, mmu: &mut Mmu) {
-    // TODO
-    mmu.read_byte(cpu.pc + 1);
+    let value = cpu.apply_add16_with_flags(cpu.get_hl(), cpu.get_de());
+    cpu.set_hl(value);
+
     cpu.pc += 1;
     cpu.cycles += 2;
 }
 
 pub fn op_1a(cpu: &mut Cpu, mmu: &mut Mmu) {
-    // TODO
-    mmu.read_byte(cpu.pc + 1);
+    cpu.a = mmu.read_byte(cpu.get_de());
+
     cpu.pc += 1;
     cpu.cycles += 2;
 }
 
 pub fn op_1b(cpu: &mut Cpu, mmu: &mut Mmu) {
-    // TODO
-    mmu.read_byte(cpu.pc + 1);
+    cpu.set_de(cpu.get_de().wrapping_sub(1));
+
     cpu.pc += 1;
     cpu.cycles += 2;
 }
 
 pub fn op_1c(cpu: &mut Cpu, mmu: &mut Mmu) {
-    // TODO
-    mmu.read_byte(cpu.pc + 1);
+    cpu.e = cpu.apply_inc8_with_flags(cpu.e);
+
     cpu.pc += 1;
     cpu.cycles += 2;
 }
 
 pub fn op_1d(cpu: &mut Cpu, mmu: &mut Mmu) {
-    // TODO
-    mmu.read_byte(cpu.pc + 1);
+    cpu.e = cpu.apply_dec8_with_flags(cpu.e);
+
     cpu.pc += 1;
-    cpu.cycles += 2;
+    cpu.cycles += 1;
 }
 
 pub fn op_1e(cpu: &mut Cpu, mmu: &mut Mmu) {
-    // TODO
-    mmu.read_byte(cpu.pc + 1);
-    cpu.pc += 1;
+    cpu.e = mmu.read_byte(cpu.pc + 1);
+
+    cpu.pc += 2;
     cpu.cycles += 2;
 }
 
 pub fn op_1f(cpu: &mut Cpu, mmu: &mut Mmu) {
-    // TODO
-    mmu.read_byte(cpu.pc + 1);
+    cpu.a = cpu.apply_rotate_right_with_flags(cpu.a, true);
+
     cpu.pc += 1;
-    cpu.cycles += 2;
+    cpu.cycles += 1;
 }
 
 pub fn op_20(cpu: &mut Cpu, mmu: &mut Mmu) {
@@ -493,10 +495,11 @@ pub fn op_20(cpu: &mut Cpu, mmu: &mut Mmu) {
 }
 
 pub fn op_21(cpu: &mut Cpu, mmu: &mut Mmu) {
-    // TODO
-    mmu.read_byte(cpu.pc + 1);
-    cpu.pc += 1;
-    cpu.cycles += 2;
+    let value = mmu.read_word(cpu.pc + 1);
+    cpu.set_hl(value);
+
+    cpu.pc += 2;
+    cpu.cycles += 3;
 }
 
 pub fn op_22(cpu: &mut Cpu, mmu: &mut Mmu) {

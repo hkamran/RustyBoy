@@ -170,9 +170,21 @@ impl Cpu {
         return value;
     }
 
-    pub fn apply_rotate_left_with_flags(&mut self, arg: u8) -> u8 {
-        let carry: u8 = if arg & 0x80 != 0 {1} else {0};
+    pub fn apply_rotate_left_with_flags(&mut self, arg: u8, apply_cpu_carry: bool) -> u8 {
+        let carry: u8 = if apply_cpu_carry { if self.get_f_carry() {1} else {0} } else { if arg & 0x80 != 0 {1} else {0} };
         let result: u8 = (self.a << 1) | carry;
+
+        self.set_f_half_carry(false);
+        self.set_f_negative(false);
+        self.set_f_zero(result == 0);
+        self.set_f_carry(carry > 0);
+
+        return result;
+    }
+
+    pub fn apply_rotate_right_with_flags(&mut self, arg: u8, apply_cpu_carry: bool) -> u8 {
+        let carry: u8 = if apply_cpu_carry { if self.get_f_carry() {1} else {0} } else { arg & 0x01 };
+        let result = (arg >> 1) | if arg & 0x01 > 0 { 0x80 } else { 0 };
 
         self.set_f_half_carry(false);
         self.set_f_negative(false);
