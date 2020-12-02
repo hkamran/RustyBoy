@@ -110,7 +110,7 @@ impl Cpu {
         }
     }
 
-    pub fn set_f_substract(&mut self, value: bool) {
+    pub fn set_f_negative(&mut self, value: bool) {
         if value == true {
             self.f |= 0x40;
         } else {
@@ -155,7 +155,7 @@ impl Cpu {
 
         self.set_f_zero(value == 0);
         self.set_f_half_carry((arg & 0x0F) + 1 > 0x0F);
-        self.set_f_substract(false);
+        self.set_f_negative(false);
 
         return value;
     }
@@ -165,9 +165,31 @@ impl Cpu {
 
         self.set_f_zero(value == 0);
         self.set_f_half_carry((arg & 0x0F) == 0x0F);
-        self.set_f_substract(true);
+        self.set_f_negative(true);
 
         return value;
+    }
+
+    pub fn apply_rotate_left_with_flags(&mut self, arg: u8) -> u8 {
+        let carry: u8 = if arg & 0x80 != 0 {1} else {0};
+        let result: u8 = (self.a << 1) | carry;
+
+        self.set_f_half_carry(false);
+        self.set_f_negative(false);
+        self.set_f_zero(result == 0);
+        self.set_f_carry(carry > 0);
+
+        return result;
+    }
+
+    pub fn apply_add16_with_flags(&mut self, a: u16, b: u16) -> u16 {
+        let result: u16 = a.wrapping_add(b);
+
+        self.set_f_half_carry((a & 0x07FF) + (b & 0x07FF) > 0x07FF);
+        self.set_f_negative(false);
+        self.set_f_carry(a > 0xFFFF - b);
+
+        return result;
     }
 
 }
