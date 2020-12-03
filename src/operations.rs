@@ -503,37 +503,40 @@ pub fn op_21(cpu: &mut Cpu, mmu: &mut Mmu) {
 }
 
 pub fn op_22(cpu: &mut Cpu, mmu: &mut Mmu) {
-    // TODO
-    mmu.read_byte(cpu.pc + 1);
+    let addr = cpu.get_hl().wrapping_add(1);
+    mmu.write_byte(addr, cpu.a);
+    cpu.set_hl(addr);
+
     cpu.pc += 1;
     cpu.cycles += 2;
 }
 
 pub fn op_23(cpu: &mut Cpu, mmu: &mut Mmu) {
-    // TODO
-    mmu.read_byte(cpu.pc + 1);
+    let value = cpu.get_hl().wrapping_add(1);
+    cpu.set_hl(value);
+
     cpu.pc += 1;
     cpu.cycles += 2;
 }
 
 pub fn op_24(cpu: &mut Cpu, mmu: &mut Mmu) {
-    // TODO
-    mmu.read_byte(cpu.pc + 1);
+    cpu.h = cpu.apply_inc8_with_flags(cpu.h);
+
     cpu.pc += 1;
-    cpu.cycles += 2;
+    cpu.cycles += 1;
 }
 
 pub fn op_25(cpu: &mut Cpu, mmu: &mut Mmu) {
-    // TODO
-    mmu.read_byte(cpu.pc + 1);
+    cpu.h = cpu.apply_dec8_with_flags(cpu.h);
+
     cpu.pc += 1;
-    cpu.cycles += 2;
+    cpu.cycles += 1;
 }
 
 pub fn op_26(cpu: &mut Cpu, mmu: &mut Mmu) {
-    // TODO
-    mmu.read_byte(cpu.pc + 1);
-    cpu.pc += 1;
+    cpu.h  = mmu.read_byte(cpu.pc + 1);
+
+    cpu.pc += 2;
     cpu.cycles += 2;
 }
 
@@ -552,64 +555,68 @@ pub fn op_28(cpu: &mut Cpu, mmu: &mut Mmu) {
 }
 
 pub fn op_29(cpu: &mut Cpu, mmu: &mut Mmu) {
-    // TODO
-    mmu.read_byte(cpu.pc + 1);
+    let result = cpu.apply_add16_with_flags(cpu.get_hl(), cpu.sp);
+    cpu.set_hl(result);
+
     cpu.pc += 1;
     cpu.cycles += 2;
 }
 
 pub fn op_2a(cpu: &mut Cpu, mmu: &mut Mmu) {
-    // TODO
-    mmu.read_byte(cpu.pc + 1);
+    cpu.a =  mmu.read_byte(cpu.get_hl().wrapping_add(1));
+
     cpu.pc += 1;
     cpu.cycles += 2;
 }
 
 pub fn op_2b(cpu: &mut Cpu, mmu: &mut Mmu) {
-    // TODO
-    mmu.read_byte(cpu.pc + 1);
+    cpu.set_hl(cpu.get_hl().wrapping_sub(1));
+
+
     cpu.pc += 1;
     cpu.cycles += 2;
 }
 
 pub fn op_2c(cpu: &mut Cpu, mmu: &mut Mmu) {
-    // TODO
-    mmu.read_byte(cpu.pc + 1);
+    cpu.l = cpu.apply_inc8_with_flags(cpu.l);
+
     cpu.pc += 1;
-    cpu.cycles += 2;
+    cpu.cycles += 1;
 }
 
 pub fn op_2d(cpu: &mut Cpu, mmu: &mut Mmu) {
-    // TODO
-    mmu.read_byte(cpu.pc + 1);
+    cpu.l = cpu.apply_dec8_with_flags(cpu.l);
+
     cpu.pc += 1;
-    cpu.cycles += 2;
+    cpu.cycles += 1;
 }
 
 pub fn op_2e(cpu: &mut Cpu, mmu: &mut Mmu) {
-    // TODO
-    mmu.read_byte(cpu.pc + 1);
+    cpu.l = mmu.read_byte(cpu.pc + 1);
+
     cpu.pc += 1;
     cpu.cycles += 2;
 }
 
 pub fn op_2f(cpu: &mut Cpu, mmu: &mut Mmu) {
-    // TODO
-    mmu.read_byte(cpu.pc + 1);
+    cpu.a = !cpu.a;
+    cpu.set_f_half_carry(true);
+    cpu.set_f_negative(true);
+
     cpu.pc += 1;
-    cpu.cycles += 2;
+    cpu.cycles += 1;
 }
 
 pub fn op_30(cpu: &mut Cpu, mmu: &mut Mmu) {
     // TODO
-    mmu.read_byte(cpu.pc + 1);
-    cpu.pc += 1;
-    cpu.cycles += 2;
+
+    cpu.pc += 2;
+    cpu.cycles += 3;
 }
 
 pub fn op_31(cpu: &mut Cpu, mmu: &mut Mmu) {
-    // TODO
-    mmu.read_byte(cpu.pc + 1);
+
+    cpu.sp = mmu.read_word(cpu.pc + 1);
     cpu.pc += 1;
     cpu.cycles += 2;
 }
