@@ -622,38 +622,46 @@ pub fn op_31(cpu: &mut Cpu, mmu: &mut Mmu) {
 }
 
 pub fn op_32(cpu: &mut Cpu, mmu: &mut Mmu) {
-    // TODO
-    mmu.read_byte(cpu.pc + 1);
+    mmu.write_byte(cpu.get_hl(), cpu.a);
+    cpu.set_hl(cpu.get_hl() - 1);
+
     cpu.pc += 1;
     cpu.cycles += 2;
 }
 
 pub fn op_33(cpu: &mut Cpu, mmu: &mut Mmu) {
-    // TODO
-    mmu.read_byte(cpu.pc + 1);
+    cpu.sp = cpu.sp.wrapping_add(1);
+
     cpu.pc += 1;
     cpu.cycles += 2;
 }
 
 pub fn op_34(cpu: &mut Cpu, mmu: &mut Mmu) {
-    // TODO
-    mmu.read_byte(cpu.pc + 1);
+    let addr = cpu.get_hl();
+    let mut value = mmu.read_byte(addr);
+    value = cpu.apply_inc8_with_flags(value);
+    mmu.write_byte(cpu.a as u16, value);
+
     cpu.pc += 1;
-    cpu.cycles += 2;
+    cpu.cycles += 3;
 }
 
 pub fn op_35(cpu: &mut Cpu, mmu: &mut Mmu) {
-    // TODO
-    mmu.read_byte(cpu.pc + 1);
+    let addr = cpu.get_hl();
+    let mut value = mmu.read_byte(addr);
+    value = cpu.apply_dec8_with_flags(value);
+    mmu.write_byte(cpu.a as u16, value);
+
     cpu.pc += 1;
-    cpu.cycles += 2;
+    cpu.cycles += 3;
 }
 
 pub fn op_36(cpu: &mut Cpu, mmu: &mut Mmu) {
-    // TODO
-    mmu.read_byte(cpu.pc + 1);
-    cpu.pc += 1;
-    cpu.cycles += 2;
+    let value = mmu.read_byte(cpu.pc + 1);
+    mmu.write_byte(cpu.get_hl(), value);
+
+    cpu.pc += 2;
+    cpu.cycles += 3;
 }
 
 pub fn op_37(cpu: &mut Cpu, mmu: &mut Mmu) {
