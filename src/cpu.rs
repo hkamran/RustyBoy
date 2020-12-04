@@ -1,5 +1,7 @@
-use crate::mmu::Mmu;
+use crate::bus::Bus;
 use crate::operations;
+use std::cell::RefCell;
+use std::rc::Rc;
 
 #[allow(unused)]
 pub struct Cpu {
@@ -17,12 +19,13 @@ pub struct Cpu {
     pub halted: bool,
     pub ime: bool,
     pub cycles: u16,
+    pub bus: Rc<RefCell<Bus>>
 }
 
 #[allow(unused)]
 impl Cpu {
 
-    pub fn new() -> Self {
+    pub fn new(bus: Rc<RefCell<Bus>>) -> Self {
         return Cpu {
             a: 0,
             b: 0,
@@ -37,17 +40,18 @@ impl Cpu {
             halted: false,
             ime: false,
             cycles: 0,
+            bus
         }
     }
 
-    pub fn tick(&mut self, mmu: &mut Mmu) -> u8 {
+    pub fn tick(&mut self) -> u8 {
         let cycles = self.cycles;
         let pc = self.pc;
-        let opcode: u8 = mmu.read_byte(pc);
+        let opcode: u8 = self.bus.borrow().read_byte(pc);
         let operation = operations::get(opcode);
 
         // execute
-        operation(self, mmu);
+        operation(self);
 
         return (self.cycles - cycles) as u8;
     }
