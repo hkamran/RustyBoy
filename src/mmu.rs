@@ -103,4 +103,8 @@ impl Mmu {
         self.speed = if Speed::FAST == self.speed { Speed::SLOW } else { Speed::FAST };
     }
 
+    pub fn mutate(&mut self) {
+        println!("{}", self.ppu.borrow().id);
+    }
+
 }

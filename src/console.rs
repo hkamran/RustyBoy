@@ -27,6 +27,9 @@ impl Console {
     pub fn tick(&mut self) -> () {
         self.cpu.tick(&mut self.mmu);
 
+        self.ppu.borrow_mut().id = 1;
+        self.mmu.mutate();
+
         for _x in 0..3 {
             self.ppu.borrow_mut().tick(&mut self.mmu);
         }
