@@ -6,16 +6,14 @@
 use crate::ppu::Ppu;
 use std::cell::{RefCell};
 use std::rc::Rc;
-use crate::cpu::Cpu;
 
 #[allow(unused)]
-pub struct Bus {
+pub struct Mmu {
     wram: [u8; 0x8000],
     wram_bank: usize,
     zram: [u8; 0x7F],
     speed: Speed,
-    pub ppu: Option<Rc<RefCell<Ppu>>>,
-    pub cpu: Option<Rc<RefCell<Cpu>>>
+    ppu: Rc<RefCell<Ppu>>,
 }
 
 #[derive(PartialEq)]
@@ -24,16 +22,15 @@ pub enum Speed {
 }
 
 #[allow(unused)]
-impl Bus {
+impl Mmu {
 
-    pub fn new() -> Self {
-        return Bus {
+    pub fn new(ppu: Rc<RefCell<Ppu>>) -> Self {
+        return Mmu {
+            ppu,
             wram: [0; 0x8000],
             zram: [0; 0x7F],
             wram_bank: 1,
-            speed: Speed::SLOW,
-            cpu: None,
-            ppu: None
+            speed: Speed::SLOW
         };
     }
 
@@ -107,8 +104,7 @@ impl Bus {
     }
 
     pub fn mutate(&mut self) {
-        self.ppu.as_ref().unwrap().borrow_mut().id += 1;
-        println!("{}", self.ppu.as_ref().unwrap().borrow().id);
+        println!("{}", self.ppu.borrow().id);
     }
 
 }

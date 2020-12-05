@@ -1,5 +1,5 @@
 mod cpu;
-mod bus;
+mod mmu;
 mod console;
 mod ppu;
 mod cartridge;

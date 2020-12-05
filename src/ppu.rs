@@ -1,25 +1,21 @@
-use crate::bus::Bus;
-use std::cell::RefCell;
-use std::rc::Rc;
+use crate::mmu::Mmu;
 
 #[allow(dead_code)]
 pub struct Ppu {
-    pub id: u8,
-    bus: Rc<RefCell<Bus>>
+    pub id: u8
 }
 
 #[allow(dead_code)]
 impl Ppu {
 
-    pub fn new(bus: Rc<RefCell<Bus>>) -> Self {
+    pub fn new() -> Self {
         return Ppu {
-            id: 0,
-            bus,
+            id: 0
         };
     }
 
     #[allow(unused)]
-    pub fn tick(&mut self) -> () {
+    pub fn tick(&mut self, bus: &mut Mmu) -> () {
         println!("Ppu ticked");
     }
 }
