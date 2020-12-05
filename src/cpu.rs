@@ -265,6 +265,41 @@ impl Cpu {
         return result;
     }
 
+    pub fn apply_shift_left_with_flags(&mut self, a: u8) -> u8 {
+        let carry = if a & 0x80 == 0x80 {1} else {0};
+        let result = a << 1;
+
+        self.set_f_half_carry(false);
+        self.set_f_negative(false);
+        self.set_f_zero(result == 0);
+        self.set_f_carry(carry == 1);
+
+        return result;
+    }
+
+    pub fn apply_shift_right_with_flags(&mut self, a: u8, apply_rotation: bool) -> u8 {
+        let carry = if a & 0x01 == 0x01 {1} else {0};
+        let result = (a >> 1) | if apply_rotation {(a & 0x80)} else {0};
+
+        self.set_f_half_carry(false);
+        self.set_f_negative(false);
+        self.set_f_zero(result == 0);
+        self.set_f_carry(carry == 1);
+
+        return result;
+    }
+
+    pub fn apply_swap_bytes(&mut self, a: u8) -> u8 {
+        let result = (a >> 4) | (a << 4);
+
+        self.set_f_zero(a == 0);
+        self.set_f_half_carry(false);
+        self.set_f_negative(false);
+        self.set_f_carry(false);
+
+        return result;
+    }
+
     pub fn push_byte(&mut self, mmu: &mut Mmu, value: u8) {
         self.sp -= 1;
         mmu.write_byte(self.sp, value);
