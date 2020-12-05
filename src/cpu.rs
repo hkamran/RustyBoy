@@ -15,6 +15,7 @@ pub struct Cpu {
     pub pc: u16,
 
     pub halted: bool,
+    pub interrupt_enable: bool,
     pub ime: bool,
     pub cycles: u16,
 }
@@ -35,6 +36,7 @@ impl Cpu {
             sp: 0,
             pc: 0,
             halted: false,
+            interrupt_enable: true,
             ime: false,
             cycles: 0,
         }
