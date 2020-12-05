@@ -51,17 +51,9 @@ impl Cpu {
         let operation = operations::get(opcode);
 
         // execute
-        self.execute(opcode);
+        operation(self);
 
         return (self.cycles - cycles) as u8;
-    }
-
-    pub fn execute(&mut self, opcode: u8) {
-        match opcode {
-            0x00 => { },
-            0x01 => { },
-            _ => {}
-        }
     }
 
     pub fn to_string(&mut self) -> String {
