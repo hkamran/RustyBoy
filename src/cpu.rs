@@ -194,6 +194,30 @@ impl Cpu {
         return result;
     }
 
+    pub fn apply_add8_with_flags(&mut self, a: u8, b: u8, apply_with_carry: bool) -> u8 {
+        let carry: u8 = if apply_cpu_carry { if self.get_f_carry() {1} else {0} } else { 0 };
+        let result = a.wrapping_add(b).wrapping_add(carry);
+
+        self.set_f_zero(result == 0);
+        self.set_f_half_carry(((a & 0xF) + (b & 0xF) + c) > 0xF);
+        self.set_f_negative(false);
+        self.set_f_carry((a as u16) + (b as u16) + (c as u16) > 0xFF);
+
+        return result;
+    }
+
+    pub fn apply_sub8_with_flags(&mut self, a: u8, b: u8, apply_with_carry: bool) -> u8 {
+        let carry: u8 = if apply_cpu_carry { if self.get_f_carry() {1} else {0} } else { 0 };
+        let result = a.wrapping_sub(b).wrapping_sub(carry);
+
+        self.set_f_zero(result == 0);
+        self.set_f_half_carry((a & 0x0F) < (b & 0x0F) + c);
+        self.set_f_negative(true);
+        self.set_f_carry((a as u16) < (b as u16) + (c as u16));
+
+        return result;
+    }
+
     pub fn apply_add16_with_flags(&mut self, a: u16, b: u16) -> u16 {
         let result: u16 = a.wrapping_add(b);
 
@@ -204,5 +228,59 @@ impl Cpu {
         return result;
     }
 
+    pub fn apply_and8_with_flags(&mut self, a: u8, b: u8) -> u8 {
+        let result = a & b;
+
+        self.set_f_zero(result == 0);
+        self.set_f_half_carry(true);
+        self.set_f_carry(false);
+        self.set_f_negative(false);
+
+        return result;
+    }
+
+    pub fn apply_or8_with_flags(&mut self, a: u8, b: u8) -> u8 {
+        let result = a | b;
+
+        self.set_f_zero(result == 0);
+        self.set_f_half_carry(false);
+        self.set_f_carry(false);
+        self.set_f_negative(false);
+
+        return result;
+    }
+
+    pub fn apply_xor8_with_flags(&mut self, a: u8, b: u8) -> u8 {
+        let result = a ^ b;
+
+        self.set_f_zero(result == 0);
+        self.set_f_half_carry(false);
+        self.set_f_carry(false);
+        self.set_f_negative(false);
+
+        return result;
+    }
+
+    pub fn pushByte(&mut self, mmu: &mut Mmu, value: u8) {
+        self.sp -= 1;
+        mmu.write_byte(cpu.sp, value);
+    }
+
+    pub fn pushWord(&mut self, mmu: &mut Mmu, value: u16) {
+        self.sp -= 2;
+        mmu.write_word(cpu.sp, value);
+    }
+
+    pub fn popByte(&mut self, mmu: &mut Mmu) -> u8 {
+        let value = mmu.read_byte(cpu.sp);
+        self.sp -= 1;
+        return value;
+    }
+
+    pub fn popWord(&mut self, mmu: &mut Mmu) -> u16 {
+        let value = mmu.read_word(cpu.sp);
+        self.sp -= 2;
+        return value;
+    }
 }
 
