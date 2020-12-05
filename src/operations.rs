@@ -266,7 +266,7 @@ pub fn get(opcode: u8) -> OperationType {
     }
 }
 
-pub fn op_00(cpu: &mut Cpu, mmu: &mut Mmu) {
+pub fn op_00(cpu: &mut Cpu, _mmu: &mut Mmu) {
     println!("NOP");
     cpu.pc += 1;
     cpu.cycles += 2;
@@ -284,19 +284,19 @@ pub fn op_02(cpu: &mut Cpu, mmu: &mut Mmu) {
     cpu.cycles += 7
 }
 
-pub fn op_03(cpu: &mut Cpu, mmu: &mut Mmu) {
+pub fn op_03(cpu: &mut Cpu, _mmu: &mut Mmu) {
     cpu.set_bc(cpu.get_bc().wrapping_add(1));
     cpu.pc += 1;
     cpu.cycles += 6;
 }
 
-pub fn op_04(cpu: &mut Cpu, mmu: &mut Mmu) {
+pub fn op_04(cpu: &mut Cpu, _mmu: &mut Mmu) {
     cpu.b = cpu.apply_inc8_with_flags(cpu.b);
     cpu.pc += 1;
     cpu.cycles += 4;
 }
 
-pub fn op_05(cpu: &mut Cpu, mmu: &mut Mmu) {
+pub fn op_05(cpu: &mut Cpu, _mmu: &mut Mmu) {
     cpu.b = cpu.apply_dec8_with_flags(cpu.b);
     cpu.pc += 1;
     cpu.cycles += 4;
@@ -308,7 +308,7 @@ pub fn op_06(cpu: &mut Cpu, mmu: &mut Mmu) {
     cpu.cycles += 7;
 }
 
-pub fn op_07(cpu: &mut Cpu, mmu: &mut Mmu) {
+pub fn op_07(cpu: &mut Cpu, _mmu: &mut Mmu) {
     cpu.a = cpu.apply_rotate_left_with_flags(cpu.a, false);
 
     cpu.pc += 1;
@@ -323,7 +323,7 @@ pub fn op_08(cpu: &mut Cpu, mmu: &mut Mmu) {
     cpu.cycles += 5;
 }
 
-pub fn op_09(cpu: &mut Cpu, mmu: &mut Mmu) {
+pub fn op_09(cpu: &mut Cpu, _mmu: &mut Mmu) {
     let value = cpu.apply_add16_with_flags(cpu.get_hl(), cpu.get_bc());
     cpu.set_hl(value);
 
@@ -338,7 +338,7 @@ pub fn op_0a(cpu: &mut Cpu, mmu: &mut Mmu) {
     cpu.cycles += 2;
 }
 
-pub fn op_0b(cpu: &mut Cpu, mmu: &mut Mmu) {
+pub fn op_0b(cpu: &mut Cpu, _mmu: &mut Mmu) {
     let value: u16 = cpu.get_bc().wrapping_add(1);
     cpu.set_bc(value);
 
@@ -346,14 +346,14 @@ pub fn op_0b(cpu: &mut Cpu, mmu: &mut Mmu) {
     cpu.cycles += 2;
 }
 
-pub fn op_0c(cpu: &mut Cpu, mmu: &mut Mmu) {
+pub fn op_0c(cpu: &mut Cpu, _mmu: &mut Mmu) {
     cpu.c = cpu.apply_inc8_with_flags(cpu.c);
 
     cpu.pc += 1;
     cpu.cycles += 1;
 }
 
-pub fn op_0d(cpu: &mut Cpu, mmu: &mut Mmu) {
+pub fn op_0d(cpu: &mut Cpu, _mmu: &mut Mmu) {
     cpu.c = cpu.apply_dec8_with_flags(cpu.c);
 
     cpu.pc += 1;
@@ -367,7 +367,7 @@ pub fn op_0e(cpu: &mut Cpu, mmu: &mut Mmu) {
     cpu.cycles += 2;
 }
 
-pub fn op_0f(cpu: &mut Cpu, mmu: &mut Mmu) {
+pub fn op_0f(cpu: &mut Cpu, _mmu: &mut Mmu) {
     cpu.a = cpu.apply_rotate_right_with_flags(cpu.a, false);
 
     cpu.pc += 1;
@@ -395,21 +395,21 @@ pub fn op_12(cpu: &mut Cpu, mmu: &mut Mmu) {
     cpu.cycles += 2;
 }
 
-pub fn op_13(cpu: &mut Cpu, mmu: &mut Mmu) {
+pub fn op_13(cpu: &mut Cpu, _mmu: &mut Mmu) {
     cpu.set_de(cpu.get_de().wrapping_add(1));
 
     cpu.pc += 1;
     cpu.cycles += 2;
 }
 
-pub fn op_14(cpu: &mut Cpu, mmu: &mut Mmu) {
+pub fn op_14(cpu: &mut Cpu, _mmu: &mut Mmu) {
     cpu.d = cpu.apply_inc8_with_flags(cpu.d);
 
     cpu.pc += 1;
     cpu.cycles += 1;
 }
 
-pub fn op_15(cpu: &mut Cpu, mmu: &mut Mmu) {
+pub fn op_15(cpu: &mut Cpu, _mmu: &mut Mmu) {
     cpu.d = cpu.apply_dec8_with_flags(cpu.d);
 
     cpu.pc += 1;
@@ -423,7 +423,7 @@ pub fn op_16(cpu: &mut Cpu, mmu: &mut Mmu) {
     cpu.cycles += 2;
 }
 
-pub fn op_17(cpu: &mut Cpu, mmu: &mut Mmu) {
+pub fn op_17(cpu: &mut Cpu, _mmu: &mut Mmu) {
     cpu.a = cpu.apply_rotate_left_with_flags(cpu.a, true);
 
     cpu.pc += 1;
@@ -437,7 +437,7 @@ pub fn op_18(cpu: &mut Cpu, mmu: &mut Mmu) {
     cpu.cycles += 2;
 }
 
-pub fn op_19(cpu: &mut Cpu, mmu: &mut Mmu) {
+pub fn op_19(cpu: &mut Cpu, _mmu: &mut Mmu) {
     let value = cpu.apply_add16_with_flags(cpu.get_hl(), cpu.get_de());
     cpu.set_hl(value);
 
@@ -452,21 +452,21 @@ pub fn op_1a(cpu: &mut Cpu, mmu: &mut Mmu) {
     cpu.cycles += 2;
 }
 
-pub fn op_1b(cpu: &mut Cpu, mmu: &mut Mmu) {
+pub fn op_1b(cpu: &mut Cpu, _mmu: &mut Mmu) {
     cpu.set_de(cpu.get_de().wrapping_sub(1));
 
     cpu.pc += 1;
     cpu.cycles += 2;
 }
 
-pub fn op_1c(cpu: &mut Cpu, mmu: &mut Mmu) {
+pub fn op_1c(cpu: &mut Cpu, _mmu: &mut Mmu) {
     cpu.e = cpu.apply_inc8_with_flags(cpu.e);
 
     cpu.pc += 1;
     cpu.cycles += 2;
 }
 
-pub fn op_1d(cpu: &mut Cpu, mmu: &mut Mmu) {
+pub fn op_1d(cpu: &mut Cpu, _mmu: &mut Mmu) {
     cpu.e = cpu.apply_dec8_with_flags(cpu.e);
 
     cpu.pc += 1;
@@ -480,7 +480,7 @@ pub fn op_1e(cpu: &mut Cpu, mmu: &mut Mmu) {
     cpu.cycles += 2;
 }
 
-pub fn op_1f(cpu: &mut Cpu, mmu: &mut Mmu) {
+pub fn op_1f(cpu: &mut Cpu, _mmu: &mut Mmu) {
     cpu.a = cpu.apply_rotate_right_with_flags(cpu.a, true);
 
     cpu.pc += 1;
@@ -511,7 +511,7 @@ pub fn op_22(cpu: &mut Cpu, mmu: &mut Mmu) {
     cpu.cycles += 2;
 }
 
-pub fn op_23(cpu: &mut Cpu, mmu: &mut Mmu) {
+pub fn op_23(cpu: &mut Cpu, _mmu: &mut Mmu) {
     let value = cpu.get_hl().wrapping_add(1);
     cpu.set_hl(value);
 
@@ -519,14 +519,14 @@ pub fn op_23(cpu: &mut Cpu, mmu: &mut Mmu) {
     cpu.cycles += 2;
 }
 
-pub fn op_24(cpu: &mut Cpu, mmu: &mut Mmu) {
+pub fn op_24(cpu: &mut Cpu, _mmu: &mut Mmu) {
     cpu.h = cpu.apply_inc8_with_flags(cpu.h);
 
     cpu.pc += 1;
     cpu.cycles += 1;
 }
 
-pub fn op_25(cpu: &mut Cpu, mmu: &mut Mmu) {
+pub fn op_25(cpu: &mut Cpu, _mmu: &mut Mmu) {
     cpu.h = cpu.apply_dec8_with_flags(cpu.h);
 
     cpu.pc += 1;
@@ -554,7 +554,7 @@ pub fn op_28(cpu: &mut Cpu, mmu: &mut Mmu) {
     cpu.cycles += 2;
 }
 
-pub fn op_29(cpu: &mut Cpu, mmu: &mut Mmu) {
+pub fn op_29(cpu: &mut Cpu, _mmu: &mut Mmu) {
     let result = cpu.apply_add16_with_flags(cpu.get_hl(), cpu.sp);
     cpu.set_hl(result);
 
@@ -569,7 +569,7 @@ pub fn op_2a(cpu: &mut Cpu, mmu: &mut Mmu) {
     cpu.cycles += 2;
 }
 
-pub fn op_2b(cpu: &mut Cpu, mmu: &mut Mmu) {
+pub fn op_2b(cpu: &mut Cpu, _mmu: &mut Mmu) {
     cpu.set_hl(cpu.get_hl().wrapping_sub(1));
 
 
@@ -577,14 +577,14 @@ pub fn op_2b(cpu: &mut Cpu, mmu: &mut Mmu) {
     cpu.cycles += 2;
 }
 
-pub fn op_2c(cpu: &mut Cpu, mmu: &mut Mmu) {
+pub fn op_2c(cpu: &mut Cpu, _mmu: &mut Mmu) {
     cpu.l = cpu.apply_inc8_with_flags(cpu.l);
 
     cpu.pc += 1;
     cpu.cycles += 1;
 }
 
-pub fn op_2d(cpu: &mut Cpu, mmu: &mut Mmu) {
+pub fn op_2d(cpu: &mut Cpu, _mmu: &mut Mmu) {
     cpu.l = cpu.apply_dec8_with_flags(cpu.l);
 
     cpu.pc += 1;
@@ -598,7 +598,7 @@ pub fn op_2e(cpu: &mut Cpu, mmu: &mut Mmu) {
     cpu.cycles += 2;
 }
 
-pub fn op_2f(cpu: &mut Cpu, mmu: &mut Mmu) {
+pub fn op_2f(cpu: &mut Cpu, _mmu: &mut Mmu) {
     cpu.a = !cpu.a;
     cpu.set_f_half_carry(true);
     cpu.set_f_negative(true);
@@ -607,7 +607,7 @@ pub fn op_2f(cpu: &mut Cpu, mmu: &mut Mmu) {
     cpu.cycles += 1;
 }
 
-pub fn op_30(cpu: &mut Cpu, mmu: &mut Mmu) {
+pub fn op_30(cpu: &mut Cpu, _mmu: &mut Mmu) {
     // TODO
 
     cpu.pc += 2;
@@ -628,7 +628,7 @@ pub fn op_32(cpu: &mut Cpu, mmu: &mut Mmu) {
     cpu.cycles += 2;
 }
 
-pub fn op_33(cpu: &mut Cpu, mmu: &mut Mmu) {
+pub fn op_33(cpu: &mut Cpu, _mmu: &mut Mmu) {
     cpu.sp = cpu.sp.wrapping_add(1);
 
     cpu.pc += 1;
@@ -663,7 +663,7 @@ pub fn op_36(cpu: &mut Cpu, mmu: &mut Mmu) {
     cpu.cycles += 3;
 }
 
-pub fn op_37(cpu: &mut Cpu, mmu: &mut Mmu) {
+pub fn op_37(cpu: &mut Cpu, _mmu: &mut Mmu) {
     cpu.set_f_carry(true);
     cpu.set_f_half_carry(false);
     cpu.set_f_negative(false);
@@ -672,14 +672,14 @@ pub fn op_37(cpu: &mut Cpu, mmu: &mut Mmu) {
     cpu.cycles += 1;
 }
 
-pub fn op_38(cpu: &mut Cpu, mmu: &mut Mmu) {
+pub fn op_38(cpu: &mut Cpu, _mmu: &mut Mmu) {
     // TODO
 
     cpu.pc += 1;
     cpu.cycles += 2;
 }
 
-pub fn op_39(cpu: &mut Cpu, mmu: &mut Mmu) {
+pub fn op_39(cpu: &mut Cpu, _mmu: &mut Mmu) {
     let hl = cpu.get_hl();
     let sp = cpu.sp;
 
@@ -699,21 +699,21 @@ pub fn op_3a(cpu: &mut Cpu, mmu: &mut Mmu) {
     cpu.cycles += 2;
 }
 
-pub fn op_3b(cpu: &mut Cpu, mmu: &mut Mmu) {
+pub fn op_3b(cpu: &mut Cpu, _mmu: &mut Mmu) {
     cpu.sp = cpu.sp.wrapping_sub(1);
 
     cpu.pc += 1;
     cpu.cycles += 2;
 }
 
-pub fn op_3c(cpu: &mut Cpu, mmu: &mut Mmu) {
+pub fn op_3c(cpu: &mut Cpu, _mmu: &mut Mmu) {
     cpu.a = cpu.apply_inc8_with_flags(cpu.a);
 
     cpu.pc += 1;
     cpu.cycles += 1;
 }
 
-pub fn op_3d(cpu: &mut Cpu, mmu: &mut Mmu) {
+pub fn op_3d(cpu: &mut Cpu, _mmu: &mut Mmu) {
     cpu.a = cpu.apply_dec8_with_flags(cpu.a);
 
     cpu.pc += 1;
@@ -734,40 +734,40 @@ pub fn op_3f(cpu: &mut Cpu, mmu: &mut Mmu) {
     cpu.cycles += 2;
 }
 
-pub fn op_40(cpu: &mut Cpu, mmu: &mut Mmu) {
+pub fn op_40(cpu: &mut Cpu, _mmu: &mut Mmu) {
     cpu.pc += 1;
     cpu.cycles += 1;
 }
 
-pub fn op_41(cpu: &mut Cpu, mmu: &mut Mmu) {
+pub fn op_41(cpu: &mut Cpu, _mmu: &mut Mmu) {
     cpu.b = cpu.c;
 
     cpu.pc += 1;
     cpu.cycles += 1;
 }
 
-pub fn op_42(cpu: &mut Cpu, mmu: &mut Mmu) {
+pub fn op_42(cpu: &mut Cpu, _mmu: &mut Mmu) {
     cpu.b = cpu.d;
 
     cpu.pc += 1;
     cpu.cycles += 2;
 }
 
-pub fn op_43(cpu: &mut Cpu, mmu: &mut Mmu) {
+pub fn op_43(cpu: &mut Cpu, _mmu: &mut Mmu) {
     cpu.b = cpu.e;
 
     cpu.pc += 1;
     cpu.cycles += 2;
 }
 
-pub fn op_44(cpu: &mut Cpu, mmu: &mut Mmu) {
+pub fn op_44(cpu: &mut Cpu, _mmu: &mut Mmu) {
     cpu.b = cpu.h;
 
     cpu.pc += 1;
     cpu.cycles += 2;
 }
 
-pub fn op_45(cpu: &mut Cpu, mmu: &mut Mmu) {
+pub fn op_45(cpu: &mut Cpu, _mmu: &mut Mmu) {
     cpu.b = cpu.l;
 
     cpu.pc += 1;
@@ -781,47 +781,47 @@ pub fn op_46(cpu: &mut Cpu, mmu: &mut Mmu) {
     cpu.cycles += 2;
 }
 
-pub fn op_47(cpu: &mut Cpu, mmu: &mut Mmu) {
+pub fn op_47(cpu: &mut Cpu, _mmu: &mut Mmu) {
     cpu.b = cpu.a;
 
     cpu.pc += 1;
     cpu.cycles += 1;
 }
 
-pub fn op_48(cpu: &mut Cpu, mmu: &mut Mmu) {
+pub fn op_48(cpu: &mut Cpu, _mmu: &mut Mmu) {
     cpu.c = cpu.b;
 
     cpu.pc += 1;
     cpu.cycles += 1;
 }
 
-pub fn op_49(cpu: &mut Cpu, mmu: &mut Mmu) {
+pub fn op_49(cpu: &mut Cpu, _mmu: &mut Mmu) {
     cpu.pc += 1;
     cpu.cycles += 1;
 }
 
-pub fn op_4a(cpu: &mut Cpu, mmu: &mut Mmu) {
+pub fn op_4a(cpu: &mut Cpu, _mmu: &mut Mmu) {
     cpu.c = cpu.d;
 
     cpu.pc += 1;
     cpu.cycles += 1;
 }
 
-pub fn op_4b(cpu: &mut Cpu, mmu: &mut Mmu) {
+pub fn op_4b(cpu: &mut Cpu, _mmu: &mut Mmu) {
     cpu.c = cpu.e;
 
     cpu.pc += 1;
     cpu.cycles += 1;
 }
 
-pub fn op_4c(cpu: &mut Cpu, mmu: &mut Mmu) {
+pub fn op_4c(cpu: &mut Cpu, _mmu: &mut Mmu) {
     cpu.c = cpu.h;
 
     cpu.pc += 1;
     cpu.cycles += 1;
 }
 
-pub fn op_4d(cpu: &mut Cpu, mmu: &mut Mmu) {
+pub fn op_4d(cpu: &mut Cpu, _mmu: &mut Mmu) {
     cpu.c = cpu.l;
 
     cpu.pc += 1;
@@ -835,47 +835,47 @@ pub fn op_4e(cpu: &mut Cpu, mmu: &mut Mmu) {
     cpu.cycles += 2;
 }
 
-pub fn op_4f(cpu: &mut Cpu, mmu: &mut Mmu) {
+pub fn op_4f(cpu: &mut Cpu, _mmu: &mut Mmu) {
     cpu.c = cpu.a;
 
     cpu.pc += 1;
     cpu.cycles += 1;
 }
 
-pub fn op_50(cpu: &mut Cpu, mmu: &mut Mmu) {
+pub fn op_50(cpu: &mut Cpu, _mmu: &mut Mmu) {
     cpu.d = cpu.b;
 
     cpu.pc += 1;
     cpu.cycles += 1;
 }
 
-pub fn op_51(cpu: &mut Cpu, mmu: &mut Mmu) {
+pub fn op_51(cpu: &mut Cpu, _mmu: &mut Mmu) {
     cpu.d = cpu.c;
 
     cpu.pc += 1;
     cpu.cycles += 1;
 }
 
-pub fn op_52(cpu: &mut Cpu, mmu: &mut Mmu) {
+pub fn op_52(cpu: &mut Cpu, _mmu: &mut Mmu) {
     cpu.pc += 1;
     cpu.cycles += 1;
 }
 
-pub fn op_53(cpu: &mut Cpu, mmu: &mut Mmu) {
+pub fn op_53(cpu: &mut Cpu, _mmu: &mut Mmu) {
     cpu.d = cpu.e;
 
     cpu.pc += 1;
     cpu.cycles += 1;
 }
 
-pub fn op_54(cpu: &mut Cpu, mmu: &mut Mmu) {
+pub fn op_54(cpu: &mut Cpu, _mmu: &mut Mmu) {
     cpu.d = cpu.h;
 
     cpu.pc += 1;
     cpu.cycles += 1;
 }
 
-pub fn op_55(cpu: &mut Cpu, mmu: &mut Mmu) {
+pub fn op_55(cpu: &mut Cpu, _mmu: &mut Mmu) {
     cpu.d = cpu.l;
 
     cpu.pc += 1;
@@ -889,47 +889,47 @@ pub fn op_56(cpu: &mut Cpu, mmu: &mut Mmu) {
     cpu.cycles += 2;
 }
 
-pub fn op_57(cpu: &mut Cpu, mmu: &mut Mmu) {
+pub fn op_57(cpu: &mut Cpu, _mmu: &mut Mmu) {
     cpu.d = cpu.a;
 
     cpu.pc += 1;
-    cpu.cycles += a;
+    cpu.cycles += 1;
 }
 
-pub fn op_58(cpu: &mut Cpu, mmu: &mut Mmu) {
+pub fn op_58(cpu: &mut Cpu, _mmu: &mut Mmu) {
     cpu.e = cpu.b;
 
     cpu.pc += 1;
     cpu.cycles += 1;
 }
 
-pub fn op_59(cpu: &mut Cpu, mmu: &mut Mmu) {
+pub fn op_59(cpu: &mut Cpu, _mmu: &mut Mmu) {
     cpu.e = cpu.c;
 
     cpu.pc += 1;
     cpu.cycles += 1;
 }
 
-pub fn op_5a(cpu: &mut Cpu, mmu: &mut Mmu) {
+pub fn op_5a(cpu: &mut Cpu, _mmu: &mut Mmu) {
     cpu.e = cpu.d;
 
     cpu.pc += 1;
     cpu.cycles += 1;
 }
 
-pub fn op_5b(cpu: &mut Cpu, mmu: &mut Mmu) {
+pub fn op_5b(cpu: &mut Cpu, _mmu: &mut Mmu) {
     cpu.pc += 1;
     cpu.cycles += 1;
 }
 
-pub fn op_5c(cpu: &mut Cpu, mmu: &mut Mmu) {
+pub fn op_5c(cpu: &mut Cpu, _mmu: &mut Mmu) {
     cpu.e = cpu.h;
 
     cpu.pc += 1;
     cpu.cycles += 1;
 }
 
-pub fn op_5d(cpu: &mut Cpu, mmu: &mut Mmu) {
+pub fn op_5d(cpu: &mut Cpu, _mmu: &mut Mmu) {
     cpu.e = cpu.l;
 
     cpu.pc += 1;
@@ -943,47 +943,47 @@ pub fn op_5e(cpu: &mut Cpu, mmu: &mut Mmu) {
     cpu.cycles += 2;
 }
 
-pub fn op_5f(cpu: &mut Cpu, mmu: &mut Mmu) {
+pub fn op_5f(cpu: &mut Cpu, _mmu: &mut Mmu) {
     cpu.e = cpu.a;
 
     cpu.pc += 1;
     cpu.cycles += 1;
 }
 
-pub fn op_60(cpu: &mut Cpu, mmu: &mut Mmu) {
+pub fn op_60(cpu: &mut Cpu, _mmu: &mut Mmu) {
     cpu.h = cpu.b;
 
     cpu.pc += 1;
     cpu.cycles += 1;
 }
 
-pub fn op_61(cpu: &mut Cpu, mmu: &mut Mmu) {
+pub fn op_61(cpu: &mut Cpu, _mmu: &mut Mmu) {
     cpu.h = cpu.c;
 
     cpu.pc += 1;
     cpu.cycles += 1;
 }
 
-pub fn op_62(cpu: &mut Cpu, mmu: &mut Mmu) {
+pub fn op_62(cpu: &mut Cpu, _mmu: &mut Mmu) {
     cpu.h = cpu.d;
 
     cpu.pc += 1;
     cpu.cycles += 1;
 }
 
-pub fn op_63(cpu: &mut Cpu, mmu: &mut Mmu) {
+pub fn op_63(cpu: &mut Cpu, _mmu: &mut Mmu) {
     cpu.h = cpu.e;
 
     cpu.pc += 1;
     cpu.cycles += 1;
 }
 
-pub fn op_64(cpu: &mut Cpu, mmu: &mut Mmu) {
+pub fn op_64(cpu: &mut Cpu, _mmu: &mut Mmu) {
     cpu.pc += 1;
     cpu.cycles += 1;
 }
 
-pub fn op_65(cpu: &mut Cpu, mmu: &mut Mmu) {
+pub fn op_65(cpu: &mut Cpu, _mmu: &mut Mmu) {
     cpu.h = cpu.l;
 
     cpu.pc += 1;
@@ -997,49 +997,49 @@ pub fn op_66(cpu: &mut Cpu, mmu: &mut Mmu) {
     cpu.cycles += 2;
 }
 
-pub fn op_67(cpu: &mut Cpu, mmu: &mut Mmu) {
+pub fn op_67(cpu: &mut Cpu, _mmu: &mut Mmu) {
     cpu.h = cpu.a;
 
     cpu.pc += 1;
     cpu.cycles += 1;
 }
 
-pub fn op_68(cpu: &mut Cpu, mmu: &mut Mmu) {
-    cpu.l = cpub;
+pub fn op_68(cpu: &mut Cpu, _mmu: &mut Mmu) {
+    cpu.l = cpu.b;
 
     cpu.pc += 1;
     cpu.cycles += 1;
 }
 
-pub fn op_69(cpu: &mut Cpu, mmu: &mut Mmu) {
+pub fn op_69(cpu: &mut Cpu, _mmu: &mut Mmu) {
     cpu.l = cpu.c;
 
     cpu.pc += 1;
     cpu.cycles += 1;
 }
 
-pub fn op_6a(cpu: &mut Cpu, mmu: &mut Mmu) {
+pub fn op_6a(cpu: &mut Cpu, _mmu: &mut Mmu) {
     cpu.l = cpu.d;
 
     cpu.pc += 1;
     cpu.cycles += 2;
 }
 
-pub fn op_6b(cpu: &mut Cpu, mmu: &mut Mmu) {
+pub fn op_6b(cpu: &mut Cpu, _mmu: &mut Mmu) {
     cpu.l = cpu.e;
 
     cpu.pc += 1;
     cpu.cycles += 1;
 }
 
-pub fn op_6c(cpu: &mut Cpu, mmu: &mut Mmu) {
+pub fn op_6c(cpu: &mut Cpu, _mmu: &mut Mmu) {
     cpu.l = cpu.h;
 
     cpu.pc += 1;
     cpu.cycles += 1;
 }
 
-pub fn op_6d(cpu: &mut Cpu, mmu: &mut Mmu) {
+pub fn op_6d(cpu: &mut Cpu, _mmu: &mut Mmu) {
     cpu.pc += 1;
     cpu.cycles += 1;
 }
@@ -1051,7 +1051,7 @@ pub fn op_6e(cpu: &mut Cpu, mmu: &mut Mmu) {
     cpu.cycles += 2;
 }
 
-pub fn op_6f(cpu: &mut Cpu, mmu: &mut Mmu) {
+pub fn op_6f(cpu: &mut Cpu, _mmu: &mut Mmu) {
     cpu.l = cpu.a;
 
     cpu.pc += 1;
@@ -1100,7 +1100,7 @@ pub fn op_75(cpu: &mut Cpu, mmu: &mut Mmu) {
     cpu.cycles += 2;
 }
 
-pub fn op_76(cpu: &mut Cpu, mmu: &mut Mmu) {
+pub fn op_76(cpu: &mut Cpu, _mmu: &mut Mmu) {
     cpu.halted = true;
 
     cpu.pc += 1;
@@ -1114,42 +1114,42 @@ pub fn op_77(cpu: &mut Cpu, mmu: &mut Mmu) {
     cpu.cycles += 2;
 }
 
-pub fn op_78(cpu: &mut Cpu, mmu: &mut Mmu) {
+pub fn op_78(cpu: &mut Cpu, _mmu: &mut Mmu) {
     cpu.a = cpu.b;
 
     cpu.pc += 1;
     cpu.cycles += 1;
 }
 
-pub fn op_79(cpu: &mut Cpu, mmu: &mut Mmu) {
+pub fn op_79(cpu: &mut Cpu, _mmu: &mut Mmu) {
     cpu.a = cpu.c;
 
     cpu.pc += 1;
     cpu.cycles += 1;
 }
 
-pub fn op_7a(cpu: &mut Cpu, mmu: &mut Mmu) {
+pub fn op_7a(cpu: &mut Cpu, _mmu: &mut Mmu) {
     cpu.a = cpu.d;
 
     cpu.pc += 1;
     cpu.cycles += 1;
 }
 
-pub fn op_7b(cpu: &mut Cpu, mmu: &mut Mmu) {
+pub fn op_7b(cpu: &mut Cpu, _mmu: &mut Mmu) {
     cpu.a = cpu.e;
 
     cpu.pc += 1;
     cpu.cycles += 1;
 }
 
-pub fn op_7c(cpu: &mut Cpu, mmu: &mut Mmu) {
+pub fn op_7c(cpu: &mut Cpu, _mmu: &mut Mmu) {
     cpu.a = cpu.h;
 
     cpu.pc += 1;
     cpu.cycles += 1;
 }
 
-pub fn op_7d(cpu: &mut Cpu, mmu: &mut Mmu) {
+pub fn op_7d(cpu: &mut Cpu, _mmu: &mut Mmu) {
     cpu.a = cpu.l;
 
     cpu.pc += 1;
@@ -1163,47 +1163,47 @@ pub fn op_7e(cpu: &mut Cpu, mmu: &mut Mmu) {
     cpu.cycles += 2;
 }
 
-pub fn op_7f(cpu: &mut Cpu, mmu: &mut Mmu) {
+pub fn op_7f(cpu: &mut Cpu, _mmu: &mut Mmu) {
     cpu.pc += 1;
     cpu.cycles += 1;
 }
 
-pub fn op_80(cpu: &mut Cpu, mmu: &mut Mmu) {
+pub fn op_80(cpu: &mut Cpu, _mmu: &mut Mmu) {
     cpu.a = cpu.apply_add8_with_flags(cpu.a, cpu.b, false);
 
     cpu.pc += 1;
     cpu.cycles += 1;
 }
 
-pub fn op_81(cpu: &mut Cpu, mmu: &mut Mmu) {
+pub fn op_81(cpu: &mut Cpu, _mmu: &mut Mmu) {
     cpu.a = cpu.apply_add8_with_flags(cpu.a, cpu.c, false);
 
     cpu.pc += 1;
     cpu.cycles += 1;
 }
 
-pub fn op_82(cpu: &mut Cpu, mmu: &mut Mmu) {
+pub fn op_82(cpu: &mut Cpu, _mmu: &mut Mmu) {
     cpu.a = cpu.apply_add8_with_flags(cpu.a, cpu.d, false);
 
     cpu.pc += 1;
     cpu.cycles += 1;
 }
 
-pub fn op_83(cpu: &mut Cpu, mmu: &mut Mmu) {
+pub fn op_83(cpu: &mut Cpu, _mmu: &mut Mmu) {
     cpu.a = cpu.apply_add8_with_flags(cpu.a, cpu.e, false);
 
     cpu.pc += 1;
     cpu.cycles += 1;
 }
 
-pub fn op_84(cpu: &mut Cpu, mmu: &mut Mmu) {
+pub fn op_84(cpu: &mut Cpu, _mmu: &mut Mmu) {
     cpu.a = cpu.apply_add8_with_flags(cpu.a, cpu.h, false);
 
     cpu.pc += 1;
     cpu.cycles += 1;
 }
 
-pub fn op_85(cpu: &mut Cpu, mmu: &mut Mmu) {
+pub fn op_85(cpu: &mut Cpu, _mmu: &mut Mmu) {
     cpu.a = cpu.apply_add8_with_flags(cpu.a, cpu.l, false);
 
     cpu.pc += 1;
@@ -1218,49 +1218,49 @@ pub fn op_86(cpu: &mut Cpu, mmu: &mut Mmu) {
     cpu.cycles += 2;
 }
 
-pub fn op_87(cpu: &mut Cpu, mmu: &mut Mmu) {
+pub fn op_87(cpu: &mut Cpu, _mmu: &mut Mmu) {
     cpu.a = cpu.apply_add8_with_flags(cpu.a, cpu.a, false);
 
     cpu.pc += 1;
     cpu.cycles += 1;
 }
 
-pub fn op_88(cpu: &mut Cpu, mmu: &mut Mmu) {
+pub fn op_88(cpu: &mut Cpu, _mmu: &mut Mmu) {
     cpu.a = cpu.apply_add8_with_flags(cpu.a, cpu.b, true);
 
     cpu.pc += 1;
     cpu.cycles += 1;
 }
 
-pub fn op_89(cpu: &mut Cpu, mmu: &mut Mmu) {
+pub fn op_89(cpu: &mut Cpu, _mmu: &mut Mmu) {
     cpu.a = cpu.apply_add8_with_flags(cpu.a, cpu.c, true);
 
     cpu.pc += 1;
     cpu.cycles += 1;
 }
 
-pub fn op_8a(cpu: &mut Cpu, mmu: &mut Mmu) {
+pub fn op_8a(cpu: &mut Cpu, _mmu: &mut Mmu) {
     cpu.a = cpu.apply_add8_with_flags(cpu.a, cpu.d, true);
 
     cpu.pc += 1;
     cpu.cycles += 1;
 }
 
-pub fn op_8b(cpu: &mut Cpu, mmu: &mut Mmu) {
+pub fn op_8b(cpu: &mut Cpu, _mmu: &mut Mmu) {
     cpu.a = cpu.apply_add8_with_flags(cpu.a, cpu.e, true);
 
     cpu.pc += 1;
     cpu.cycles += 1;
 }
 
-pub fn op_8c(cpu: &mut Cpu, mmu: &mut Mmu) {
+pub fn op_8c(cpu: &mut Cpu, _mmu: &mut Mmu) {
     cpu.a = cpu.apply_add8_with_flags(cpu.a, cpu.h, true);
 
     cpu.pc += 1;
     cpu.cycles += 1;
 }
 
-pub fn op_8d(cpu: &mut Cpu, mmu: &mut Mmu) {
+pub fn op_8d(cpu: &mut Cpu, _mmu: &mut Mmu) {
     cpu.a = cpu.apply_add8_with_flags(cpu.a, cpu.l, true);
 
     cpu.pc += 1;
@@ -1275,49 +1275,49 @@ pub fn op_8e(cpu: &mut Cpu, mmu: &mut Mmu) {
     cpu.cycles += 2;
 }
 
-pub fn op_8f(cpu: &mut Cpu, mmu: &mut Mmu) {
+pub fn op_8f(cpu: &mut Cpu, _mmu: &mut Mmu) {
     cpu.a = cpu.apply_add8_with_flags(cpu.a, cpu.a, true);
 
     cpu.pc += 1;
     cpu.cycles += 1;
 }
 
-pub fn op_90(cpu: &mut Cpu, mmu: &mut Mmu) {
+pub fn op_90(cpu: &mut Cpu, _mmu: &mut Mmu) {
     cpu.a = cpu.apply_sub8_with_flags(cpu.a, cpu.h, false);
 
     cpu.pc += 1;
     cpu.cycles += 1;
 }
 
-pub fn op_91(cpu: &mut Cpu, mmu: &mut Mmu) {
+pub fn op_91(cpu: &mut Cpu, _mmu: &mut Mmu) {
     cpu.a = cpu.apply_sub8_with_flags(cpu.a, cpu.c, false);
 
     cpu.pc += 1;
     cpu.cycles += 1;
 }
 
-pub fn op_92(cpu: &mut Cpu, mmu: &mut Mmu) {
+pub fn op_92(cpu: &mut Cpu, _mmu: &mut Mmu) {
     cpu.a = cpu.apply_sub8_with_flags(cpu.a, cpu.d, false);
 
     cpu.pc += 1;
     cpu.cycles += 1;
 }
 
-pub fn op_93(cpu: &mut Cpu, mmu: &mut Mmu) {
+pub fn op_93(cpu: &mut Cpu, _mmu: &mut Mmu) {
     cpu.a = cpu.apply_sub8_with_flags(cpu.a, cpu.d, false);
 
     cpu.pc += 1;
     cpu.cycles += 1;
 }
 
-pub fn op_94(cpu: &mut Cpu, mmu: &mut Mmu) {
+pub fn op_94(cpu: &mut Cpu, _mmu: &mut Mmu) {
     cpu.a = cpu.apply_sub8_with_flags(cpu.a, cpu.h, false);
 
     cpu.pc += 1;
     cpu.cycles += 1;
 }
 
-pub fn op_95(cpu: &mut Cpu, mmu: &mut Mmu) {
+pub fn op_95(cpu: &mut Cpu, _mmu: &mut Mmu) {
     cpu.a = cpu.apply_sub8_with_flags(cpu.a, cpu.l, false);
 
     cpu.pc += 1;
@@ -1332,49 +1332,49 @@ pub fn op_96(cpu: &mut Cpu, mmu: &mut Mmu) {
     cpu.cycles += 2;
 }
 
-pub fn op_97(cpu: &mut Cpu, mmu: &mut Mmu) {
+pub fn op_97(cpu: &mut Cpu, _mmu: &mut Mmu) {
     cpu.a = cpu.apply_sub8_with_flags(cpu.a, cpu.a, false);
 
     cpu.pc += 1;
     cpu.cycles += 1;
 }
 
-pub fn op_98(cpu: &mut Cpu, mmu: &mut Mmu) {
+pub fn op_98(cpu: &mut Cpu, _mmu: &mut Mmu) {
     cpu.a = cpu.apply_sub8_with_flags(cpu.a, cpu.b, true);
 
     cpu.pc += 1;
     cpu.cycles += 1;
 }
 
-pub fn op_99(cpu: &mut Cpu, mmu: &mut Mmu) {
+pub fn op_99(cpu: &mut Cpu, _mmu: &mut Mmu) {
     cpu.a = cpu.apply_sub8_with_flags(cpu.a, cpu.c, true);
 
     cpu.pc += 1;
     cpu.cycles += 1;
 }
 
-pub fn op_9a(cpu: &mut Cpu, mmu: &mut Mmu) {
+pub fn op_9a(cpu: &mut Cpu, _mmu: &mut Mmu) {
     cpu.a = cpu.apply_sub8_with_flags(cpu.a, cpu.d, true);
 
     cpu.pc += 1;
     cpu.cycles += 1;
 }
 
-pub fn op_9b(cpu: &mut Cpu, mmu: &mut Mmu) {
+pub fn op_9b(cpu: &mut Cpu, _mmu: &mut Mmu) {
     cpu.a = cpu.apply_sub8_with_flags(cpu.a, cpu.e, true);
 
     cpu.pc += 1;
     cpu.cycles += 1;
 }
 
-pub fn op_9c(cpu: &mut Cpu, mmu: &mut Mmu) {
+pub fn op_9c(cpu: &mut Cpu, _mmu: &mut Mmu) {
     cpu.a = cpu.apply_sub8_with_flags(cpu.a, cpu.h, true);
 
     cpu.pc += 1;
     cpu.cycles += 1;
 }
 
-pub fn op_9d(cpu: &mut Cpu, mmu: &mut Mmu) {
+pub fn op_9d(cpu: &mut Cpu, _mmu: &mut Mmu) {
     cpu.a = cpu.apply_sub8_with_flags(cpu.a, cpu.l, true);
 
     cpu.pc += 1;
@@ -1389,49 +1389,49 @@ pub fn op_9e(cpu: &mut Cpu, mmu: &mut Mmu) {
     cpu.cycles += 2;
 }
 
-pub fn op_9f(cpu: &mut Cpu, mmu: &mut Mmu) {
+pub fn op_9f(cpu: &mut Cpu, _mmu: &mut Mmu) {
     cpu.a = cpu.apply_sub8_with_flags(cpu.a, cpu.a, true);
 
     cpu.pc += 1;
     cpu.cycles += 1;
 }
 
-pub fn op_a0(cpu: &mut Cpu, mmu: &mut Mmu) {
+pub fn op_a0(cpu: &mut Cpu, _mmu: &mut Mmu) {
     cpu.a = cpu.apply_and8_with_flags(cpu.a, cpu.b);
 
     cpu.pc += 1;
     cpu.cycles += 1;
 }
 
-pub fn op_a1(cpu: &mut Cpu, mmu: &mut Mmu) {
+pub fn op_a1(cpu: &mut Cpu, _mmu: &mut Mmu) {
     cpu.a = cpu.apply_and8_with_flags(cpu.a, cpu.c);
 
     cpu.pc += 1;
     cpu.cycles += 1;
 }
 
-pub fn op_a2(cpu: &mut Cpu, mmu: &mut Mmu) {
+pub fn op_a2(cpu: &mut Cpu, _mmu: &mut Mmu) {
     cpu.a = cpu.apply_and8_with_flags(cpu.a, cpu.d);
 
     cpu.pc += 1;
     cpu.cycles += 1;
 }
 
-pub fn op_a3(cpu: &mut Cpu, mmu: &mut Mmu) {
+pub fn op_a3(cpu: &mut Cpu, _mmu: &mut Mmu) {
     cpu.a = cpu.apply_and8_with_flags(cpu.a, cpu.e);
 
     cpu.pc += 1;
     cpu.cycles += 1;
 }
 
-pub fn op_a4(cpu: &mut Cpu, mmu: &mut Mmu) {
+pub fn op_a4(cpu: &mut Cpu, _mmu: &mut Mmu) {
     cpu.a = cpu.apply_and8_with_flags(cpu.a, cpu.h);
 
     cpu.pc += 1;
     cpu.cycles += 1;
 }
 
-pub fn op_a5(cpu: &mut Cpu, mmu: &mut Mmu) {
+pub fn op_a5(cpu: &mut Cpu, _mmu: &mut Mmu) {
     cpu.a = cpu.apply_and8_with_flags(cpu.a, cpu.l);
 
     cpu.pc += 1;
@@ -1446,49 +1446,49 @@ pub fn op_a6(cpu: &mut Cpu, mmu: &mut Mmu) {
     cpu.cycles += 2;
 }
 
-pub fn op_a7(cpu: &mut Cpu, mmu: &mut Mmu) {
+pub fn op_a7(cpu: &mut Cpu, _mmu: &mut Mmu) {
     cpu.a = cpu.apply_and8_with_flags(cpu.a, cpu.a);
 
     cpu.pc += 1;
     cpu.cycles += 1;
 }
 
-pub fn op_a8(cpu: &mut Cpu, mmu: &mut Mmu) {
+pub fn op_a8(cpu: &mut Cpu, _mmu: &mut Mmu) {
     cpu.a = cpu.apply_xor8_with_flags(cpu.a, cpu.b);
 
     cpu.pc += 1;
     cpu.cycles += 1;
 }
 
-pub fn op_a9(cpu: &mut Cpu, mmu: &mut Mmu) {
+pub fn op_a9(cpu: &mut Cpu, _mmu: &mut Mmu) {
     cpu.a = cpu.apply_xor8_with_flags(cpu.a, cpu.c);
 
     cpu.pc += 1;
     cpu.cycles += 1;
 }
 
-pub fn op_aa(cpu: &mut Cpu, mmu: &mut Mmu) {
+pub fn op_aa(cpu: &mut Cpu, _mmu: &mut Mmu) {
     cpu.a = cpu.apply_xor8_with_flags(cpu.a, cpu.d);
 
     cpu.pc += 1;
     cpu.cycles += 1;
 }
 
-pub fn op_ab(cpu: &mut Cpu, mmu: &mut Mmu) {
+pub fn op_ab(cpu: &mut Cpu, _mmu: &mut Mmu) {
     cpu.a = cpu.apply_xor8_with_flags(cpu.a, cpu.e);
 
     cpu.pc += 1;
     cpu.cycles += 1;
 }
 
-pub fn op_ac(cpu: &mut Cpu, mmu: &mut Mmu) {
+pub fn op_ac(cpu: &mut Cpu, _mmu: &mut Mmu) {
     cpu.a = cpu.apply_xor8_with_flags(cpu.a, cpu.h);
 
     cpu.pc += 1;
     cpu.cycles += 1;
 }
 
-pub fn op_ad(cpu: &mut Cpu, mmu: &mut Mmu) {
+pub fn op_ad(cpu: &mut Cpu, _mmu: &mut Mmu) {
     cpu.a = cpu.apply_xor8_with_flags(cpu.a, cpu.l);
 
     cpu.pc += 1;
@@ -1503,49 +1503,49 @@ pub fn op_ae(cpu: &mut Cpu, mmu: &mut Mmu) {
     cpu.cycles += 1;
 }
 
-pub fn op_af(cpu: &mut Cpu, mmu: &mut Mmu) {
+pub fn op_af(cpu: &mut Cpu, _mmu: &mut Mmu) {
     cpu.a = cpu.apply_xor8_with_flags(cpu.a, cpu.a);
 
     cpu.pc += 1;
     cpu.cycles += 2;
 }
 
-pub fn op_b0(cpu: &mut Cpu, mmu: &mut Mmu) {
+pub fn op_b0(cpu: &mut Cpu, _mmu: &mut Mmu) {
     cpu.a = cpu.apply_or8_with_flags(cpu.a, cpu.b);
 
     cpu.pc += 1;
     cpu.cycles += 1;
 }
 
-pub fn op_b1(cpu: &mut Cpu, mmu: &mut Mmu) {
+pub fn op_b1(cpu: &mut Cpu, _mmu: &mut Mmu) {
     cpu.a = cpu.apply_or8_with_flags(cpu.a, cpu.c);
 
     cpu.pc += 1;
     cpu.cycles += 1;
 }
 
-pub fn op_b2(cpu: &mut Cpu, mmu: &mut Mmu) {
+pub fn op_b2(cpu: &mut Cpu, _mmu: &mut Mmu) {
     cpu.a = cpu.apply_or8_with_flags(cpu.a, cpu.d);
 
     cpu.pc += 1;
     cpu.cycles += 1;
 }
 
-pub fn op_b3(cpu: &mut Cpu, mmu: &mut Mmu) {
+pub fn op_b3(cpu: &mut Cpu, _mmu: &mut Mmu) {
     cpu.a = cpu.apply_or8_with_flags(cpu.a, cpu.e);
 
     cpu.pc += 1;
     cpu.cycles += 1;
 }
 
-pub fn op_b4(cpu: &mut Cpu, mmu: &mut Mmu) {
+pub fn op_b4(cpu: &mut Cpu, _mmu: &mut Mmu) {
     cpu.a = cpu.apply_or8_with_flags(cpu.a, cpu.h);
 
     cpu.pc += 1;
     cpu.cycles += 1;
 }
 
-pub fn op_b5(cpu: &mut Cpu, mmu: &mut Mmu) {
+pub fn op_b5(cpu: &mut Cpu, _mmu: &mut Mmu) {
     cpu.a = cpu.apply_or8_with_flags(cpu.a, cpu.l);
 
     cpu.pc += 1;
@@ -1560,14 +1560,14 @@ pub fn op_b6(cpu: &mut Cpu, mmu: &mut Mmu) {
     cpu.cycles += 2;
 }
 
-pub fn op_b7(cpu: &mut Cpu, mmu: &mut Mmu) {
+pub fn op_b7(cpu: &mut Cpu, _mmu: &mut Mmu) {
     cpu.a = cpu.apply_or8_with_flags(cpu.a, cpu.a);
 
     cpu.pc += 1;
     cpu.cycles += 1;
 }
 
-pub fn op_b8(cpu: &mut Cpu, mmu: &mut Mmu) {
+pub fn op_b8(cpu: &mut Cpu, _mmu: &mut Mmu) {
     let a = cpu.a;
     cpu.apply_sub8_with_flags(cpu.a, cpu.b, false);
     cpu.a = a;
@@ -1576,7 +1576,7 @@ pub fn op_b8(cpu: &mut Cpu, mmu: &mut Mmu) {
     cpu.cycles += 2;
 }
 
-pub fn op_b9(cpu: &mut Cpu, mmu: &mut Mmu) {
+pub fn op_b9(cpu: &mut Cpu, _mmu: &mut Mmu) {
     let a = cpu.a;
     cpu.apply_sub8_with_flags(cpu.a, cpu.c, false);
     cpu.a = a;
@@ -1585,7 +1585,7 @@ pub fn op_b9(cpu: &mut Cpu, mmu: &mut Mmu) {
     cpu.cycles += 2;
 }
 
-pub fn op_ba(cpu: &mut Cpu, mmu: &mut Mmu) {
+pub fn op_ba(cpu: &mut Cpu, _mmu: &mut Mmu) {
     let a = cpu.a;
     cpu.apply_sub8_with_flags(cpu.a, cpu.d, false);
     cpu.a = a;
@@ -1594,7 +1594,7 @@ pub fn op_ba(cpu: &mut Cpu, mmu: &mut Mmu) {
     cpu.cycles += 2;
 }
 
-pub fn op_bb(cpu: &mut Cpu, mmu: &mut Mmu) {
+pub fn op_bb(cpu: &mut Cpu, _mmu: &mut Mmu) {
     let a = cpu.a;
     cpu.apply_sub8_with_flags(cpu.a, cpu.e, false);
     cpu.a = a;
@@ -1603,7 +1603,7 @@ pub fn op_bb(cpu: &mut Cpu, mmu: &mut Mmu) {
     cpu.cycles += 2;
 }
 
-pub fn op_bc(cpu: &mut Cpu, mmu: &mut Mmu) {
+pub fn op_bc(cpu: &mut Cpu, _mmu: &mut Mmu) {
     let a = cpu.a;
     cpu.apply_sub8_with_flags(cpu.a, cpu.h, false);
     cpu.a = a;
@@ -1612,7 +1612,7 @@ pub fn op_bc(cpu: &mut Cpu, mmu: &mut Mmu) {
     cpu.cycles += 2;
 }
 
-pub fn op_bd(cpu: &mut Cpu, mmu: &mut Mmu) {
+pub fn op_bd(cpu: &mut Cpu, _mmu: &mut Mmu) {
     let a = cpu.a;
     cpu.apply_sub8_with_flags(cpu.a, cpu.l, false);
     cpu.a = a;
@@ -1631,7 +1631,7 @@ pub fn op_be(cpu: &mut Cpu, mmu: &mut Mmu) {
     cpu.cycles += 2;
 }
 
-pub fn op_bf(cpu: &mut Cpu, mmu: &mut Mmu) {
+pub fn op_bf(cpu: &mut Cpu, _mmu: &mut Mmu) {
     let a = cpu.a;
     cpu.apply_sub8_with_flags(cpu.a, cpu.a, false);
     cpu.a = a;
@@ -1641,87 +1641,109 @@ pub fn op_bf(cpu: &mut Cpu, mmu: &mut Mmu) {
 }
 
 pub fn op_c0(cpu: &mut Cpu, mmu: &mut Mmu) {
-    // TODO
-    mmu.read_byte(cpu.pc + 1);
-    cpu.pc += 1;
-    cpu.cycles += 2;
+    if !cpu.get_f_zero() {
+        cpu.pc = cpu.pop_word(mmu);
+        cpu.cycles += 5;
+    } else {
+        cpu.pc += 2;
+    }
 }
 
 pub fn op_c1(cpu: &mut Cpu, mmu: &mut Mmu) {
-    // TODO
-    mmu.read_byte(cpu.pc + 1);
+    let value = cpu.pop_word(mmu);
+    cpu.set_bc(value);
+
     cpu.pc += 1;
-    cpu.cycles += 2;
+    cpu.cycles += 3;
 }
 
 pub fn op_c2(cpu: &mut Cpu, mmu: &mut Mmu) {
-    // TODO
-    mmu.read_byte(cpu.pc + 1);
-    cpu.pc += 1;
-    cpu.cycles += 2;
+    if !cpu.get_f_zero() {
+        cpu.pc = mmu.read_word(cpu.pc + 1);
+
+        cpu.cycles += 4;
+    } else {
+        cpu.pc += 2;
+
+        cpu.cycles += 3;
+    }
 }
 
 pub fn op_c3(cpu: &mut Cpu, mmu: &mut Mmu) {
-    // TODO
-    mmu.read_byte(cpu.pc + 1);
-    cpu.pc += 1;
-    cpu.cycles += 2;
+    cpu.pc = mmu.read_word(cpu.pc + 1);
+
+    cpu.cycles += 4;
 }
 
 pub fn op_c4(cpu: &mut Cpu, mmu: &mut Mmu) {
-    // TODO
-    mmu.read_byte(cpu.pc + 1);
-    cpu.pc += 1;
-    cpu.cycles += 2;
+    if !cpu.get_f_zero() {
+        cpu.push_word(mmu, cpu.pc + 2);
+        cpu.pc = mmu.read_word(cpu.pc + 1);
+
+        cpu.cycles += 6;
+    } else {
+        cpu.pc += 2;
+
+        cpu.cycles += 3;
+    }
 }
 
 pub fn op_c5(cpu: &mut Cpu, mmu: &mut Mmu) {
-    // TODO
-    mmu.read_byte(cpu.pc + 1);
+    cpu.push_word(mmu, cpu.get_bc());
+
     cpu.pc += 1;
-    cpu.cycles += 2;
+    cpu.cycles += 4;
 }
 
 pub fn op_c6(cpu: &mut Cpu, mmu: &mut Mmu) {
-    // TODO
-    mmu.read_byte(cpu.pc + 1);
-    cpu.pc += 1;
+    let value = mmu.read_byte(cpu.pc + 1);
+    cpu.a = cpu.apply_add8_with_flags(cpu.a, value, false);
+
+
+    cpu.pc += 2;
     cpu.cycles += 2;
 }
 
 pub fn op_c7(cpu: &mut Cpu, mmu: &mut Mmu) {
-    // TODO
-    mmu.read_byte(cpu.pc + 1);
+    cpu.push_word(mmu, cpu.pc);
+    cpu.pc = 0x00;
+
     cpu.pc += 1;
-    cpu.cycles += 2;
+    cpu.cycles += 4;
 }
 
 pub fn op_c8(cpu: &mut Cpu, mmu: &mut Mmu) {
-    // TODO
-    mmu.read_byte(cpu.pc + 1);
-    cpu.pc += 1;
-    cpu.cycles += 2;
+    if !cpu.get_f_zero() {
+        cpu.pc = cpu.pop_word(mmu);
+
+        cpu.cycles += 5;
+    } else {
+        cpu.pc += 1;
+        cpu.cycles += 2;
+    }
 }
 
 pub fn op_c9(cpu: &mut Cpu, mmu: &mut Mmu) {
-    // TODO
-    mmu.read_byte(cpu.pc + 1);
-    cpu.pc += 1;
-    cpu.cycles += 2;
+    cpu.pc = cpu.pop_word(mmu);
+    cpu.cycles += 4;
 }
 
 pub fn op_ca(cpu: &mut Cpu, mmu: &mut Mmu) {
-    // TODO
-    mmu.read_byte(cpu.pc + 1);
-    cpu.pc += 1;
-    cpu.cycles += 2;
+    if cpu.get_f_zero() {
+        cpu.pc = mmu.read_word(cpu.pc + 1);
+
+        cpu.cycles += 4;
+    } else {
+        cpu.pc += 2;
+        cpu.cycles += 3;
+    }
 }
 
 #[allow(unreachable_patterns)]
 pub fn op_cb(cpu: &mut Cpu, mmu: &mut Mmu) {
-    let opcode = // TODO
-        mmu.read_byte(cpu.pc + 1);
+    let opcode = mmu.read_byte(cpu.pc + 1);
 
+    cpu.pc += 1;
     match opcode {
         0x00 => { op_cb_00(cpu, mmu); }
         0x01 => { op_cb_01(cpu, mmu); }
@@ -2350,7 +2372,7 @@ pub fn op_ff(cpu: &mut Cpu, mmu: &mut Mmu) {
     cpu.cycles += 2;
 }
 
-pub fn op_cb_00(cpu: &mut Cpu, mmu: &mut Mmu) {
+pub fn op_cb_00(cpu: &mut Cpu, _mmu: &mut Mmu) {
     cpu.pc += 1;
     cpu.cycles += 2;
 }
@@ -2367,27 +2389,26 @@ pub fn op_cb_02(cpu: &mut Cpu, mmu: &mut Mmu) {
     cpu.cycles += 7
 }
 
-pub fn op_cb_03(cpu: &mut Cpu, mmu: &mut Mmu) {
+pub fn op_cb_03(cpu: &mut Cpu, _mmu: &mut Mmu) {
     cpu.set_bc(cpu.get_bc().wrapping_add(1));
     cpu.pc += 1;
     cpu.cycles += 6;
 }
 
-pub fn op_cb_04(cpu: &mut Cpu, mmu: &mut Mmu) {
+pub fn op_cb_04(cpu: &mut Cpu, _mmu: &mut Mmu) {
     cpu.b = cpu.apply_inc8_with_flags(cpu.b);
     cpu.pc += 1;
     cpu.cycles += 4;
 }
 
-pub fn op_cb_05(cpu: &mut Cpu, mmu: &mut Mmu) {
+pub fn op_cb_05(cpu: &mut Cpu, _mmu: &mut Mmu) {
     cpu.b = cpu.apply_dec8_with_flags(cpu.b);
     cpu.pc += 1;
     cpu.cycles += 4;
 }
 
 pub fn op_cb_06(cpu: &mut Cpu, mmu: &mut Mmu) {
-    cpu.b = // TODO
-        mmu.read_byte(cpu.pc + 1);
+    cpu.b = mmu.read_byte(cpu.pc + 1);
     cpu.pc += 2;
     cpu.cycles += 7;
 }

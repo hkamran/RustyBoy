@@ -170,8 +170,8 @@ impl Cpu {
         return value;
     }
 
-    pub fn apply_rotate_left_with_flags(&mut self, arg: u8, apply_cpu_carry: bool) -> u8 {
-        let carry: u8 = if apply_cpu_carry { if self.get_f_carry() {1} else {0} } else { if arg & 0x80 != 0 {1} else {0} };
+    pub fn apply_rotate_left_with_flags(&mut self, arg: u8, apply_with_carry: bool) -> u8 {
+        let carry: u8 = if apply_with_carry { if self.get_f_carry() {1} else {0} } else { if arg & 0x80 != 0 {1} else {0} };
         let result: u8 = (self.a << 1) | carry;
 
         self.set_f_half_carry(false);
@@ -182,8 +182,8 @@ impl Cpu {
         return result;
     }
 
-    pub fn apply_rotate_right_with_flags(&mut self, arg: u8, apply_cpu_carry: bool) -> u8 {
-        let carry: u8 = if apply_cpu_carry { if self.get_f_carry() {1} else {0} } else { arg & 0x01 };
+    pub fn apply_rotate_right_with_flags(&mut self, arg: u8, apply_with_carry: bool) -> u8 {
+        let carry: u8 = if apply_with_carry { if self.get_f_carry() {1} else {0} } else { arg & 0x01 };
         let result = (arg >> 1) | if arg & 0x01 > 0 { 0x80 } else { 0 };
 
         self.set_f_half_carry(false);
@@ -195,25 +195,25 @@ impl Cpu {
     }
 
     pub fn apply_add8_with_flags(&mut self, a: u8, b: u8, apply_with_carry: bool) -> u8 {
-        let carry: u8 = if apply_cpu_carry { if self.get_f_carry() {1} else {0} } else { 0 };
+        let carry: u8 = if apply_with_carry { if self.get_f_carry() {1} else {0} } else { 0 };
         let result = a.wrapping_add(b).wrapping_add(carry);
 
         self.set_f_zero(result == 0);
-        self.set_f_half_carry(((a & 0xF) + (b & 0xF) + c) > 0xF);
+        self.set_f_half_carry(((a & 0xF) + (b & 0xF) + carry) > 0xF);
         self.set_f_negative(false);
-        self.set_f_carry((a as u16) + (b as u16) + (c as u16) > 0xFF);
+        self.set_f_carry((a as u16) + (b as u16) + (carry as u16) > 0xFF);
 
         return result;
     }
 
     pub fn apply_sub8_with_flags(&mut self, a: u8, b: u8, apply_with_carry: bool) -> u8 {
-        let carry: u8 = if apply_cpu_carry { if self.get_f_carry() {1} else {0} } else { 0 };
+        let carry: u8 = if apply_with_carry { if self.get_f_carry() {1} else {0} } else { 0 };
         let result = a.wrapping_sub(b).wrapping_sub(carry);
 
         self.set_f_zero(result == 0);
-        self.set_f_half_carry((a & 0x0F) < (b & 0x0F) + c);
+        self.set_f_half_carry((a & 0x0F) < (b & 0x0F) + carry);
         self.set_f_negative(true);
-        self.set_f_carry((a as u16) < (b as u16) + (c as u16));
+        self.set_f_carry((a as u16) < (b as u16) + (carry as u16));
 
         return result;
     }
@@ -261,24 +261,24 @@ impl Cpu {
         return result;
     }
 
-    pub fn pushByte(&mut self, mmu: &mut Mmu, value: u8) {
+    pub fn push_byte(&mut self, mmu: &mut Mmu, value: u8) {
         self.sp -= 1;
-        mmu.write_byte(cpu.sp, value);
+        mmu.write_byte(self.sp, value);
     }
 
-    pub fn pushWord(&mut self, mmu: &mut Mmu, value: u16) {
+    pub fn push_word(&mut self, mmu: &mut Mmu, value: u16) {
         self.sp -= 2;
-        mmu.write_word(cpu.sp, value);
+        mmu.write_word(self.sp, value);
     }
 
-    pub fn popByte(&mut self, mmu: &mut Mmu) -> u8 {
-        let value = mmu.read_byte(cpu.sp);
+    pub fn pop_byte(&mut self, mmu: &mut Mmu) -> u8 {
+        let value = mmu.read_byte(self.sp);
         self.sp -= 1;
         return value;
     }
 
-    pub fn popWord(&mut self, mmu: &mut Mmu) -> u16 {
-        let value = mmu.read_word(cpu.sp);
+    pub fn pop_word(&mut self, mmu: &mut Mmu) -> u16 {
+        let value = mmu.read_word(self.sp);
         self.sp -= 2;
         return value;
     }
