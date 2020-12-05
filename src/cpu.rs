@@ -300,6 +300,12 @@ impl Cpu {
         return result;
     }
 
+    pub fn apply_bit_test(&mut self, value: u8, bit: u8) {
+        self.set_f_negative(false);
+        self.set_f_half_carry(true);
+        self.set_f_zero(a & (1 << (bit as u32)) == 0);
+    }
+
     pub fn push_byte(&mut self, mmu: &mut Mmu, value: u8) {
         self.sp -= 1;
         mmu.write_byte(self.sp, value);

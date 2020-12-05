@@ -2099,71 +2099,363 @@ pub fn op_cb(cpu: &mut Cpu, mmu: &mut Mmu) {
             cpu.pc += 2;
             cpu.cycles += 4;
         }
-        0x3F => {}
-        0x40 => {}
-        0x41 => {}
-        0x42 => {}
-        0x43 => {}
-        0x44 => {}
-        0x45 => {}
-        0x46 => {}
-        0x47 => {}
-        0x48 => {}
-        0x49 => {}
-        0x4A => {}
-        0x4B => {}
-        0x4C => {}
-        0x4D => {}
-        0x4E => {}
-        0x4F => {}
-        0x50 => {}
-        0x51 => {}
-        0x52 => {}
-        0x53 => {}
-        0x54 => {}
-        0x55 => {}
-        0x56 => {}
-        0x57 => {}
-        0x58 => {}
-        0x59 => {}
-        0x5A => {}
-        0x5B => {}
-        0x5C => {}
-        0x5D => {}
-        0x5E => {}
-        0x5F => {}
-        0x60 => {}
-        0x61 => {}
-        0x62 => {}
-        0x63 => {}
-        0x64 => {}
-        0x65 => {}
-        0x66 => {}
-        0x67 => {}
-        0x68 => {}
-        0x69 => {}
-        0x6A => {}
-        0x6B => {}
-        0x6C => {}
-        0x6D => {}
-        0x6E => {}
-        0x6F => {}
-        0x70 => {}
-        0x71 => {}
-        0x72 => {}
-        0x73 => {}
-        0x74 => {}
-        0x75 => {}
-        0x76 => {}
-        0x77 => {}
-        0x78 => {}
-        0x79 => {}
-        0x7A => {}
-        0x7B => {}
-        0x7C => {}
-        0x7D => {}
-        0x7E => {}
-        0x7F => {}
+        0x3F => {
+            cpu.a = cpu.apply_shift_right_with_flags(cpu.a, false);
+            cpu.pc += 1;
+            cpu.cycles += 2;
+        }
+        0x40 => {
+            cpu.apply_bit_test(cpu.b, 0);
+            cpu.pc += 1;
+            cpu.cycles += 2;
+        }
+        0x41 => {
+            cpu.apply_bit_test(cpu.c, 0);
+            cpu.pc += 1;
+            cpu.cycles += 2;
+        }
+        0x42 => {
+            cpu.apply_bit_test(cpu.d, 0);
+            cpu.pc += 1;
+            cpu.cycles += 2;
+        }
+        0x43 => {
+            cpu.apply_bit_test(cpu.e, 0);
+            cpu.pc += 1;
+            cpu.cycles += 2;
+        }
+        0x44 => {
+            cpu.apply_bit_test(cpu.h, 0);
+            cpu.pc += 1;
+            cpu.cycles += 2;
+        }
+        0x45 => {
+            cpu.apply_bit_test(cpu.l, 0);
+            cpu.pc += 1;
+            cpu.cycles += 2;
+        }
+        0x46 => {
+            let address = cpu.get_hl();
+            let value = mmu.read_byte(address);
+
+            cpu.apply_bit_test(value, 0);
+
+            cpu.pc += 2;
+            cpu.cycles += 4;
+        }
+        0x47 => {
+            cpu.apply_bit_test(cpu.a, 0);
+            cpu.pc += 1;
+            cpu.cycles += 2;
+        }
+        0x48 => {
+            cpu.apply_bit_test(cpu.b, 1);
+            cpu.pc += 1;
+            cpu.cycles += 2;
+        }
+        0x49 => {
+            cpu.apply_bit_test(cpu.c, 1);
+            cpu.pc += 1;
+            cpu.cycles += 2;
+        }
+        0x4A => {
+            cpu.apply_bit_test(cpu.d, 1);
+            cpu.pc += 1;
+            cpu.cycles += 2;
+        }
+        0x4B => {
+            cpu.apply_bit_test(cpu.e, 1);
+            cpu.pc += 1;
+            cpu.cycles += 2;
+        }
+        0x4C => {
+            cpu.apply_bit_test(cpu.h, 1);
+            cpu.pc += 1;
+            cpu.cycles += 2;
+        }
+        0x4D => {
+            cpu.apply_bit_test(cpu.l, 1);
+            cpu.pc += 1;
+            cpu.cycles += 2;
+        }
+        0x4E => {
+            let address = cpu.get_hl();
+            let value = mmu.read_byte(address);
+
+            cpu.apply_bit_test(value, 1);
+
+            cpu.pc += 2;
+            cpu.cycles += 4;
+        }
+        0x4F => {
+            cpu.apply_bit_test(cpu.a, 1);
+            cpu.pc += 1;
+            cpu.cycles += 2;
+        }
+        0x50 => {
+            cpu.apply_bit_test(cpu.b, 2);
+            cpu.pc += 1;
+            cpu.cycles += 2;
+        }
+        0x51 => {
+            cpu.apply_bit_test(cpu.c, 2);
+            cpu.pc += 1;
+            cpu.cycles += 2;
+        }
+        0x52 => {
+            cpu.apply_bit_test(cpu.d, 2);
+            cpu.pc += 1;
+            cpu.cycles += 2;
+        }
+        0x53 => {
+            cpu.apply_bit_test(cpu.e, 2);
+            cpu.pc += 1;
+            cpu.cycles += 2;
+        }
+        0x54 => {
+            cpu.apply_bit_test(cpu.h, 2);
+            cpu.pc += 1;
+            cpu.cycles += 2;
+        }
+        0x55 => {
+            cpu.apply_bit_test(cpu.l, 2);
+            cpu.pc += 1;
+            cpu.cycles += 2;
+        }
+        0x56 => {
+            let address = cpu.get_hl();
+            let value = mmu.read_byte(address);
+
+            cpu.apply_bit_test(value, 2);
+
+            cpu.pc += 2;
+            cpu.cycles += 4;
+        }
+        0x57 => {
+            cpu.apply_bit_test(cpu.a, 2);
+            cpu.pc += 1;
+            cpu.cycles += 2;
+        }
+        0x58 => {
+            cpu.apply_bit_test(cpu.b, 3);
+            cpu.pc += 1;
+            cpu.cycles += 2;
+        }
+        0x59 => {
+            cpu.apply_bit_test(cpu.c, 3);
+            cpu.pc += 1;
+            cpu.cycles += 2;
+        }
+        0x5A => {
+            cpu.apply_bit_test(cpu.d, 3);
+            cpu.pc += 1;
+            cpu.cycles += 2;
+        }
+        0x5B => {
+            cpu.apply_bit_test(cpu.e, 3);
+            cpu.pc += 1;
+            cpu.cycles += 2;
+        }
+        0x5C => {
+            cpu.apply_bit_test(cpu.h, 3);
+            cpu.pc += 1;
+            cpu.cycles += 2;
+        }
+        0x5D => {
+            cpu.apply_bit_test(cpu.l, 3);
+            cpu.pc += 1;
+            cpu.cycles += 2;
+        }
+        0x5E => {
+            let address = cpu.get_hl();
+            let value = mmu.read_byte(address);
+
+            cpu.apply_bit_test(value, 3);
+
+            cpu.pc += 2;
+            cpu.cycles += 4;
+        }
+        0x5F => {
+            cpu.apply_bit_test(cpu.a, 3);
+            cpu.pc += 1;
+            cpu.cycles += 2;
+        }
+        0x60 => {
+            cpu.apply_bit_test(cpu.b, 4);
+            cpu.pc += 1;
+            cpu.cycles += 2;
+        }
+        0x61 => {
+            cpu.apply_bit_test(cpu.c, 4);
+            cpu.pc += 1;
+            cpu.cycles += 2;
+        }
+        0x62 => {
+            cpu.apply_bit_test(cpu.d, 4);
+            cpu.pc += 1;
+            cpu.cycles += 2;
+        }
+        0x63 => {
+            cpu.apply_bit_test(cpu.e, 4);
+            cpu.pc += 1;
+            cpu.cycles += 2;
+        }
+        0x64 => {
+            cpu.apply_bit_test(cpu.h, 4);
+            cpu.pc += 1;
+            cpu.cycles += 2;
+        }
+        0x65 => {
+            cpu.apply_bit_test(cpu.l, 4);
+            cpu.pc += 1;
+            cpu.cycles += 2;
+        }
+        0x66 => {
+            let address = cpu.get_hl();
+            let value = mmu.read_byte(address);
+
+            cpu.apply_bit_test(value, 4);
+
+            cpu.pc += 2;
+            cpu.cycles += 4;
+        }
+        0x67 => {
+            cpu.apply_bit_test(cpu.a, 4);
+            cpu.pc += 1;
+            cpu.cycles += 2;
+        }
+        0x68 => {
+            cpu.apply_bit_test(cpu.b, 5);
+            cpu.pc += 1;
+            cpu.cycles += 2;
+        }
+        0x69 => {
+            cpu.apply_bit_test(cpu.c, 5);
+            cpu.pc += 1;
+            cpu.cycles += 2;
+        }
+        0x6A => {
+            cpu.apply_bit_test(cpu.d, 5);
+            cpu.pc += 1;
+            cpu.cycles += 2;
+        }
+        0x6B => {
+            cpu.apply_bit_test(cpu.e, 5);
+            cpu.pc += 1;
+            cpu.cycles += 2;
+        }
+        0x6C => {
+            cpu.apply_bit_test(cpu.h, 5);
+            cpu.pc += 1;
+            cpu.cycles += 2;
+        }
+        0x6D => {
+            cpu.apply_bit_test(cpu.l, 5);
+            cpu.pc += 1;
+            cpu.cycles += 2;
+        }
+        0x6E => {
+            let address = cpu.get_hl();
+            let value = mmu.read_byte(address);
+
+            cpu.apply_bit_test(value, 5);
+
+            cpu.pc += 2;
+            cpu.cycles += 4;
+        }
+        0x6F => {
+            cpu.apply_bit_test(cpu.a, 5);
+            cpu.pc += 1;
+            cpu.cycles += 2;
+        }
+        0x70 => {
+            cpu.apply_bit_test(cpu.b, 6);
+            cpu.pc += 1;
+            cpu.cycles += 2;
+        }
+        0x71 => {
+            cpu.apply_bit_test(cpu.c, 6);
+            cpu.pc += 1;
+            cpu.cycles += 2;
+        }
+        0x72 => {
+            cpu.apply_bit_test(cpu.d, 6);
+            cpu.pc += 1;
+            cpu.cycles += 2;
+        }
+        0x73 => {
+            cpu.apply_bit_test(cpu.e, 6);
+            cpu.pc += 1;
+            cpu.cycles += 2;
+        }
+        0x74 => {
+            cpu.apply_bit_test(cpu.h, 6);
+            cpu.pc += 1;
+            cpu.cycles += 2;
+        }
+        0x75 => {
+            cpu.apply_bit_test(cpu.l, 6);
+            cpu.pc += 1;
+            cpu.cycles += 2;
+        }
+        0x76 => {
+            let address = cpu.get_hl();
+            let value = mmu.read_byte(address);
+
+            cpu.apply_bit_test(value, 6);
+
+            cpu.pc += 2;
+            cpu.cycles += 4;
+        }
+        0x77 => {
+            cpu.apply_bit_test(cpu.a, 6);
+            cpu.pc += 1;
+            cpu.cycles += 2;
+        }
+        0x78 => {
+            cpu.apply_bit_test(cpu.b, 7);
+            cpu.pc += 1;
+            cpu.cycles += 2;
+        }
+        0x79 => {
+            cpu.apply_bit_test(cpu.c, 7);
+            cpu.pc += 1;
+            cpu.cycles += 2;
+        }
+        0x7A => {
+            cpu.apply_bit_test(cpu.d, 7);
+            cpu.pc += 1;
+            cpu.cycles += 2;
+        }
+        0x7B => {
+            cpu.apply_bit_test(cpu.e, 7);
+            cpu.pc += 1;
+            cpu.cycles += 2;
+        }
+        0x7C => {
+            cpu.apply_bit_test(cpu.h, 7);
+            cpu.pc += 1;
+            cpu.cycles += 2;
+        }
+        0x7D => {
+            cpu.apply_bit_test(cpu.l, 7);
+            cpu.pc += 1;
+            cpu.cycles += 2;
+        }
+        0x7E => {
+            let address = cpu.get_hl();
+            let value = mmu.read_byte(address);
+
+            cpu.apply_bit_test(value, 7);
+
+            cpu.pc += 2;
+            cpu.cycles += 4;
+        }
+        0x7F => {
+            cpu.apply_bit_test(cpu.a, 7);
+            cpu.pc += 1;
+            cpu.cycles += 2;
+        }
         0x80 => {}
         0x81 => {}
         0x82 => {}
