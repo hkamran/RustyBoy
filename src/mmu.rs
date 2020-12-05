@@ -3,17 +3,12 @@
 // use crate::ppu::Ppu;
 // use crate::io::Io;
 
-use crate::ppu::Ppu;
-use std::cell::{RefCell};
-use std::rc::Rc;
-
 #[allow(unused)]
 pub struct Mmu {
     wram: [u8; 0x8000],
     wram_bank: usize,
     zram: [u8; 0x7F],
     speed: Speed,
-    ppu: Rc<RefCell<Ppu>>,
 }
 
 #[derive(PartialEq)]
@@ -24,9 +19,8 @@ pub enum Speed {
 #[allow(unused)]
 impl Mmu {
 
-    pub fn new(ppu: Rc<RefCell<Ppu>>) -> Self {
+    pub fn new() -> Self {
         return Mmu {
-            ppu,
             wram: [0; 0x8000],
             zram: [0; 0x7F],
             wram_bank: 1,
