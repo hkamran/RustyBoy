@@ -135,7 +135,78 @@ impl Ppu {
 
         if self.cycles >= 456 {
             self.cycles = 0;
+            self.y = (self.y + 1) % 154;
+
+            if self.lyc_interrupt_enable && self.y == self.lcd_y_coordinate {
+                self.interrupt |= 0x02;
+            }
+
+            if self.y >= 144 && self.mode != 1 {
+                self.change_mode(1);
+            }
+
         }
+
+        if self.y < 144 {
+            if self.cycles <= 80 {
+                if self.mode != 2 { self.change_mode(2); }
+            } else if self.cycles <= 252 {
+                if self.mode != 3 { self.change_mode(3); }
+            } else {
+                if self.mode != 0 { self.change_mode(0); }
+            }
+        }
+
+    }
+
+    fn change_mode(&mut self, mode: u8) {
+        self.mode = mode;
+
+        if match self.mode {
+            0 => {
+                self.render_scan_line();
+                self.h_blank = true;
+                self.mode_0_interrupt
+            },
+            1 => {
+                self.interrupt |= 0x01;
+                self.mode_1_interrupt
+            },
+            2 => self.mode_2_interrupt,
+            _ => false,
+        } {
+            self.interrupt |= 0x02;
+        }
+    }
+
+    fn render_scan_line(&mut self) {
+        for x in 0 .. SCREEN_W {
+            self.set_rgb_at(x, self.y, 255, 255, 255);
+            self.bg_priority[x] = PriorityType::Normal;
+        }
+
+        self.render_bg_line();
+        self.render_sprite_line();
+    }
+
+    fn render_bg_line(&mut self) {
+
+    }
+
+    fn render_sprite_line(&mut self) {
+
+    }
+
+    fn set_rgb_at(&mut self, x: usize, y: u8, red: u8, green: u8, blue: u8) {
+        let base = (y as usize) * SCREEN_W * 3 + x * 3;
+
+        let r = red as u32;
+        let g = green as u32;
+        let b = blue as u32;
+
+        self.frame[base + 0] = ((r * 13 + g * 2 + b) >> 1) as u8;
+        self.frame[base + 1] = ((g * 3 + b) << 1) as u8;
+        self.frame[base + 2] = ((r * 3 + g * 2 + b * 11) >> 1) as u8;
     }
 
     pub fn read_byte(&mut self, address: u16) -> u8 {
