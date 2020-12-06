@@ -1,5 +1,5 @@
 use crate::mmu::Mmu;
-use crate::operations;
+use crate::operations::execute_operation;
 
 #[allow(unused)]
 pub struct Cpu {
@@ -46,10 +46,8 @@ impl Cpu {
         let cycles = self.cycles;
         let pc = self.pc;
         let opcode: u8 = mmu.read_byte(pc);
-        let operation = operations::get(opcode);
 
-        // execute
-        operation(self, mmu);
+        execute_operation(opcode, self, mmu);
 
         return (self.cycles - cycles) as u8;
     }
@@ -303,7 +301,7 @@ impl Cpu {
     pub fn apply_bit_test(&mut self, value: u8, bit: u8) {
         self.set_f_negative(false);
         self.set_f_half_carry(true);
-        self.set_f_zero(a & (1 << (bit as u32)) == 0);
+        self.set_f_zero(value & (1 << (bit as u32)) == 0);
     }
 
     pub fn push_byte(&mut self, mmu: &mut Mmu, value: u8) {
