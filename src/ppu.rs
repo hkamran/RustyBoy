@@ -7,11 +7,27 @@ pub const SCREEN_H: usize = 144;
 pub const INTERRUPT_TIMER_MASK: u8 = 0x02;
 pub const INTERRUPT_V_BLANK_MASK: u8 = 0x01;
 
+pub struct SpriteTile {
+    tile_1: u8,
+    tile_2: u8,
+}
+
+pub struct SpriteOam {
+    y_cord: i8,
+    x_cord: i8,
+    tile_num: u8,
+    x_flip: bool,
+    y_flip: bool,
+    has_priority: bool,
+    palette_number: u8,
+    vram_bank: u8,
+    pal_palette_index: u8,
+}
+
 #[derive(PartialEq, Copy, Clone)]
 enum PriorityType {
     Normal,
 }
-
 
 // https://gbdev.io/pandocs/#ff41-stat-lcdc-status-r-w
 #[derive(PartialEq, Copy, Clone)]
@@ -206,7 +222,7 @@ impl Ppu {
 
     fn render_scan_line(&mut self) {
         for x in 0 .. SCREEN_W {
-            self.set_rgb_at(x, self.ly, 255, 255, 255);
+            self.set_rgb_at(x as i8, self.ly as i8, 255, 255, 255);
             self.bg_priority[x] = PriorityType::Normal;
         }
 
@@ -219,11 +235,107 @@ impl Ppu {
     }
 
     fn render_sprite_line(&mut self) {
+        if !self.sprite_enable {
+            return;
+        }
 
+        let line = self.ly as i8;
+        let sprite_size = self.sprite_size as i8;
+
+        // https://gbdev.io/pandocs/#fifo-pixel-fetcher
+        for index in 0 .. 40u16 {
+            let sprite_oam: SpriteOam = self.get_sprite_attributes(index);
+
+            let y_start = sprite_oam.y_cord;
+            let y_end = sprite_oam.y_cord + sprite_size;
+
+            if line < y_start || line >= y_end { continue }
+            if sprite_oam.x_cord < -7 || sprite_oam.x_cord >= (SCREEN_W as i8) { continue }
+
+            let sprite_tile = self.get_sprite_vram(&sprite_oam);
+
+            for x in 0 .. 8i8 {
+                if sprite_oam.x_cord + x < 0 || sprite_oam.x_cord + x >= SCREEN_W as i8 {
+                    continue;
+                }
+
+                let bit_mask = 1 << (if sprite_oam.x_flip {x} else {7 - x} as u32);
+                let palette_index = (if sprite_tile.tile_1 & bit_mask != 0 {1} else {0}) |
+                    (if sprite_tile.tile_2 & bit_mask != 0 {2} else {0});
+                if palette_index == 0 { continue }
+
+                if self.lcd_display_enable && sprite_oam.has_priority {
+                    continue;
+                }
+
+                let r = self.cbg_bg_palette[sprite_oam.palette_number as usize][palette_index][0];
+                let g = self.cbg_bg_palette[sprite_oam.palette_number as usize][palette_index][0];
+                let b = self.cbg_bg_palette[sprite_oam.palette_number as usize][palette_index][0];
+
+                self.set_rgb_at(x, line, r, g, b);
+            }
+
+        }
     }
 
-    fn set_rgb_at(&mut self, x: usize, y: u8, red: u8, green: u8, blue: u8) {
-        let base = (y as usize) * SCREEN_W * 3 + x * 3;
+    fn get_sprite_vram(&self, oam: &SpriteOam) -> SpriteTile {
+        let tile_y: u16 = if oam.y_flip {
+            self.sprite_size - 1 - (self.ly - oam.y_cord as u8) as u32
+        } else {
+            (self.ly - oam.y_cord as u8) as u32
+        } as u16;
+
+        let tile_address = 0x8000u16 + oam.tile_num as u16 * 16 + tile_y * 2;
+        let tile_1 = self.read_byte_from_vram(oam.vram_bank, tile_address);
+        let tile_2 = self.read_byte_from_vram(oam.vram_bank, tile_address + 1);
+
+        return SpriteTile{
+            tile_1,
+            tile_2,
+        }
+    }
+
+    fn get_sprite_attributes(&mut self, id: u16) -> SpriteOam {
+        let index = 39 - id;
+        let address = 0xFE00 + index * 4;
+
+        let y_cord = self.read_byte(address + 0) as u16 as i8 - 16;
+        let x_cord = self.read_byte(address + 1) as u16 as i8 - 8;
+        let tile_num = self.read_byte(address + 2) & (if self.sprite_size == 16 {0xFEu8} else {0xFFu8});
+        let flags = self.read_byte(address + 3) as u8;
+
+        let pal_palette_index = if flags & (1 << 4) != 0 {1u8} else {0u8};
+        let x_flip = flags & (1 << 5) != 0;
+        let y_flip = flags & (1 << 6) != 0;
+        let has_priority = flags & (1 << 7) != 0;
+        let palette_number = flags & 0x07;
+        let vram_bank = if flags & (1 << 3) != 0 {1u8} else {0u8};
+
+        return SpriteOam{
+            y_cord,
+            x_cord,
+            tile_num,
+            x_flip,
+            y_flip,
+            has_priority,
+            palette_number,
+            vram_bank,
+            pal_palette_index
+        };
+    }
+
+    fn read_byte_from_vram(&self, bank: u8, address: u16) -> u8 {
+        return if bank == 0 {
+            if address < 0x8000 || address >= 0xA000 { panic!("error"); }
+            self.vram[address as usize & 0x1FFF]
+        } else {
+            if address < 0x8000 || address >= 0xA000 { panic!("error"); }
+            self.vram[0x2000 + (address as usize & 0x1FFF)]
+        }
+    }
+
+    fn set_rgb_at(&mut self, x: i8, y: i8, red: u8, green: u8, blue: u8) {
+        let base = (y as usize) * SCREEN_W * 3 + x as usize * 3;
 
         let r = red as u32;
         let g = green as u32;
