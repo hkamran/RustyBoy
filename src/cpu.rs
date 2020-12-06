@@ -65,6 +65,9 @@ impl Cpu {
     }
 
     pub fn update_interrupt_master_flag(&mut self) {
+        // There are some operations where interrupts are triggered after the next machine cycle
+        // So to mimic it we will use a counter that will tick down.
+
         self.disable_interrupt_counter = match self.disable_interrupt_counter {
             2 => 1,
             1 => { self.interrupt_master_enable = false; 0},
