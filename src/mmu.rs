@@ -9,6 +9,8 @@ pub struct Mmu {
     wram_bank: usize,
     zram: [u8; 0x7F],
     speed: Speed,
+    pub interrupt_enable: u8,
+    pub interrupt_flag: u8,
 }
 
 #[derive(PartialEq)]

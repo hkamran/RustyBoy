@@ -15,8 +15,10 @@ pub struct Cpu {
     pub pc: u16,
 
     pub halted: bool,
-    pub interrupt_enable: bool,
-    pub ime: bool,
+    pub interrupt_master_enable: bool,
+    pub disable_interrupt_counter: u8,
+    pub enable_interrupt_counter: u8,
+
     pub cycles: u16,
 }
 
@@ -36,8 +38,9 @@ impl Cpu {
             sp: 0,
             pc: 0,
             halted: false,
-            interrupt_enable: true,
-            ime: false,
+            interrupt_master_enable: true,
+            disable_interrupt_counter: 0,
+            enable_interrupt_counter: 0,
             cycles: 0,
         }
     }
@@ -45,11 +48,63 @@ impl Cpu {
     pub fn tick(&mut self, mmu: &mut Mmu) -> u8 {
         let cycles = self.cycles;
         let pc = self.pc;
-        let opcode: u8 = mmu.read_byte(pc);
 
+        self.update_interrupt_master_flag();
+        if self.handle_interrupt() {
+            return (self.cycles - cycles) as u8;
+        }
+
+        if self.halted {
+            return 1;
+        }
+
+        let opcode: u8 = mmu.read_byte(pc);
         execute_operation(opcode, self, mmu);
 
         return (self.cycles - cycles) as u8;
+    }
+
+    pub fn update_interrupt_master_flag(&mut self) {
+        self.disable_interrupt_counter = match self.disable_interrupt_counter {
+            2 => 1,
+            1 => { self.interrupt_master_enable = false; 0},
+            _ => 0,
+        };
+        self.enable_interrupt_counter = match self.enable_interrupt_counter {
+            2 => 1,
+            1 => { self.interrupt_master_enable = true; 0},
+            _ => 0,
+        };
+    }
+
+    pub fn handle_interrupt(&mut self, mmu: &mut Mmu) -> bool {
+        if self.interrupt_master_enable == false &&
+            self.halted == false {
+            return false;
+        }
+
+        // http://bgb.bircd.org/pandocs.htm#interrupts
+        let interrupt_type = mmu.interrupt_enable & mmu.interrupt_flag;
+        if interrupt_type == 0 { return false }
+
+        self.halted = false;
+        if self.interrupt_master_enable == false { return false; };
+        self.interrupt_master_enable = false;
+
+        // http://bgb.bircd.org/pandocs.htm#interrupts
+        let bit = interrupt_type.trailing_zeros();
+        if bit >= 5 { panic!("Invalid interrupt code") }
+
+        // clear flag
+        mmu.interrupt_flag &= !(1 << bit);
+
+        let pc = self.pc;
+        self.push_word(mmu, pc);
+
+        // go to the vector
+        self.pc = 0x0040 | ((n as u16) << 3);
+
+        return true;
     }
 
     pub fn to_string(&mut self) -> String {
@@ -60,7 +115,7 @@ impl Cpu {
         println!("{}", self.to_string());
     }
 
-    // Register functions
+    // register helpers
 
     pub fn get_af(&self) -> u16 {
         return (self.a as u16) << 8
@@ -149,6 +204,8 @@ impl Cpu {
     pub fn get_f_zero(&self) -> bool {
         return self.f & 0x80 > 0;
     }
+
+    // operation helpers
 
     pub fn apply_inc8_with_flags(&mut self, arg: u8) -> u8 {
         let value = arg.wrapping_add(1);
