@@ -50,7 +50,7 @@ impl Cpu {
         let pc = self.pc;
 
         self.update_interrupt_master_flag();
-        if self.handle_interrupt() {
+        if self.handle_interrupt(mmu) {
             return (self.cycles - cycles) as u8;
         }
 
@@ -105,7 +105,7 @@ impl Cpu {
         self.push_word(mmu, pc);
 
         // go to the vector
-        self.pc = 0x0040 | ((n as u16) << 3);
+        self.pc = 0x0040 | ((bit as u16) << 3);
 
         return true;
     }

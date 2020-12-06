@@ -144,7 +144,7 @@ pub fn execute_operation(opcode: u8, cpu: &mut Cpu, mmu: &mut Mmu) -> () {
             cpu.cycles += 1;
         }
         0x18 => {
-            let offset = mmu.read_byte(pc + 1);
+            let offset = mmu.read_byte(cpu.pc + 1);
             cpu.pc = ((cpu.pc as u32 as i32) + (offset as i32)) as u16;
 
             cpu.cycles += 3;
@@ -194,7 +194,7 @@ pub fn execute_operation(opcode: u8, cpu: &mut Cpu, mmu: &mut Mmu) -> () {
         }
         0x20 => {
             if !cpu.get_f_zero() {
-                let offset = mmu.read_byte(pc + 1);
+                let offset = mmu.read_byte(cpu.pc + 1);
                 cpu.pc = ((cpu.pc as u32 as i32) + (offset as i32)) as u16;
 
                 cpu.cycles += 3;
@@ -251,7 +251,7 @@ pub fn execute_operation(opcode: u8, cpu: &mut Cpu, mmu: &mut Mmu) -> () {
         }
         0x28 => {
             if cpu.get_f_zero() {
-                let offset = mmu.read_byte(pc + 1);
+                let offset = mmu.read_byte(cpu.pc + 1);
                 cpu.pc = ((cpu.pc as u32 as i32) + (offset as i32)) as u16;
 
                 cpu.cycles += 3;
@@ -307,7 +307,7 @@ pub fn execute_operation(opcode: u8, cpu: &mut Cpu, mmu: &mut Mmu) -> () {
         }
         0x30 => {
             if !cpu.get_f_carry() {
-                let offset = mmu.read_byte(pc + 1);
+                let offset = mmu.read_byte(cpu.pc + 1);
                 cpu.pc = ((cpu.pc as u32 as i32) + (offset as i32)) as u16;
 
                 cpu.cycles += 3;
@@ -368,7 +368,7 @@ pub fn execute_operation(opcode: u8, cpu: &mut Cpu, mmu: &mut Mmu) -> () {
             cpu.cycles += 1;
         }
         0x38 => {
-            let offset = mmu.read_byte(pc + 1);
+            let offset = mmu.read_byte(cpu.pc + 1);
             cpu.pc = ((cpu.pc as u32 as i32) + (offset as i32)) as u16;
 
             cpu.pc += 1;
