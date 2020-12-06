@@ -1,2 +1,3 @@
 https://meganesulli.com/generate-gb-opcodes/
 http://bgb.bircd.org/pandocs.htm
+https://gekkio.fi/files/gb-docs/gbctr.pdf
