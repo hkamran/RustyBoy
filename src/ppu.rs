@@ -4,10 +4,22 @@ pub const VRAM_SIZE: usize = 0x4000;
 pub const VOAM_SIZE: usize = 0xA0;
 pub const SCREEN_W: usize = 160;
 pub const SCREEN_H: usize = 144;
+pub const INTERRUPT_TIMER_MASK: u8 = 0x02;
+pub const INTERRUPT_V_BLANK_MASK: u8 = 0x01;
 
 #[derive(PartialEq, Copy, Clone)]
 enum PriorityType {
     Normal,
+}
+
+
+// https://gbdev.io/pandocs/#ff41-stat-lcdc-status-r-w
+#[derive(PartialEq, Copy, Clone)]
+enum GpuMode {
+    Read = 2,
+    Transfer = 3,
+    HBlank = 0,
+    VBlank = 1,
 }
 
 #[allow(dead_code)]
@@ -34,7 +46,7 @@ pub struct Ppu {
     window_y_coord: u8,
     window_x_coord: u8,
     lcd_y_coordinate: u8,
-    lcd_ly_compare: u8,
+    lyc: u8,
 
     // http://bgb.bircd.org/pandocs.htm#lcdmonochromepalettes
     gb_bg_palette: u8,
@@ -57,16 +69,16 @@ pub struct Ppu {
     bg_priority: [PriorityType; SCREEN_W],
 
     frame: [u8; SCREEN_W * SCREEN_H * 3],
+
+    // https://gbdev.io/pandocs/#ff0f-if-interrupt-flag-r-w
     interrupt: u8,
 
     h_blank: bool,
     v_blank: bool,
 
-    mode: u8,
-    cycles: u32,
-
-    y: u8,
-    x: u8,
+    mode: GpuMode,
+    clock: u32,
+    ly: u8,
 }
 
 #[allow(dead_code)]
@@ -93,7 +105,7 @@ impl Ppu {
             window_y_coord: 0,
             window_x_coord: 0,
             lcd_y_coordinate: 0,
-            lcd_ly_compare: 0,
+            lyc: 0,
 
             gb_bg_palette: 0,
             gb_obj_palette_0: 0,
@@ -118,10 +130,9 @@ impl Ppu {
             h_blank: false,
             v_blank: false,
 
-            cycles: 0,
-            mode: 0,
-            y: 0,
-            x: 0,
+            clock: 0,
+            mode: GpuMode::VBlank,
+            ly: 0,
         };
     }
 
@@ -130,58 +141,72 @@ impl Ppu {
         if !self.lcd_display_enable {
             return;
         }
-        self.h_blank = false;
-        self.cycles += 1;
 
-        if self.cycles >= 456 {
-            self.cycles = 0;
-            self.y = (self.y + 1) % 154;
+        self.clock += 1;
 
-            if self.lyc_interrupt_enable && self.y == self.lcd_y_coordinate {
-                self.interrupt |= 0x02;
+        // http://imrannazar.com/GameBoy-Emulation-in-JavaScript:-GPU-Timings
+        // https://gbdev.io/pandocs/#pixel-fifo
+        match self.mode {
+            GpuMode::Read => {
+                if self.clock >= 80 {
+                    self.set_mode(GpuMode::Transfer);
+                    self.clock = 0;
+                }
+            },
+            GpuMode::Transfer => {
+                if self.clock >= 172 {
+                    self.set_mode(GpuMode::HBlank);
+                    self.clock = 0;
+
+                    // Render scanline here
+                    self.render_scan_line();
+                }
+            },
+            GpuMode::HBlank => {
+                if self.clock >= 204 {
+                    self.clock = 0;
+                    self.ly += 1;
+
+                    // Check interrupt here
+                    self.update_interrupt_for_lyc();
+
+                    if self.ly == 143 {
+                        self.set_mode(GpuMode::VBlank);
+                        self.interrupt = INTERRUPT_V_BLANK_MASK;
+
+                        // print frame here
+                        self.render_frame();
+                    } else {
+                        self.set_mode(GpuMode::Read);
+                    }
+
+                }
+            },
+            GpuMode::VBlank => {
+                if self.clock >= 456 {
+                    self.clock = 0;
+                    self.ly += 1;
+
+                    if self.ly > 153 {
+                        self.ly = 0;
+                        self.set_mode(GpuMode::Read);
+                    }
+                }
+            },
+            _ => {
+                panic!("error");
             }
-
-            if self.y >= 144 && self.mode != 1 {
-                self.change_mode(1);
-            }
-
-        }
-
-        if self.y < 144 {
-            if self.cycles <= 80 {
-                if self.mode != 2 { self.change_mode(2); }
-            } else if self.cycles <= 252 {
-                if self.mode != 3 { self.change_mode(3); }
-            } else {
-                if self.mode != 0 { self.change_mode(0); }
-            }
-        }
+        };
 
     }
 
-    fn change_mode(&mut self, mode: u8) {
-        self.mode = mode;
+    fn render_frame(&mut self) {
 
-        if match self.mode {
-            0 => {
-                self.render_scan_line();
-                self.h_blank = true;
-                self.mode_0_interrupt
-            },
-            1 => {
-                self.interrupt |= 0x01;
-                self.mode_1_interrupt
-            },
-            2 => self.mode_2_interrupt,
-            _ => false,
-        } {
-            self.interrupt |= 0x02;
-        }
     }
 
     fn render_scan_line(&mut self) {
         for x in 0 .. SCREEN_W {
-            self.set_rgb_at(x, self.y, 255, 255, 255);
+            self.set_rgb_at(x, self.ly, 255, 255, 255);
             self.bg_priority[x] = PriorityType::Normal;
         }
 
@@ -209,6 +234,51 @@ impl Ppu {
         self.frame[base + 2] = ((r * 3 + g * 2 + b * 11) >> 1) as u8;
     }
 
+    fn set_mode(&mut self, mode: GpuMode) {
+        self.mode = mode;
+
+        match self.mode {
+            GpuMode::VBlank => {
+                self.v_blank = true;
+                self.h_blank = false;
+            },
+            GpuMode::HBlank => {
+                self.h_blank = true;
+            },
+            GpuMode::Read => {
+                self.h_blank = false;
+                self.v_blank = false;
+            },
+            GpuMode::Transfer => {
+                self.h_blank = false;
+                self.v_blank = false;
+            }
+        }
+
+        self.update_interrupt_for_mode();
+    }
+
+    fn update_interrupt_for_mode(&mut self) {
+        if self.mode == GpuMode::Read && self.mode_2_interrupt {
+            self.interrupt |= INTERRUPT_TIMER_MASK;
+        }
+        if self.mode == GpuMode::HBlank && self.mode_0_interrupt {
+            self.interrupt |= INTERRUPT_TIMER_MASK;
+        }
+        if self.mode == GpuMode::VBlank && self.mode_1_interrupt {
+            self.interrupt |= INTERRUPT_TIMER_MASK;
+        }
+    }
+
+    fn update_interrupt_for_lyc(&mut self) {
+        if self.lyc_interrupt_enable {
+            if self.ly == self.lyc {
+                self.interrupt |= INTERRUPT_TIMER_MASK;
+            }
+        }
+    }
+
+
     pub fn read_byte(&mut self, address: u16) -> u8 {
         match address {
             0x8000 ..= 0x9FFF => self.vram[(self.vram_bank * 0x2000) | (address as usize & 0x1FFF)],
@@ -228,13 +298,13 @@ impl Ppu {
                     (if self.mode_2_interrupt { 0x20 } else { 0 }) |
                     (if self.mode_1_interrupt { 0x10 } else { 0 }) |
                     (if self.mode_0_interrupt { 0x08 } else { 0 }) |
-                    (if self.y == self.lcd_y_coordinate { 0x04 } else { 0 }) |
-                    self.mode
+                    (if self.ly == self.lcd_y_coordinate { 0x04 } else { 0 }) |
+                    self.mode as u8
             },
             0xFF42 => self.scroll_y_coord,
             0xFF43 => self.scroll_x_coord,
-            0xFF44 => self.y,
-            0xFF45 => self.lcd_ly_compare,
+            0xFF44 => self.ly,
+            0xFF45 => self.lyc,
             0xFF46 => 0,
             0xFF47 => self.gb_bg_palette,
             0xFF48 => self.gb_obj_palette_0,
@@ -289,7 +359,7 @@ impl Ppu {
             0xFF42 => self.scroll_y_coord = value,
             0xFF43 => self.scroll_x_coord = value,
             0xFF44 => {},
-            0xFF45 => self.lcd_ly_compare = value,
+            0xFF45 => self.lyc = value,
             0xFF46 => {},
             0xFF47 => { self.gb_bg_palette = value; },
             0xFF48 => { self.gb_obj_palette_0 = value; },
@@ -326,5 +396,4 @@ impl Ppu {
             _ => panic!("invalid"),
         }
     }
-
 }
