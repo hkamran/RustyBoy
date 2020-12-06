@@ -26,7 +26,9 @@ impl Mmu {
             wram: [0; 0x8000],
             zram: [0; 0x7F],
             wram_bank: 1,
-            speed: Speed::SLOW
+            speed: Speed::SLOW,
+            interrupt_flag: 0,
+            interrupt_enable: 0,
         };
     }
 
