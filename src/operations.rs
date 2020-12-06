@@ -5,7 +5,6 @@ use crate::mmu::Mmu;
 pub fn execute_operation(opcode: u8, cpu: &mut Cpu, mmu: &mut Mmu) -> () {
     match opcode {
         0x00 => {
-            println!("NOP");
             cpu.pc += 1;
             cpu.cycles += 2;
         }
@@ -145,10 +144,10 @@ pub fn execute_operation(opcode: u8, cpu: &mut Cpu, mmu: &mut Mmu) -> () {
             cpu.cycles += 1;
         }
         0x18 => {
-            // TODO
-            mmu.read_byte(cpu.pc + 1);
-            cpu.pc += 1;
-            cpu.cycles += 2;
+            let offset = mmu.read_byte(pc + 1);
+            cpu.pc = ((cpu.pc as u32 as i32) + (offset as i32)) as u16;
+
+            cpu.cycles += 3;
         }
         0x19 => {
             let value = cpu.apply_add16_with_flags(cpu.get_hl(), cpu.get_de());
@@ -194,10 +193,15 @@ pub fn execute_operation(opcode: u8, cpu: &mut Cpu, mmu: &mut Mmu) -> () {
             cpu.cycles += 1;
         }
         0x20 => {
-            // TODO
-            mmu.read_byte(cpu.pc + 1);
-            cpu.pc += 1;
-            cpu.cycles += 2;
+            if !cpu.get_f_zero() {
+                let offset = mmu.read_byte(pc + 1);
+                cpu.pc = ((cpu.pc as u32 as i32) + (offset as i32)) as u16;
+
+                cpu.cycles += 3;
+            } else {
+                cpu.pc += 1;
+                cpu.cycles += 2;
+            }
         }
         0x21 => {
             let value = mmu.read_word(cpu.pc + 1);
@@ -246,10 +250,15 @@ pub fn execute_operation(opcode: u8, cpu: &mut Cpu, mmu: &mut Mmu) -> () {
             cpu.cycles += 2;
         }
         0x28 => {
-            // TODO
-            mmu.read_byte(cpu.pc + 1);
-            cpu.pc += 1;
-            cpu.cycles += 2;
+            if cpu.get_f_zero() {
+                let offset = mmu.read_byte(pc + 1);
+                cpu.pc = ((cpu.pc as u32 as i32) + (offset as i32)) as u16;
+
+                cpu.cycles += 3;
+            } else {
+                cpu.pc += 1;
+                cpu.cycles += 2;
+            }
         }
         0x29 => {
             let result = cpu.apply_add16_with_flags(cpu.get_hl(), cpu.sp);
@@ -297,10 +306,15 @@ pub fn execute_operation(opcode: u8, cpu: &mut Cpu, mmu: &mut Mmu) -> () {
             cpu.cycles += 1;
         }
         0x30 => {
-            // TODO
+            if !cpu.get_f_carry() {
+                let offset = mmu.read_byte(pc + 1);
+                cpu.pc = ((cpu.pc as u32 as i32) + (offset as i32)) as u16;
 
-            cpu.pc += 2;
-            cpu.cycles += 3;
+                cpu.cycles += 3;
+            } else {
+                cpu.pc += 1;
+                cpu.cycles += 2;
+            }
         }
         0x31 => {
             cpu.sp = mmu.read_word(cpu.pc + 1);
@@ -354,7 +368,8 @@ pub fn execute_operation(opcode: u8, cpu: &mut Cpu, mmu: &mut Mmu) -> () {
             cpu.cycles += 1;
         }
         0x38 => {
-            // TODO
+            let offset = mmu.read_byte(pc + 1);
+            cpu.pc = ((cpu.pc as u32 as i32) + (offset as i32)) as u16;
 
             cpu.pc += 1;
             cpu.cycles += 2;
@@ -402,13 +417,14 @@ pub fn execute_operation(opcode: u8, cpu: &mut Cpu, mmu: &mut Mmu) -> () {
             cpu.cycles += 2;
         }
         0x3F => {
-            // TODO
-            mmu.read_byte(cpu.pc + 1);
+            cpu.set_f_carry(!cpu.get_f_carry());
+            cpu.set_f_half_carry(false);
+            cpu.set_f_negative(false);
+
             cpu.pc += 1;
-            cpu.cycles += 2;
+            cpu.cycles += 1;
         }
         0x40 => {
-            // TODO
             cpu.pc += 1;
             cpu.cycles += 1;
         }
@@ -1376,9 +1392,8 @@ pub fn execute_operation(opcode: u8, cpu: &mut Cpu, mmu: &mut Mmu) -> () {
             }
         }
         0xD9 => {
-            // TODO
             cpu.pc = cpu.pop_word(mmu);
-            cpu.interrupt_enable = true;
+            cpu.enable_interrupt_counter = 1;
 
             cpu.pc += 1;
             cpu.cycles += 4;
@@ -1537,10 +1552,11 @@ pub fn execute_operation(opcode: u8, cpu: &mut Cpu, mmu: &mut Mmu) -> () {
             cpu.cycles += 3;
         }
         0xF3 => {
-            // TODO
-            mmu.read_byte(cpu.pc + 1);
+            // Schedules interrupt handling to be enabled after the next machine cycle
+            cpu.disable_interrupt_counter = 2;
+
             cpu.pc += 1;
-            cpu.cycles += 2;
+            cpu.cycles += 1;
         }
         0xF4 => {
             panic!("error");
@@ -1567,6 +1583,7 @@ pub fn execute_operation(opcode: u8, cpu: &mut Cpu, mmu: &mut Mmu) -> () {
         }
         0xF8 => {
             // TODO
+
             cpu.pc += 1;
             cpu.cycles += 2;
         }
@@ -1584,10 +1601,10 @@ pub fn execute_operation(opcode: u8, cpu: &mut Cpu, mmu: &mut Mmu) -> () {
             cpu.cycles += 4;
         }
         0xFB => {
-            // TODO
-            mmu.read_byte(cpu.pc + 1);
+            cpu.enable_interrupt_counter = 2;
+
             cpu.pc += 1;
-            cpu.cycles += 2;
+            cpu.cycles += 1;
         }
         0xFC => {
             panic!("error");

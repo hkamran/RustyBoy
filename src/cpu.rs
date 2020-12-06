@@ -16,8 +16,8 @@ pub struct Cpu {
 
     pub halted: bool,
     pub interrupt_master_enable: bool,
-    pub disable_interrupt_counter: u8,
-    pub enable_interrupt_counter: u8,
+    pub disable_interrupt_counter: u8, // Schedules interrupt handling to be enabled after the next machine cycle
+    pub enable_interrupt_counter: u8,  // Schedules interrupt handling to be enabled after the next machine cycle
 
     pub cycles: u16,
 }
