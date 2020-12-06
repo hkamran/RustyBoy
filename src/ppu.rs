@@ -7,9 +7,17 @@ pub const SCREEN_H: usize = 144;
 pub const INTERRUPT_TIMER_MASK: u8 = 0x02;
 pub const INTERRUPT_V_BLANK_MASK: u8 = 0x01;
 
-pub struct SpriteTile {
+pub struct TileData {
     tile_1: u8,
     tile_2: u8,
+}
+
+pub struct TileEntry {
+    palette_number: usize,
+    vram_bank: u8,
+    x_flip: bool,
+    y_flip: bool,
+    has_priority: bool,
 }
 
 pub struct SpriteOam {
@@ -231,7 +239,92 @@ impl Ppu {
     }
 
     fn render_bg_line(&mut self) {
+        let draw = self.lcd_display_enable;
 
+        if draw == false {
+            return;
+        }
+
+        let window_y_coord = if !self.window_display_enable {-1} else
+        {self.ly as i32 - self.window_y_coord as i32};
+
+        if window_y_coord < 0 && draw == false {
+            return;
+        }
+
+        let window_tile_y: u16 = ((window_y_coord >> 3) & 31) as u16;
+
+        let bg_y = self.scroll_y_coord.wrapping_add(self.ly);
+        let bg_tile_y = (bg_y as u16 >> 3) & 31;
+
+        for x in 0 .. SCREEN_W {
+            let window_x_coord = ((self.window_x_coord as i32) - 7) + (x as i32);
+            let bg_tile_x = self.scroll_x_coord as u32 + x as u32;
+
+            let (tile_map_base, tile_y, tile_x, pixel_y, pixel_x) = if window_y_coord >= 0 && window_x_coord >= 0 {
+                (self.window_tile_map_select, window_tile_y, (window_x_coord as u16 >> 3), window_tile_y as u16 & 0x07, window_x_coord as u8 & 0x07)
+            } else if draw {
+                (self.bg_tile_map, bg_tile_y, (bg_tile_x as u16 >> 3) & 31, bg_tile_y as u16 & 0x07, bg_tile_x as u8 & 0x07)
+            } else {
+                continue;
+            };
+
+            let attributes: TileEntry = self.get_bg_attributes(tile_map_base, tile_y, tile_x);
+            let tile: TileData = self.get_bg_tile(tile_map_base, tile_x, tile_y, attributes.y_flip, pixel_y, attributes.vram_bank);
+
+            let bit_mask = match attributes.x_flip {
+                true => pixel_x,
+                false => 7 - pixel_x,
+            } as u32;
+
+            let palette_index = if tile.tile_1 & (1 << bit_mask) != 0 { 1 } else { 0 }
+                | if tile.tile_2 & (1 << bit_mask) != 0 { 2 } else { 0 };
+
+            let r = self.cbg_bg_palette[attributes.palette_number][palette_index][0];
+            let g = self.cbg_bg_palette[attributes.palette_number][palette_index][1];
+            let b = self.cbg_bg_palette[attributes.palette_number][palette_index][2];
+
+            self.set_rgb_at(x as i8, self.ly as i8, r, g, b);
+        }
+
+    }
+
+    fn get_bg_attributes(&mut self, tile_map_base: u16, tile_y: u16, tile_x: u16) -> TileEntry {
+        let tile_map = self.read_byte_from_vram(1, tile_map_base + tile_y * 32 + tile_x) as usize;
+
+        let palette_number = tile_map & 0x07;
+        let vram_bank = if tile_map & (1 << 3) != 0 {1} else {0};
+        let x_flip = tile_map & (1 << 5) != 0;
+        let y_flip = tile_map & (1 << 6) != 0;
+        let has_priority = tile_map & (1 << 7) != 0;
+
+        return TileEntry{
+            palette_number,
+            vram_bank,
+            x_flip,
+            y_flip,
+            has_priority,
+        }
+    }
+
+    fn get_bg_tile(&mut self, tile_map_base: u16, tile_x: u16, tile_y: u16, y_flip: bool, pixel_y: u16, bank: u8) -> TileData {
+        let tile_entry = self.read_byte_from_vram(0, tile_map_base + tile_y * 32 + tile_x);
+        let tile_offset = if self.tilemap_base_select == 0x8000 {tile_entry as u16}
+        else {(tile_entry as i8 as i16 + 128) as u16};
+        let tile_base_address = self.tilemap_base_select + tile_offset * 16;
+
+        let tile_address = match y_flip {
+            false => tile_base_address + (pixel_y * 2),
+            true => tile_base_address + (14 - (pixel_y * 2)),
+        };
+
+        let tile_1 = self.read_byte_from_vram(bank, tile_address);
+        let tile_2 = self.read_byte_from_vram(bank, tile_address + 1);
+
+        return TileData{
+            tile_1,
+            tile_2
+        }
     }
 
     fn render_sprite_line(&mut self) {
@@ -243,6 +336,7 @@ impl Ppu {
         let sprite_size = self.sprite_size as i8;
 
         // https://gbdev.io/pandocs/#fifo-pixel-fetcher
+        // http://imrannazar.com/GameBoy-Emulation-in-JavaScript:-Sprites
         for index in 0 .. 40u16 {
             let sprite_oam: SpriteOam = self.get_sprite_attributes(index);
 
@@ -278,7 +372,7 @@ impl Ppu {
         }
     }
 
-    fn get_sprite_vram(&self, oam: &SpriteOam) -> SpriteTile {
+    fn get_sprite_vram(&self, oam: &SpriteOam) -> TileData {
         let tile_y: u16 = if oam.y_flip {
             self.sprite_size - 1 - (self.ly - oam.y_cord as u8) as u32
         } else {
@@ -289,7 +383,7 @@ impl Ppu {
         let tile_1 = self.read_byte_from_vram(oam.vram_bank, tile_address);
         let tile_2 = self.read_byte_from_vram(oam.vram_bank, tile_address + 1);
 
-        return SpriteTile{
+        return TileData {
             tile_1,
             tile_2,
         }
