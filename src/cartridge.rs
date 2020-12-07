@@ -1,40 +1,31 @@
-// use crate::bus::Bus;
+use std::fs;
+use std::path::Path;
+use std::convert::TryInto;
+
 
 #[allow(dead_code)]
 pub trait Cartridge {
-    pub fn read_byte(addr: u16) -> u8;
-    pub fn write_byte(addr: u16, value: u8) -> ();
 
-    pub fn load(file: &str) -> Cartridge {
+    fn new(content: &[u8]) -> Self where Self: Sized;
+
+    fn read_byte(&self, addr: u16) -> u8;
+
+    fn write_byte(&mut self, addr: u16, value: u8) -> ();
+
+    fn load(file: &str) -> Box<dyn Cartridge> where Self: Sized{
         let path = Path::new(file);
         let content : Vec<u8> = fs::read(path).expect("yabe");
 
         // Check header to determine type
-        let ctype = content[0x0147];
-        match ctype {
-            0x01 => MBC0::new(&content[..]),
-            0x02 => MBC1::new(&content[..]),
-            0x03 => MBC1::new(&content[..]),
-            0x04 => MBC1::new(&content[..]),
-            0x05 => MBC2::new(&content[..]),
-            0x06 => MBC2::new(&content[..]),
-            0x07 => MBC2::new(&content[..]),
-            0x08 => MBC2::new(&content[..]),
-            0x09 => MBC2::new(&content[..]),
-            0x0A => MBC2::new(&content[..]),
-            0x0B => MBC2::new(&content[..]),
-            0x0C => MBC2::new(&content[..]),
-            0x0D => MBC2::new(&content[..]),
-            0x0E => MBC2::new(&content[..]),
-            0x0F => MBC2::new(&content[..]),
-            0x11 => MBC2::new(&content[..]),
-            0x12 => MBC2::new(&content[..]),
-            0x13 => MBC2::new(&content[..]),
-            0x14 => MBC2::new(&content[..]),
-            0x15 => MBC2::new(&content[..]),
-            0x16 => MBC2::new(&content[..]),
+        let cartridge = match content[0x0147] {
+            0x00 => MBC0::new(&content[..]),
+            //0x01..=0x03 => MBC1::new(&content[..]),
+            //0x05..=0x06 => MBC2::new(&content[..]),
+            //0x0F..=0x13 => MBC3::new(&content[..]),
             _ => { panic!("no cartridge type exists");}
-        }
+        };
+
+        Box::new(cartridge)
     }
 }
 
@@ -42,32 +33,42 @@ pub struct MBC0 {
     rom: [u8; 0x8000]
 }
 
+#[allow(dead_code)]
 pub struct MBC1 {
-    data: [u8; 0x8000]
-    rom_bank: [[u8; 0x4000]],
-    ram_bank: [[u8; 0x3000]],
-}
-
-pub struct MBC2 {
-    data: [u8; 0x8000]
-    rom_bank: [[u8; 0x4000]],
-    ram_bank: [[u8; 0x3000]],
+    data: [u8; 0x8000],
+    rom_bank: [u8; 0x2000],
+    ram_bank: [u8; 0x2000],
 }
 
 #[allow(dead_code)]
-impl MBC0 for Cartridge {
-    pub fn new(content: [u8]) -> Self {
-        return Cartridge {
-            rom: content
-        };
+pub struct MBC2 {
+    data: [u8; 0x8000],
+    rom_bank: [u8; 0x4000],
+    ram_bank: [u8; 0x3000],
+}
+
+#[allow(dead_code)]
+pub struct MBC3 {
+    data: [u8; 0x8000],
+    rom_bank: [u8; 0x4000],
+    ram_bank: [u8; 0x3000],
+}
+
+
+
+#[allow(dead_code)]
+impl Cartridge for MBC0 {
+
+    fn new(content: &[u8]) -> Self {
+        MBC0 { rom: content.try_into().expect("yabe")}
     }
 
-    pub fn read_byte(&self, addr: u16) -> u8 {
-        self.rom[addr]
+    fn read_byte(&self, addr: u16) -> u8 {
+        self.rom[addr as usize]
     }
 
-    pub fn write_byte(&mut self, addr: u16, value: u8) {
-        self.rom[addr] = value;
+    fn write_byte(&mut self, addr: u16, value: u8) {
+        self.rom[addr as usize] = value;
     }
 
 }

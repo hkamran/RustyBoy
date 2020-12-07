@@ -1,19 +1,19 @@
+use crate::cartridge::Cartridge;
 use crate::ppu::Ppu;
 use crate::dma::{Dma, perform_oam_dma};
 use crate::timer::Timer;
 
 #[allow(unused)]
 pub struct Mmu {
+    zram: [u8; 0x7F],
     wram: [u8; 0x8000],
     wram_bank: usize,
-    zram: [u8; 0x7F],
-
     speed: Speed,
     switch_speed: bool,
     pub interrupt_enable: u8,
     pub interrupt_flag: u8,
-
     pub ppu: Ppu,
+    pub cartridge: Option<Box<dyn Cartridge>>,
     pub dma: Dma,
     pub timer: Timer,
 }
@@ -28,10 +28,10 @@ impl Mmu {
 
     pub fn new() -> Self {
         return Mmu {
+            cartridge: Option::None,
             wram: [0; 0x8000],
             wram_bank: 1,
             zram: [0; 0x7F],
-
             speed: Speed::SLOW,
             switch_speed: false,
             interrupt_flag: 0,
@@ -45,7 +45,7 @@ impl Mmu {
 
     pub fn read_byte(&self, address: u16) -> u8 {
         match address {
-            0x0000 ..= 0x7FFF => { 0 },
+            0x0000 ..= 0x7FFF => { match &self.cartridge { Some(c) => c.read_byte(address), None => 0 } },
             0x8000 ..= 0x9FFF => { self.ppu.read_byte(address) },
             0xA000 ..= 0xBFFF => { 0 },
             0xC000 ..= 0xCFFF | (0xE000 ..= 0xEFFF) => { self.wram[address as usize & 0x0FFF] },
@@ -69,7 +69,7 @@ impl Mmu {
 
     pub fn write_byte(&mut self, address: u16, value: u8) {
         match address {
-            0x0000 ..= 0x7FFF => {},
+            0x0000 ..= 0x7FFF => { match &mut self.cartridge { Some(c) => c.write_byte(address, value), None => () } },
             0x8000 ..= 0x9FFF => { self.ppu.write_byte(address, value) },
             0xA000 ..= 0xBFFF => {},
             0xC000 ..= 0xCFFF | (0xE000 ..= 0xEFFF) => { self.wram[address as usize & 0x0FFF] = value },
