@@ -2,6 +2,11 @@ use crate::cpu::Cpu;
 use crate::mmu::Mmu;
 use crate::ppu::Ppu;
 
+pub enum Mode {
+    COLOR,
+    CLASSIC
+}
+
 #[allow(dead_code)]
 pub struct Console {
     pub cpu: Cpu,

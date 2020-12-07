@@ -97,8 +97,8 @@ pub struct Ppu {
     // https://gbdev.io/pandocs/#ff0f-if-interrupt-flag-r-w
     interrupt: u8,
 
-    h_blank: bool,
-    v_blank: bool,
+    pub h_blank: bool,
+    pub v_blank: bool,
 
     mode: GpuMode,
     clock: u32,
@@ -485,7 +485,7 @@ impl Ppu {
     }
 
 
-    pub fn read_byte(&mut self, address: u16) -> u8 {
+    pub fn read_byte(&self, address: u16) -> u8 {
         match address {
             0x8000 ..= 0x9FFF => self.vram[(self.vram_bank * 0x2000) | (address as usize & 0x1FFF)],
             0xFE00 ..= 0xFE9F => self.voam[address as usize - 0xFE00],

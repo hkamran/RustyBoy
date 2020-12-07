@@ -5,6 +5,7 @@ mod ppu;
 mod cartridge;
 mod io;
 mod operations;
+mod dma;
 
 use crate::console::{Console};
 

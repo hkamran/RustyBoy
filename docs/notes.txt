@@ -1,3 +1,4 @@
 https://meganesulli.com/generate-gb-opcodes/
 http://bgb.bircd.org/pandocs.htm
 https://gekkio.fi/files/gb-docs/gbctr.pdf
+https://gbdev.io/pandocs/#the-cartridge-header
