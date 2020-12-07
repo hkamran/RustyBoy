@@ -3,14 +3,14 @@ pub struct Timer {
     div:  u8,
     tima: u8,
     tma:  u8,
-    tac:  u32,
+    tac:  u16,
     enabled: bool,
-    divider_counter: i32,
-    timer_counter: i32,
+    divider_counter: u16,
+    timer_counter: u16,
     pub interrupt: u8,
-    step: i32,
 }
 
+// https://www.coranac.com/tonc/text/timers.htm#sec-intro
 impl Timer {
 
     pub fn new() -> Timer {
@@ -18,12 +18,11 @@ impl Timer {
             div: 0,
             tima: 0,
             tma: 0,
-            tac: 0,
+            tac: 256,
             enabled: true,
             divider_counter: 0,
             timer_counter: 0,
             interrupt: 0,
-            step: 256,
         }
     }
 
@@ -53,24 +52,25 @@ impl Timer {
         };
     }
 
+    // https://www.coranac.com/tonc/text/timers.htm#sec-intro
+    // https://hacktix.github.io/GBEDG/timers/
     pub fn tick(&mut self) {
         self.divider_counter += 1;
-
         while self.divider_counter >= 256 {
             self.div = self.div.wrapping_add(1);
-            self.divider_counter -= 256;
+            self.divider_counter = 0;
         }
 
         if self.enabled {
             self.timer_counter += 1;
 
-            while self.timer_counter >= self.step {
+            while self.timer_counter >= self.tac {
                 self.tima = self.tima.wrapping_add(1);
                 if self.tima == 0 {
                     self.tima = self.tma;
                     self.interrupt |= 0x04;
                 }
-                self.timer_counter -= self.step;
+                self.timer_counter = self.tac;
             }
         }
     }
