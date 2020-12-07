@@ -109,3 +109,10 @@ impl Dma {
 
 }
 
+pub fn perform_oam_dma(mmu: &mut Mmu, value: u8) {
+    let base = (value as u16) << 8;
+    for i in 0 .. 0xA0 {
+        let data = mmu.read_byte(base + i);
+        mmu.write_byte(0xFE00 + i, data);
+    }
+}
