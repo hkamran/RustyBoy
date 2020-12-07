@@ -2,3 +2,4 @@ https://meganesulli.com/generate-gb-opcodes/
 http://bgb.bircd.org/pandocs.htm
 https://gekkio.fi/files/gb-docs/gbctr.pdf
 https://gbdev.io/pandocs/#the-cartridge-header
+https://www.youtube.com/watch?v=HyzD8pNlpwI&t=29m12s

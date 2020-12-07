@@ -95,7 +95,7 @@ pub struct Ppu {
     frame: [u8; SCREEN_W * SCREEN_H * 3],
 
     // https://gbdev.io/pandocs/#ff0f-if-interrupt-flag-r-w
-    interrupt: u8,
+    pub interrupt: u8,
 
     pub h_blank: bool,
     pub v_blank: bool,

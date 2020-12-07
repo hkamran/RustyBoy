@@ -1,5 +1,6 @@
 use crate::ppu::Ppu;
 use crate::dma::{Dma, perform_oam_dma};
+use crate::timer::Timer;
 
 #[allow(unused)]
 pub struct Mmu {
@@ -14,6 +15,7 @@ pub struct Mmu {
 
     pub ppu: Ppu,
     pub dma: Dma,
+    pub timer: Timer,
 }
 
 #[derive(PartialEq)]
@@ -37,6 +39,7 @@ impl Mmu {
 
             ppu: Ppu::new(),
             dma: Dma::new(),
+            timer: Timer::new(),
         };
     }
 
@@ -50,7 +53,7 @@ impl Mmu {
             0xFE00 ..= 0xFE9F => { self.ppu.read_byte(address) },
             0xFF00 ..= 0xFF00 => { 0 }, // keyboard
             0xFF01 ..= 0xFF02 => { 0 }, // self.serial.read_byte(address)
-            0xFF04 ..= 0xFF07 => { 0 }, // self.timer.read_byte(address)
+            0xFF04 ..= 0xFF07 => { self.timer.read_byte(address) }, //
             0xFF0F => { self.interrupt_flag },
             0xFF10 ..= 0xFF3F => { 0 }, // sound
             0xFF4D => (if self.speed == Speed::FAST { 0x80 } else { 0 }) | (if self.switch_speed { 1 } else { 0 }),
@@ -74,7 +77,7 @@ impl Mmu {
             0xFE00 ..= 0xFE9F => { self.ppu.write_byte(address, value) },
             0xFF00 => {},            // keyboard
             0xFF01 ..= 0xFF02 => {}, // self.serial.write_byte
-            0xFF04 ..= 0xFF07 => {}, // self.timer.write_byte
+            0xFF04 ..= 0xFF07 => { self.timer.write_byte(address, value) }, //
             0xFF10 ..= 0xFF3F => {}, // sound
             0xFF46 => { perform_oam_dma(self, value) },
             0xFF4D => { if value & 0x1 == 0x1 { self.switch_speed = true; } },
@@ -109,6 +112,31 @@ impl Mmu {
             self.speed = if Speed::FAST == self.speed { Speed::SLOW } else { Speed::FAST };
         }
         self.switch_speed = false;
+    }
+
+    pub fn tick(&mut self) -> u32 {
+        let cpu_divider = match self.speed {
+            Speed::SLOW => 1,
+            Speed::FAST => 2,
+        };
+
+        let dma_ticks = 0; //self.dma.tick(self);
+        let gpu_ticks = cpu_divider + dma_ticks;
+        let cpu_ticks = dma_ticks * cpu_divider;
+
+        // for x in 0 .. cpu_ticks {
+        //     self.timer.tick();
+        // }
+        self.interrupt_flag |= self.timer.interrupt;
+        self.timer.interrupt = 0;
+
+        // for x in 0 .. gpu_ticks {
+        //     self.ppu.tick(self);
+        // }
+        self.interrupt_flag |= self.ppu.interrupt;
+        self.ppu.interrupt = 0;
+
+        return 0;
     }
 
 }

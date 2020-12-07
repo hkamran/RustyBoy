@@ -6,6 +6,7 @@ mod cartridge;
 mod io;
 mod operations;
 mod dma;
+mod timer;
 
 use wasm_bindgen::prelude::*;
 use web_sys;
