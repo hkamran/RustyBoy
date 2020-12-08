@@ -12,21 +12,6 @@ pub trait Cartridge {
 
     fn write_byte(&mut self, addr: u16, value: u8) -> ();
 
-    fn load(file: &str) -> Box<dyn Cartridge> where Self: Sized{
-        let path = Path::new(file);
-        let content : Vec<u8> = fs::read(path).expect("yabe");
-
-        // Check header to determine type
-        let cartridge = match content[0x0147] {
-            0x00 => MBC0::new(&content[..]),
-            //0x01..=0x03 => MBC1::new(&content[..]),
-            //0x05..=0x06 => MBC2::new(&content[..]),
-            //0x0F..=0x13 => MBC3::new(&content[..]),
-            _ => { panic!("no cartridge type exists");}
-        };
-
-        Box::new(cartridge)
-    }
 }
 
 pub struct MBC0 {
@@ -72,3 +57,20 @@ impl Cartridge for MBC0 {
     }
 
 }
+
+pub fn load(file: &str) -> Box<dyn Cartridge> {
+    let path = Path::new(file);
+    let content : Vec<u8> = fs::read(path).expect("yabe");
+
+    // Check header to determine type
+    let cartridge = match content[0x0147] {
+        0x00 => MBC0::new(&content[..]),
+        //0x01..=0x03 => MBC1::new(&content[..]),
+        //0x05..=0x06 => MBC2::new(&content[..]),
+        //0x0F..=0x13 => MBC3::new(&content[..]),
+        _ => { panic!("no cartridge type exists");}
+    };
+
+    Box::new(cartridge)
+}
+
