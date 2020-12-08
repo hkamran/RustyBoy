@@ -1,24 +1,27 @@
 use std::fs;
 use std::path::Path;
 use std::convert::TryInto;
+use std::fmt;
 
 
-#[allow(dead_code)]
 pub trait Cartridge {
-
     fn new(content: &[u8]) -> Self where Self: Sized;
-
+    fn rom_dump(&self, f: &mut fmt::Formatter) -> fmt::Result;
     fn read_byte(&self, addr: u16) -> u8;
-
     fn write_byte(&mut self, addr: u16, value: u8) -> ();
-
 }
 
+impl fmt::Debug for Cartridge {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        self.rom_dump(f)
+    }
+}
+
+#[derive(Debug)]
 pub struct MBC0 {
     rom: [u8; 0x8000]
 }
 
-#[allow(dead_code)]
 pub struct MBC1 {
     data: [u8; 0x8000],
     rom_bank: [u8; 0x2000],
@@ -40,8 +43,6 @@ pub struct MBC3 {
 }
 
 
-
-#[allow(dead_code)]
 impl Cartridge for MBC0 {
 
     fn new(content: &[u8]) -> Self {
@@ -56,7 +57,11 @@ impl Cartridge for MBC0 {
         self.rom[addr as usize] = value;
     }
 
+    fn rom_dump(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{:?}", self.rom)
+    }
 }
+
 
 pub fn load(file: &str) -> Box<dyn Cartridge> {
     let path = Path::new(file);
