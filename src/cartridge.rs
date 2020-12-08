@@ -58,7 +58,7 @@ impl Cartridge for MBC0 {
     }
 
     fn rom_dump(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{:?}", self.rom)
+        write!(f, "{:x?}", self.rom)
     }
 }
 

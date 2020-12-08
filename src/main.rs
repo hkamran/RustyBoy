@@ -15,7 +15,6 @@ fn main() {
     let cart_path = "./Tetris.gb";
 
     console.mmu.load_cartridge(cart_path);
-
-    println!("{:?}", console.mmu.cartridge);
+    //println!("{:?}", console.mmu.cartridge);
     console.tick();
 }
