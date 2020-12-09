@@ -28,7 +28,7 @@ pub fn main_js() -> Result<(), JsValue> {
     // This provides better error messages in debug mode.
     // It's disabled in release mode so it doesn't bloat up the file size.
     #[cfg(debug_assertions)]
-    web_sys::console_error_panic_hook::set_once();
+    //web_sys::console_error_panic_hook::set_once();
 
 
     // Your code goes here!
