@@ -30,4 +30,9 @@ impl Console {
         }
     }
 
+    pub fn load_cartridge(&mut self, cart_path: &str) {
+        self.mmu.load_cartridge(cart_path);
+    }
+
+
 }
