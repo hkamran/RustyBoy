@@ -230,7 +230,27 @@ impl Ppu {
     }
 
     fn render_frame(&mut self) {
-        self.screen.update(self.frame);
+
+        let mut buffer: Vec<u32> = vec![0; SCREEN_W * SCREEN_H];
+
+        fn from_u8_rgb(r: u8, g: u8, b: u8) -> u32 {
+            let (r, g, b) = (r as u32, g as u32, b as u32);
+            (r << 16) | (g << 8) | b
+        }
+
+        let mut index = 0;
+        for x in 0 .. SCREEN_W {
+            for y in 0 .. SCREEN_H {
+                let base = (y as usize) * SCREEN_W * 3 + x as usize * 3;
+                let r = self.frame[base + 0];
+                let g = self.frame[base + 1];
+                let b = self.frame[base + 2];
+                buffer[index] = from_u8_rgb(r, g, b);
+                index += 1;
+            }
+        }
+
+        self.screen.update(buffer);
     }
 
     fn render_scan_line(&mut self) {

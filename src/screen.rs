@@ -29,7 +29,7 @@ impl Screen {
     }
 
     pub fn update(&mut self, buffer: Vec<u32>) -> () {
-        window
+        self.window
             .update_with_buffer(&buffer, SCREEN_W, SCREEN_H)
             .unwrap();
     }
