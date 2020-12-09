@@ -161,7 +161,7 @@ impl Ppu {
     }
 
     #[allow(unused)]
-    pub fn tick(&mut self, bus: &mut Mmu) -> () {
+    pub fn tick(&mut self) -> () {
         if !self.lcd_display_enable {
             return;
         }

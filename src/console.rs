@@ -11,7 +11,6 @@ pub enum Mode {
 pub struct Console {
     pub cpu: Cpu,
     pub mmu: Mmu,
-    pub ppu: Ppu,
 }
 
 impl Console {
@@ -19,8 +18,7 @@ impl Console {
     pub fn new() -> Self {
         return Console {
             mmu: Mmu::new(),
-            cpu: Cpu::new(),
-            ppu: Ppu::new(),
+            cpu: Cpu::new()
         }
     }
 
@@ -28,7 +26,7 @@ impl Console {
         self.cpu.tick(&mut self.mmu);
 
         for _x in 0..3 {
-            self.ppu.tick(&mut self.mmu);
+            self.mmu.tick();
         }
     }
 

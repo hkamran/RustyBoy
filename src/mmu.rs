@@ -128,15 +128,15 @@ impl Mmu {
         let gpu_ticks = cpu_divider + dma_ticks;
         let cpu_ticks = dma_ticks * cpu_divider;
 
-        // for x in 0 .. cpu_ticks {
-        //     self.timer.tick();
-        // }
+        for x in 0 .. cpu_ticks {
+            self.timer.tick();
+        }
         self.interrupt_flag |= self.timer.interrupt;
         self.timer.interrupt = 0;
 
-        // for x in 0 .. gpu_ticks {
-        //     self.ppu.tick(self);
-        // }
+        for x in 0 .. gpu_ticks {
+            self.ppu.tick();
+        }
         self.interrupt_flag |= self.ppu.interrupt;
         self.ppu.interrupt = 0;
 
