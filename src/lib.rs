@@ -7,6 +7,7 @@ mod io;
 mod operations;
 mod dma;
 mod timer;
+mod screen;
 
 use wasm_bindgen::prelude::*;
 use web_sys;

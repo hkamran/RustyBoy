@@ -1,4 +1,5 @@
 use crate::mmu::Mmu;
+use crate::screen::Screen;
 
 pub const VRAM_SIZE: usize = 0x4000;
 pub const VOAM_SIZE: usize = 0xA0;
@@ -103,6 +104,8 @@ pub struct Ppu {
     mode: GpuMode,
     clock: u32,
     ly: u8,
+
+    screen: Screen
 }
 
 #[allow(dead_code)]
@@ -157,6 +160,8 @@ impl Ppu {
             clock: 0,
             mode: GpuMode::VBlank,
             ly: 0,
+
+            screen: Screen::new()
         };
     }
 
@@ -225,7 +230,7 @@ impl Ppu {
     }
 
     fn render_frame(&mut self) {
-
+        self.screen.update(self.frame);
     }
 
     fn render_scan_line(&mut self) {
