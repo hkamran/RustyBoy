@@ -624,7 +624,7 @@ impl Ppu {
                 }
                 if self.cbg_obj_increment { self.cbg_obj_index = (self.cbg_obj_index + 1) & 0x3F; };
             },
-            _ => panic!("invalid"),
+            _ => panic!("invalid {}", address),
         }
     }
 }
