@@ -18,7 +18,7 @@ impl Timer {
             div: 0,
             tima: 0,
             tma: 0,
-            tac: 256,
+            tac: 0,
             enabled: true,
             divider_counter: 0,
             timer_counter: 0,

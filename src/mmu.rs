@@ -60,8 +60,8 @@ impl Mmu {
             0xFF04 ..= 0xFF07 => { self.timer.read_byte(address) }, //
             0xFF0F => { self.interrupt_flag },
             0xFF10 ..= 0xFF3F => { 0 }, // sound
-            0xFF4D => (if self.speed == Speed::FAST { 0x80 } else { 0 }) | (if self.switch_speed { 1 } else { 0 }),
             0xFF40 ..= 0xFF4F => { self.ppu.read_byte(address) },
+            0xFF4D => (if self.speed == Speed::FAST { 0x80 } else { 0 }) | (if self.switch_speed { 1 } else { 0 }),
             0xFF51 ..= 0xFF55 => { self.dma.read_byte(address) },
             0xFF68 ..= 0xFF6B => { self.ppu.read_byte(address) },
             0xFF70 ..= 0xFF70 => { self.wram_bank as u8 },
@@ -83,9 +83,9 @@ impl Mmu {
             0xFF01 ..= 0xFF02 => {}, // self.serial.write_byte
             0xFF04 ..= 0xFF07 => { self.timer.write_byte(address, value) }, //
             0xFF10 ..= 0xFF3F => {}, // sound
+            0xFF40 ..= 0xFF4F => { self.ppu.write_byte(address, value) },
             0xFF46 => { perform_oam_dma(self, value) },
             0xFF4D => { if value & 0x1 == 0x1 { self.switch_speed = true; } },
-            0xFF40 ..= 0xFF4F => { self.ppu.write_byte(address, value) },
             0xFF51 ..= 0xFF55 => { self.dma.write_byte(address, value)},
             0xFF68 ..= 0xFF6B => { self.ppu.write_byte(address, value)},
             0xFF0F => { self.interrupt_flag = value },

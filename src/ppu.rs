@@ -113,14 +113,14 @@ impl Ppu {
 
     pub fn new() -> Self {
         return Ppu {
-            lcd_display_enable: false,
-            window_tile_map_select: 0x9C00,
+            lcd_display_enable: true,
+            window_tile_map_select: 0x9800,
             window_display_enable: false,
             tilemap_base_select: 0x8000,
-            bg_tile_map: 0x9C00,
+            bg_tile_map: 0x9800,
             sprite_size: 8,
             sprite_enable: false,
-            bg_display: false,
+            bg_display: true,
 
             lyc_interrupt_enable: false,
             mode_2_interrupt: false,
@@ -134,9 +134,9 @@ impl Ppu {
             lcd_y_coordinate: 0,
             lyc: 0,
 
-            gb_bg_palette: 0,
-            gb_obj_palette_0: 0,
-            gb_obj_palette_1: 0,
+            gb_bg_palette: 0xFC,
+            gb_obj_palette_0: 0xFF,
+            gb_obj_palette_1: 0xFF,
 
             cbg_bg_palette_index: 0,
             cbg_bg_palette_increment: false,

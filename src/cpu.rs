@@ -45,23 +45,20 @@ impl Cpu {
         }
     }
 
-    pub fn tick(&mut self, mmu: &mut Mmu) -> u8 {
-        let cycles = self.cycles;
+    pub fn tick(&mut self, mmu: &mut Mmu) {
         let pc = self.pc;
 
         self.update_interrupt_master_flag();
         if self.handle_interrupt(mmu) {
-            return (self.cycles - cycles) as u8;
+            return
         }
 
         if self.halted {
-            return 1;
+            return
         }
 
         let opcode: u8 = mmu.read_byte(pc);
         execute_operation(opcode, self, mmu);
-
-        return (self.cycles - cycles) as u8;
     }
 
     pub fn update_interrupt_master_flag(&mut self) {
