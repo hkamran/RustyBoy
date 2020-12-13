@@ -12,6 +12,7 @@ mod logger;
 
 use console_error_panic_hook;
 use wasm_bindgen::prelude::*;
+use wasm_bindgen::JsCast;
 use web_sys;
 
 
@@ -32,9 +33,32 @@ pub fn main_js() -> Result<(), JsValue> {
     #[cfg(debug_assertions)]
     console_error_panic_hook::set_once();
 
+    let document = web_sys::window().unwrap().document().unwrap();
+    let canvas = document.get_element_by_id("screen").unwrap();
+    let canvas: web_sys::HtmlCanvasElement = canvas
+        .dyn_into::<web_sys::HtmlCanvasElement>()
+        .map_err(|_| ())
+        .unwrap();
 
-    // Your code goes here!
-    web_sys::console::log_1(&JsValue::from_str("Hello world!"));
+    let context = canvas
+        .get_context("2d")
+        .unwrap()
+        .unwrap()
+        .dyn_into::<web_sys::CanvasRenderingContext2d>()
+        .unwrap();
+
+    context.beginPath();
+
+    let mut console: Console = Console::new();
+    let cart_path = "./Tetris.gb";
+
+    console.mmu.load_cartridge(cart_path);
+    console.mmu.load_canvas_ctx(context);
+    //println!("{:?}", console.mmu.cartridge.as_ref().unwrap().read_byte(0x0147));
+    for x in 0 .. 100 {
+        println!("{}", x);
+        console.tick();
+    }
 
     Ok(())
 }

@@ -46,15 +46,7 @@ impl Mmu {
     }
 
     pub fn load_cartridge(&mut self, cart_path: &str) {
-        self.cartridge = Some(load_from_file_address(cart_path));
-        match &mut self.cartridge {
-            Some(c) => {
-                self.ppu.set_gameboy_type(c.get_gameboy_type().clone())
-            },
-            None => {
-                panic!("error")
-            }
-        };
+        self.cartridge = Some(cartridge::load(cart_path));
     }
 
     pub fn read_byte(&self, address: u16) -> u8 {

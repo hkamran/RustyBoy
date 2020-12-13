@@ -1,5 +1,6 @@
 use crate::console::GameboyType;
 use crate::mmu::Mmu;
+use wasm_bindgen::prelude::web_sys::CanvasRenderingContext2d;
 
 pub const VRAM_SIZE: usize = 0x4000;
 pub const VOAM_SIZE: usize = 0xA0;
@@ -53,6 +54,7 @@ enum GpuMode {
     VBlank = 1,
 }
 
+#[wasm_bindgen]
 #[allow(dead_code)]
 pub struct Ppu {
     // 0xFF40 (http://bgb.bircd.org/pandocs.htm#videodisplay)
@@ -116,8 +118,11 @@ pub struct Ppu {
     ly: u8,
     gameboy_type: GameboyType,
 
+    screen: Option<CanvasRenderingContext2d>
+
 }
 
+#[wasm_bindgen]
 #[allow(dead_code)]
 impl Ppu {
 
@@ -176,22 +181,12 @@ impl Ppu {
             ly: 0,
             gameboy_type: GameboyType::CLASSIC,
 
+            screen: None
         };
     }
 
-    pub fn reset(&mut self) {
-        self.interrupt = 0;
-        self.h_blank = false;
-        self.v_blank = false;
-        self.clock = 0;
-        self.mode = GpuMode::Read;
-        self.ly = 0;
-    }
-
-    pub fn execute_ticks(&mut self, ticks: u32) -> () {
-        for _i in 0 .. ticks {
-            self.execute_tick();
-        }
+    pub fn load_canvas_ctx(&mut self, CanvasRenderingContext2d context) {
+        self.screen = Some(context);
     }
 
     #[allow(unused)]
