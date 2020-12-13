@@ -1,5 +1,5 @@
-use crate::screen::Screen;
 use crate::console::GameboyType;
+use crate::mmu::Mmu;
 
 pub const VRAM_SIZE: usize = 0x4000;
 pub const VOAM_SIZE: usize = 0xA0;
@@ -116,7 +116,6 @@ pub struct Ppu {
     ly: u8,
     gameboy_type: GameboyType,
 
-    screen: Screen
 }
 
 #[allow(dead_code)]
@@ -177,7 +176,6 @@ impl Ppu {
             ly: 0,
             gameboy_type: GameboyType::CLASSIC,
 
-            screen: Screen::new()
         };
     }
 
@@ -280,7 +278,6 @@ impl Ppu {
             }
         }
 
-        self.screen.update(buffer);
     }
 
     fn render_scan_line(&mut self) {
