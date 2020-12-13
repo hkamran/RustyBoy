@@ -58,8 +58,8 @@ impl Mmu {
             0xD000 ..= 0xDFFF | (0xF000 ..= 0xFDFF) => { self.wram[(self.wram_bank * 0x1000) | address as usize & 0x0FFF] },
             0xFE00 ..= 0xFE9F => { self.ppu.read_byte(address) },
             0xFF00 ..= 0xFF00 => { 0 }, // keyboard
-            0xFF01 ..= 0xFF02 => { 0 }, // self.serial.read_byte(address)
-            0xFF04 ..= 0xFF07 => { self.timer.read_byte(address) }, //
+            0xFF01 ..= 0xFF02 => { 0 }, // serial transfer
+            0xFF04 ..= 0xFF07 => { self.timer.read_byte(address) },
             0xFF0F => { self.interrupt_flag },
             0xFF10 ..= 0xFF3F => { 0 }, // sound
             0xFF40 ..= 0xFF4F => { self.ppu.read_byte(address) },
@@ -82,8 +82,8 @@ impl Mmu {
             0xD000 ..= 0xDFFF | (0xF000 ..= 0xFDFF) => { self.wram[(self.wram_bank * 0x1000) | (address as usize & 0x0FFF)] = value },
             0xFE00 ..= 0xFE9F => { self.ppu.write_byte(address, value) },
             0xFF00 => {},            // keyboard
-            0xFF01 ..= 0xFF02 => {}, // self.serial.write_byte
-            0xFF04 ..= 0xFF07 => { self.timer.write_byte(address, value) }, //
+            0xFF01 ..= 0xFF02 => {}, // serial transfer
+            0xFF04 ..= 0xFF07 => { self.timer.write_byte(address, value) },
             0xFF10 ..= 0xFF3F => {}, // sound
             0xFF40 ..= 0xFF4F => { self.ppu.write_byte(address, value) },
             0xFF46 => { execute_odma(self, value) },
