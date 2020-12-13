@@ -87,8 +87,8 @@ impl Cpu {
             return 1;
         }
 
-        println!("{}", self.to_string());
         self.opcode = mmu.read_byte(pc);
+        println!("{}", self.to_string());
         execute_operation(self.opcode, self, mmu);
 
         return (self.cycles - cycles) as u32;
