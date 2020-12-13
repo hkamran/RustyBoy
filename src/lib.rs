@@ -10,11 +10,11 @@ mod timer;
 mod screen;
 mod logger;
 
+use console::Console;
 use console_error_panic_hook;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
-use web_sys;
-
+use web_sys::{CanvasRenderingContext2d, HtmlCanvasElement};
 
 // When the `wee_alloc` feature is enabled, this uses `wee_alloc` as the global
 // allocator.
@@ -35,8 +35,8 @@ pub fn main_js() -> Result<(), JsValue> {
 
     let document = web_sys::window().unwrap().document().unwrap();
     let canvas = document.get_element_by_id("screen").unwrap();
-    let canvas: web_sys::HtmlCanvasElement = canvas
-        .dyn_into::<web_sys::HtmlCanvasElement>()
+    let canvas: HtmlCanvasElement = canvas
+        .dyn_into::<HtmlCanvasElement>()
         .map_err(|_| ())
         .unwrap();
 
@@ -44,16 +44,16 @@ pub fn main_js() -> Result<(), JsValue> {
         .get_context("2d")
         .unwrap()
         .unwrap()
-        .dyn_into::<web_sys::CanvasRenderingContext2d>()
+        .dyn_into::<CanvasRenderingContext2d>()
         .unwrap();
 
-    context.beginPath();
 
     let mut console: Console = Console::new();
     let cart_path = "./Tetris.gb";
 
     console.mmu.load_cartridge(cart_path);
-    console.mmu.load_canvas_ctx(context);
+    console.load_canvas_ctx(context);
+    //context.beginPath();
     //println!("{:?}", console.mmu.cartridge.as_ref().unwrap().read_byte(0x0147));
     for x in 0 .. 100 {
         println!("{}", x);

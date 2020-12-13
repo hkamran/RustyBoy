@@ -1,7 +1,6 @@
 use crate::cpu::Cpu;
-use crate::ppu::Ppu;
 use crate::mmu::Mmu;
-use wasm_bindgen::prelude::web_sys::CanvasRenderingContext2d;
+use web_sys::CanvasRenderingContext2d;
 
 #[derive(PartialEq, Copy, Clone)]
 pub enum GameboyType {

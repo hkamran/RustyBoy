@@ -46,7 +46,7 @@ impl Mmu {
     }
 
     pub fn load_cartridge(&mut self, cart_path: &str) {
-        self.cartridge = Some(cartridge::load(cart_path));
+        self.cartridge = Some(load(cart_path));
     }
 
     pub fn read_byte(&self, address: u16) -> u8 {
