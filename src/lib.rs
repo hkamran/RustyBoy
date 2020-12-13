@@ -9,6 +9,7 @@ mod dma;
 mod timer;
 mod screen;
 
+use console_error_panic_hook;
 use wasm_bindgen::prelude::*;
 use web_sys;
 
@@ -28,7 +29,7 @@ pub fn main_js() -> Result<(), JsValue> {
     // This provides better error messages in debug mode.
     // It's disabled in release mode so it doesn't bloat up the file size.
     #[cfg(debug_assertions)]
-    //web_sys::console_error_panic_hook::set_once();
+    console_error_panic_hook::set_once();
 
 
     // Your code goes here!
