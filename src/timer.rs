@@ -18,7 +18,7 @@ impl Timer {
             div: 0,
             tima: 0,
             tma: 0,
-            tac: 0,
+            tac: 256,
             enabled: true,
             divider_counter: 0,
             timer_counter: 0,
@@ -30,7 +30,7 @@ impl Timer {
         self.div = 0;
         self.tima = 0;
         self.tma = 0;
-        self.tac = 0;
+        self.tac = 256;
         self.enabled = true;
         self.divider_counter = 0;
         self.timer_counter = 0;
@@ -78,7 +78,7 @@ impl Timer {
     pub fn execute_tick(&mut self) {
         while self.divider_counter >= 256 {
             self.div = self.div.wrapping_add(1);
-            self.divider_counter = 0;
+            self.divider_counter -= 256;
         }
 
         if self.enabled {
@@ -88,7 +88,7 @@ impl Timer {
                     self.tima = self.tma;
                     self.interrupt |= 0x04;
                 }
-                self.timer_counter = self.tac;
+                self.timer_counter -= self.tac;
             }
         }
     }
