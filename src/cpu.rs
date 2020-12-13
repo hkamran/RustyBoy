@@ -27,16 +27,16 @@ impl Cpu {
 
     pub fn new() -> Self {
         return Cpu {
-            a: 0x01,
+            a: 0x00,
             b: 0x00,
-            c: 0x13,
+            c: 0x00,
             d: 0x00,
-            e: 0xD8,
-            f: 0xB0,
-            h: 0x01,
-            l: 0x4D,
-            pc: 0x0100,
-            sp: 0xFFFE,
+            e: 0x00,
+            f: 0x00,
+            h: 0x00,
+            l: 0x00,
+            pc: 0x0000,
+            sp: 0x0000,
             halted: false,
             interrupt_master_enable: true,
             disable_interrupt_counter: 0,
@@ -45,20 +45,49 @@ impl Cpu {
         }
     }
 
-    pub fn tick(&mut self, mmu: &mut Mmu) {
+    pub fn reset(&mut self) {
+        self.a = 0x01;
+        self.b = 0x00;
+        self.c = 0x13;
+        self.d = 0x00;
+        self.e = 0xD8;
+        self.f = 0xB0;
+        self.h = 0x01;
+        self.l = 0x4D;
+        self.pc = 0x0100;
+        self.sp = 0xFFFE;
+        self.halted = false;
+        self.interrupt_master_enable = true;
+        self.disable_interrupt_counter = 0;
+        self.enable_interrupt_counter = 0;
+        self.cycles = 0;
+    }
+
+    pub fn execute_ticks(&mut self, mmu: &mut Mmu, ticks: u32) -> u32 {
+        let mut total = 0;
+        for i in 0 .. ticks {
+            total += self.execute_tick(mmu);
+        }
+        return total;
+    }
+
+    pub fn execute_tick(&mut self, mmu: &mut Mmu) -> u32 {
+        let cycles = self.cycles;
         let pc = self.pc;
 
         self.update_interrupt_master_flag();
         if self.handle_interrupt(mmu) {
-            return
+            return (self.cycles - cycles) as u32;
         }
 
         if self.halted {
-            return
+            return 1;
         }
 
         let opcode: u8 = mmu.read_byte(pc);
         execute_operation(opcode, self, mmu);
+
+        return (self.cycles - cycles) as u32;
     }
 
     pub fn update_interrupt_master_flag(&mut self) {

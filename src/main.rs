@@ -23,11 +23,7 @@ fn main() {
     let mut console: Console = Console::new();
     let cart_path = "./Tetris.gb";
 
-    console.mmu.load_cartridge(cart_path);
-    //println!("{:?}", console.mmu.cartridge.as_ref().unwrap().read_byte(0x0147));
-    for x in 0 .. 100 {
-        println!("{}", x);
-        console.tick();
-    }
-
+    console.load(cart_path);
+    console.reset();
+    console.execute_ticks(100);
 }

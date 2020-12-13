@@ -1,20 +1,22 @@
 use crate::cartridge::{Cartridge, load};
 use crate::ppu::Ppu;
-use crate::dma::{Dma, perform_oam_dma};
+use crate::dma::{Dma, execute_odma};
 use crate::timer::Timer;
+use std::cell::RefCell;
+use std::rc::Rc;
 
 #[allow(unused)]
 pub struct Mmu {
     zram: [u8; 0x7F],
     wram: [u8; 0x8000],
     wram_bank: usize,
-    speed: Speed,
     switch_speed: bool,
+    pub speed: Speed,
     pub interrupt_enable: u8,
     pub interrupt_flag: u8,
     pub ppu: Ppu,
     pub cartridge: Option<Box<dyn Cartridge>>,
-    pub dma: Dma,
+    pub dma: Rc<RefCell<Dma>>,
     pub timer: Timer,
 }
 
@@ -38,7 +40,7 @@ impl Mmu {
             interrupt_enable: 0,
 
             ppu: Ppu::new(),
-            dma: Dma::new(),
+            dma: Rc::new(RefCell::new(Dma::new())),
             timer: Timer::new(),
         };
     }
@@ -62,7 +64,7 @@ impl Mmu {
             0xFF10 ..= 0xFF3F => { 0 }, // sound
             0xFF40 ..= 0xFF4F => { self.ppu.read_byte(address) },
             0xFF4D => (if self.speed == Speed::FAST { 0x80 } else { 0 }) | (if self.switch_speed { 1 } else { 0 }),
-            0xFF51 ..= 0xFF55 => { self.dma.read_byte(address) },
+            0xFF51 ..= 0xFF55 => { self.dma.borrow_mut().read_byte(address) },
             0xFF68 ..= 0xFF6B => { self.ppu.read_byte(address) },
             0xFF70 ..= 0xFF70 => { self.wram_bank as u8 },
             0xFF80 ..= 0xFFFE => { self.zram[address as usize & 0x007F] },
@@ -84,9 +86,9 @@ impl Mmu {
             0xFF04 ..= 0xFF07 => { self.timer.write_byte(address, value) }, //
             0xFF10 ..= 0xFF3F => {}, // sound
             0xFF40 ..= 0xFF4F => { self.ppu.write_byte(address, value) },
-            0xFF46 => { perform_oam_dma(self, value) },
+            0xFF46 => { execute_odma(self, value) },
             0xFF4D => { if value & 0x1 == 0x1 { self.switch_speed = true; } },
-            0xFF51 ..= 0xFF55 => { self.dma.write_byte(address, value)},
+            0xFF51 ..= 0xFF55 => { self.dma.borrow_mut().write_byte(address, value)},
             0xFF68 ..= 0xFF6B => { self.ppu.write_byte(address, value)},
             0xFF0F => { self.interrupt_flag = value },
             0xFF70 ..= 0xFF70 => { self.wram_bank = match value & 0x7 { 0 => 1, n => n as usize }; },
@@ -118,29 +120,34 @@ impl Mmu {
         self.switch_speed = false;
     }
 
-    pub fn tick(&mut self) -> u32 {
+    pub fn execute_ticks(&mut self, ticks: u32) {
         let cpu_divider = match self.speed {
             Speed::SLOW => 1,
             Speed::FAST => 2,
         };
 
-        let dma_ticks = 0; //self.dma.tick(self);
-        let gpu_ticks = cpu_divider + dma_ticks;
-        let cpu_ticks = dma_ticks * cpu_divider;
+        let mut dma = self.dma.clone();
 
-        for x in 0 .. cpu_ticks {
-            self.timer.tick();
-        }
+        let vram_ticks = dma.borrow_mut().execute_tick(self);
+        let gpu_ticks = ticks / cpu_divider + vram_ticks;
+        let timer_ticks = ticks + vram_ticks * cpu_divider;
+
+        self.timer.execute_ticks(timer_ticks);
+        self.ppu.execute_ticks(gpu_ticks);
+
         self.interrupt_flag |= self.timer.interrupt;
         self.timer.interrupt = 0;
 
-        for x in 0 .. gpu_ticks {
-            self.ppu.tick();
-        }
         self.interrupt_flag |= self.ppu.interrupt;
         self.ppu.interrupt = 0;
+    }
 
-        return 0;
+    pub fn reset(&mut self) {
+        let mut dma = self.dma.clone();
+
+        self.timer.reset();
+        self.ppu.reset();
+        self.dma.borrow_mut().reset();
     }
 
 }

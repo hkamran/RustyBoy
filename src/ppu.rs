@@ -165,8 +165,23 @@ impl Ppu {
         };
     }
 
+    pub fn reset(&mut self) {
+        self.interrupt = 0;
+        self.h_blank = false;
+        self.v_blank = false;
+        self.clock = 0;
+        self.mode = GpuMode::VBlank;
+        self.ly = 0;
+    }
+
+    pub fn execute_ticks(&mut self, ticks: u32) -> () {
+        for i in 0 .. ticks {
+            self.execute_tick();
+        }
+    }
+
     #[allow(unused)]
-    pub fn tick(&mut self) -> () {
+    pub fn execute_tick(&mut self) -> () {
         if !self.lcd_display_enable {
             return;
         }

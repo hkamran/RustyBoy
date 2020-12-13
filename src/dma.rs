@@ -27,7 +27,14 @@ impl Dma {
         }
     }
 
-    pub fn tick(&mut self, mmu: &mut Mmu) -> u32 {
+    pub fn reset(&mut self) {
+        self.dma_source = 0;
+        self.dma_destination = 0;
+        self.dma_length = 0;
+        self.dma_status = DMAType::NONE;
+    }
+
+    pub fn execute_tick(&mut self, mmu: &mut Mmu) -> u32 {
         return match self.dma_status {
             DMAType::NONE => 0,
             DMAType::GDMA => self.execute_gdma(mmu),
@@ -74,7 +81,7 @@ impl Dma {
         if mmu.ppu.h_blank == false {
             return 0;
         }
-        self.perform_vram_dma_row(mmu);
+        self.execute_transfer(mmu);
         if self.dma_length == 0x7F { self.dma_status = DMAType::NONE; }
 
         return 8;
@@ -83,14 +90,14 @@ impl Dma {
     fn execute_gdma(&mut self, mmu: &mut Mmu) -> u32 {
         let len = self.dma_length as u32 + 1;
         for _i in 0 .. len {
-            self.perform_vram_dma_row(mmu);
+            self.execute_transfer(mmu);
         }
 
         self.dma_status = DMAType::NONE;
         return len * 8;
     }
 
-    fn perform_vram_dma_row(&mut self, mmu: &mut Mmu) {
+    fn execute_transfer(&mut self, mmu: &mut Mmu) {
         let mmu_src = self.dma_source;
         for j in 0 .. 0x10 {
             let b: u8 = mmu.read_byte(mmu_src + j);
@@ -109,7 +116,8 @@ impl Dma {
 
 }
 
-pub fn perform_oam_dma(mmu: &mut Mmu, value: u8) {
+// OAM DMA
+pub fn execute_odma(mmu: &mut Mmu, value: u8) {
     let base = (value as u16) << 8;
     for i in 0 .. 0xA0 {
         let data = mmu.read_byte(base + i);

@@ -3,10 +3,10 @@ pub struct Timer {
     div:  u8,
     tima: u8,
     tma:  u8,
-    tac:  u16,
+    tac:  u32,
     enabled: bool,
-    divider_counter: u16,
-    timer_counter: u16,
+    divider_counter: u32,
+    timer_counter: u32,
     pub interrupt: u8,
 }
 
@@ -24,6 +24,17 @@ impl Timer {
             timer_counter: 0,
             interrupt: 0,
         }
+    }
+
+    pub fn reset(&mut self) {
+        self.div = 0;
+        self.tima = 0;
+        self.tma = 0;
+        self.tac = 0;
+        self.enabled = true;
+        self.divider_counter = 0;
+        self.timer_counter = 0;
+        self.interrupt = 0;
     }
 
     pub fn read_byte(&self, address: u16) -> u8 {
@@ -54,16 +65,23 @@ impl Timer {
 
     // https://www.coranac.com/tonc/text/timers.htm#sec-intro
     // https://hacktix.github.io/GBEDG/timers/
-    pub fn tick(&mut self) {
-        self.divider_counter += 1;
+    pub fn execute_ticks(&mut self, ticks: u32) {
+        self.divider_counter += ticks;
+
+        if self.enabled {
+            self.timer_counter += ticks;
+        }
+
+        self.execute_tick();
+    }
+
+    pub fn execute_tick(&mut self) {
         while self.divider_counter >= 256 {
             self.div = self.div.wrapping_add(1);
             self.divider_counter = 0;
         }
 
         if self.enabled {
-            self.timer_counter += 1;
-
             while self.timer_counter >= self.tac {
                 self.tima = self.tima.wrapping_add(1);
                 if self.tima == 0 {
