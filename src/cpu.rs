@@ -20,6 +20,7 @@ pub struct Cpu {
     pub enable_interrupt_counter: u8,  // Schedules interrupt handling to be enabled after the next machine cycle
 
     pub cycles: u16,
+    pub opcode: u8,
 }
 
 #[allow(unused)]
@@ -42,11 +43,12 @@ impl Cpu {
             disable_interrupt_counter: 0,
             enable_interrupt_counter: 0,
             cycles: 0,
+            opcode: 0,
         }
     }
 
     pub fn reset(&mut self) {
-        self.a = 0x01;
+        self.a = 0x11;
         self.b = 0x00;
         self.c = 0x13;
         self.d = 0x00;
@@ -61,6 +63,7 @@ impl Cpu {
         self.disable_interrupt_counter = 0;
         self.enable_interrupt_counter = 0;
         self.cycles = 0;
+        self.opcode = 0;
     }
 
     pub fn execute_ticks(&mut self, mmu: &mut Mmu, ticks: u32) -> u32 {
@@ -84,8 +87,9 @@ impl Cpu {
             return 1;
         }
 
-        let opcode: u8 = mmu.read_byte(pc);
-        execute_operation(opcode, self, mmu);
+        println!("{}", self.to_string());
+        self.opcode = mmu.read_byte(pc);
+        execute_operation(self.opcode, self, mmu);
 
         return (self.cycles - cycles) as u32;
     }
@@ -137,7 +141,15 @@ impl Cpu {
     }
 
     pub fn to_string(&mut self) -> String {
-        return format!("PC: {:#06X}, ", self.pc);
+        return format!("PC: {:#06X}, OPCODE: {:#04X}, AF: {:#04X}, BC: {:#04X}, DE: {:#04X}, HL: {:#04X}, SP: HL: {:#04X}",
+                       self.pc,
+                       self.opcode,
+                       self.get_af(),
+                       self.get_bc(),
+                       self.get_de(),
+                       self.get_hl(),
+                       self.sp
+        );
     }
 
     pub fn print(&mut self) {

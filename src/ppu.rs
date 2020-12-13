@@ -1,4 +1,3 @@
-use crate::mmu::Mmu;
 use crate::screen::Screen;
 
 pub const VRAM_SIZE: usize = 0x4000;

@@ -135,6 +135,8 @@ impl Mmu {
         self.timer.execute_ticks(timer_ticks);
         self.ppu.execute_ticks(gpu_ticks);
 
+        // Gather interrupts
+
         self.interrupt_flag |= self.timer.interrupt;
         self.timer.interrupt = 0;
 

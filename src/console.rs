@@ -1,9 +1,5 @@
 use crate::cpu::Cpu;
-use crate::ppu::Ppu;
-use crate::mmu::{Mmu, Speed};
-use std::cell::RefCell;
-use std::rc::Rc;
-use std::ops::DerefMut;
+use crate::mmu::{Mmu};
 
 pub enum Mode {
     COLOR,
@@ -29,15 +25,15 @@ impl Console {
         self.mmu.load_cartridge(cart_path);
     }
 
+    pub fn reset(&mut self) {
+        self.cpu.reset();
+        self.mmu.reset();
+    }
+
     pub fn execute_ticks(&mut self, ticks: u32) -> () {
         for i in 0 .. ticks {
             self.execute_tick();
         }
-    }
-
-    pub fn reset(&mut self) {
-        self.cpu.reset();
-        self.mmu.reset();
     }
 
     pub fn execute_tick(&mut self) {

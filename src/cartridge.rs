@@ -11,7 +11,7 @@ pub trait Cartridge {
     fn write_byte(&mut self, addr: u16, value: u8) -> ();
 }
 
-impl fmt::Debug for Cartridge {
+impl fmt::Debug for dyn Cartridge {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         self.rom_dump(f)
     }
