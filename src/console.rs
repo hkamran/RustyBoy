@@ -31,7 +31,7 @@ impl Console {
     }
 
     pub fn execute_ticks(&mut self, ticks: u32) -> () {
-        for i in 0 .. ticks {
+        for _i in 0 .. ticks {
             self.execute_tick();
         }
     }

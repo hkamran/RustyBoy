@@ -174,7 +174,7 @@ impl Ppu {
     }
 
     pub fn execute_ticks(&mut self, ticks: u32) -> () {
-        for i in 0 .. ticks {
+        for _i in 0 .. ticks {
             self.execute_tick();
         }
     }
@@ -217,7 +217,6 @@ impl Ppu {
                         self.set_mode(GpuMode::VBlank);
                         self.interrupt = INTERRUPT_V_BLANK_MASK;
 
-                        println!("frame");
                         self.render_frame();
                     } else {
                         self.set_mode(GpuMode::Read);

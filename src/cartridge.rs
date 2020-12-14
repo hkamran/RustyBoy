@@ -2,9 +2,6 @@ use std::fs;
 use std::path::Path;
 use std::convert::TryInto;
 use std::fmt;
-use std::path;
-use std::fs::File;
-use std::io::Read;
 
 
 pub trait Cartridge {
