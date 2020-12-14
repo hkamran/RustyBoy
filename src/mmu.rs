@@ -51,20 +51,6 @@ impl Mmu {
         };
     }
 
-    pub fn load_buffer(&mut self, result: FileReaderResult) {
-        let buffer: Vec<u8>;
-        match result {
-            ArrayBuffer => buffer = result.to_vec(),
-            _ => println!("yabe"),
-        }
-
-        self.cartridge = Cartridge::load_buffer(buffer);
-    }
-
-    pub fn load_local_cartridge(&mut self, cart_path: &str) {
-        self.cartridge = Some(load_local(cart_path));
-    }
-
     pub fn read_byte(&self, address: u16) -> u8 {
         match address {
             0x0000 ..= 0x7FFF => { match &self.cartridge { Some(c) => c.read_byte(address), None => 0 } },

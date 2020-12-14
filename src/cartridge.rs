@@ -6,7 +6,6 @@ use crate::console::GameboyType;
 
 const HEADER_INDEX_FOR_CARTRIDGE_TYPE: usize = 0x0147;
 
-
 pub trait Cartridge {
     fn new(content: &[u8]) -> Self where Self: Sized;
     fn rom_dump(&self, f: &mut fmt::Formatter) -> fmt::Result;
@@ -134,6 +133,13 @@ impl Cartridge for MBC1 {
     }
 }
 
+pub fn load_buffer(result: FileReaderResult) {
+    bytes = match result {
+        ArrayBuffer => result.to_vec(),
+        _ => println!("yabe"),
+    }
+}
+
 pub fn load(file: &str) -> Box<dyn Cartridge> {
     let content : Vec<u8> = fs::read(path).expect("yabe");
     return load_from_bytes(content);
@@ -156,4 +162,5 @@ pub fn load_from_bytes(content: Vec<u8>) -> Box<dyn Cartridge> {
         panic!("no cartridge type exists");
     }
 }
+
 

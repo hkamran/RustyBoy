@@ -58,17 +58,12 @@ pub fn main_js() -> Result<(), JsValue> {
         .dyn_into::<CanvasRenderingContext2d>()
         .unwrap();
 
-    //let mut console: Console = Console::new();
-    // will not work with webassembly, as web assembly does not provide fs api
-    //console.mmu.load_cartridge(cart_path);
+    let mut console: Console = Console::new();
+    let bytes: Vec<u8>;
+    console.mmu.cartridge = Cartridge::load(bytes);
 
     //console.load_canvas_ctx(context);
     //context.beginPath();
-    //println!("{:?}", console.mmu.cartridge.as_ref().unwrap().read_byte(0x0147));
-    //for x in 0 .. 100 {
-    //    log_u32(x);
-    //    console.tick();
-    //}
 
     stdweb::initialize();
     stdweb::event_loop();
