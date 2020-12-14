@@ -1,4 +1,4 @@
-use crate::cartridge::{Cartridge, load};
+use crate::cartridge::{Cartridge, load_from_file_address};
 use crate::ppu::Ppu;
 use crate::dma::{Dma, execute_odma};
 use crate::timer::Timer;
@@ -46,7 +46,7 @@ impl Mmu {
     }
 
     pub fn load_cartridge(&mut self, cart_path: &str) {
-        self.cartridge = Some(load(cart_path));
+        self.cartridge = Some(load_from_file_address(cart_path));
     }
 
     pub fn read_byte(&self, address: u16) -> u8 {

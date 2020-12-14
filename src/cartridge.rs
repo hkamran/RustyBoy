@@ -2,6 +2,9 @@ use std::fs;
 use std::path::Path;
 use std::convert::TryInto;
 use std::fmt;
+use std::path;
+use std::fs::File;
+use std::io::Read;
 
 
 pub trait Cartridge {
@@ -23,9 +26,13 @@ pub struct MBC0 {
 }
 
 pub struct MBC1 {
-    data: [u8; 0x8000],
-    rom_bank: [u8; 0x2000],
-    ram_bank: [u8; 0x2000],
+    rom: Vec<u8>,
+    rom_bank: usize,
+    
+    ram: Vec<u8>,
+    ram_on: bool,
+    ram_mode: bool,
+    ram_bank: usize,
 }
 
 #[allow(dead_code)]
@@ -42,11 +49,14 @@ pub struct MBC3 {
     ram_bank: [u8; 0x3000],
 }
 
-
 impl Cartridge for MBC0 {
 
     fn new(content: &[u8]) -> Self {
         MBC0 { rom: content.try_into().expect("yabe")}
+    }
+
+    fn rom_dump(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{:x?}", self.rom)
     }
 
     fn read_byte(&self, addr: u16) -> u8 {
@@ -56,26 +66,89 @@ impl Cartridge for MBC0 {
     fn write_byte(&mut self, addr: u16, value: u8) {
         self.rom[addr as usize] = value;
     }
+}
+
+impl Cartridge for MBC1 {
+
+    fn new(content: &[u8]) -> Self {
+        MBC1 {
+            rom: content.try_into().expect("yabe"),
+            rom_bank: 0,
+            ram: vec![],
+            ram_on: false,
+            ram_mode: false,
+            ram_bank: 0
+        }
+    }
 
     fn rom_dump(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{:x?}", self.rom)
     }
+
+    fn read_byte(&self, addr: u16) -> u8 {
+        match addr {
+            0xA000 ..= 0xBFFF => {
+                if !self.ram_on { return 0 }
+                let ram_bank = if self.ram_mode { self.ram_bank } else { 0 };
+                self.ram[(ram_bank * 0x2000) | ((addr & 0x1FFF) as usize)]
+            }
+            _ => {
+                let index = if addr < 4000 { addr as usize }
+                else  { self.rom_bank  * 0x4000 | ((addr as usize) & 0x3FFF) };
+
+                return *self.rom.get(index).unwrap_or(&0);
+            }
+        }
+    }
+
+    fn write_byte(&mut self, addr: u16, value: u8) {
+        match addr {
+            0x0000 ..= 0x1FFF => { self.ram_on = value == 0x0A; },
+            0x2000 ..= 0x3FFF => {
+                self.rom_bank = (self.rom_bank & 0x60) | match (value as usize) & 0x1F { 0 => 1, n => n }
+            },
+            0x4000 ..= 0x5FFF => {
+                if !self.ram_mode {
+                    self.rom_bank = self.rom_bank & 0x1F | (((value as usize) & 0x03) << 5)
+                } else {
+                    self.rom_bank = (value as usize) & 0x03;
+                }
+            },
+            0x6000 ..= 0x7FFF => { self.ram_mode = (value & 0x01) == 0x01; },
+            0xA000 ..= 0xBFFF => {
+                if !self.ram_on { return }
+                let ram_bank = if self.ram_mode { self.ram_bank } else { 0 };
+                self.ram[(ram_bank * 0x2000) | ((addr & 0x1FFF) as usize)] = value;
+            }
+            _ => panic!("error"),
+        }
+        self.rom[addr as usize] = value;
+    }
 }
 
+const HEADER_INDEX_FOR_CARTRIDGE_TYPE: usize = 0x0147;
 
-pub fn load(file: &str) -> Box<dyn Cartridge> {
-    let path = Path::new(file);
+pub fn load_from_file_address(file_path: &str) -> Box<dyn Cartridge> {
+    let path = Path::new(file_path);
     let content : Vec<u8> = fs::read(path).expect("yabe");
+    return load_from_bytes(content);
+}
 
-    // Check header to determine type
-    let cartridge = match content[0x0147] {
-        0x00 => MBC0::new(&content[..]),
-        //0x01..=0x03 => MBC1::new(&content[..]),
-        //0x05..=0x06 => MBC2::new(&content[..]),
-        //0x0F..=0x13 => MBC3::new(&content[..]),
-        _ => { panic!("no cartridge type exists");}
-    };
+pub fn load_from_bytes(content: Vec<u8>) -> Box<dyn Cartridge> {
+    let cartridge_type = content[HEADER_INDEX_FOR_CARTRIDGE_TYPE];
 
-    Box::new(cartridge)
+    if 0x00 <= cartridge_type && cartridge_type <= 0x00 {
+        let cartridge = MBC0::new(&content[..]);
+        return Box::new(cartridge);
+    } else if 0x01 <= cartridge_type && cartridge_type <= 0x03 {
+        let cartridge = MBC1::new(&content[..]);
+        return Box::new(cartridge);
+    } else if 0x05 <= cartridge_type && cartridge_type <= 0x06 {
+        panic!("not implemented");
+    } else if 0x0F <= cartridge_type && cartridge_type <= 0x13 {
+        panic!("not implemented");
+    } else {
+        panic!("no cartridge type exists");
+    }
 }
 

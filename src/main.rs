@@ -18,11 +18,11 @@ use crate::console::{Console};
 
 fn main() {
     let mut console: Console = Console::new();
-    let cart_path = "./Tetris.gb";
+    let cart_path = "./roms/cpu_instrs.gb";
 
     console.load(cart_path);
     console.reset();
-    console.execute_ticks(342328);
+    console.execute_ticks(80000);
 
     print!("finished")
 }
