@@ -2,6 +2,7 @@ use std::fs;
 use std::path::Path;
 use std::convert::TryInto;
 use std::fmt;
+use crate::console::Mode;
 
 
 pub trait Cartridge {
@@ -9,6 +10,7 @@ pub trait Cartridge {
     fn rom_dump(&self, f: &mut fmt::Formatter) -> fmt::Result;
     fn read_byte(&self, addr: u16) -> u8;
     fn write_byte(&mut self, addr: u16, value: u8) -> ();
+    fn get_mode(&mut self) -> Mode;
 }
 
 impl fmt::Debug for dyn Cartridge {
@@ -19,7 +21,7 @@ impl fmt::Debug for dyn Cartridge {
 
 #[derive(Debug)]
 pub struct MBC0 {
-    rom: [u8; 0x8000]
+    rom: [u8; 0x8000],
 }
 
 pub struct MBC1 {
@@ -49,7 +51,9 @@ pub struct MBC3 {
 impl Cartridge for MBC0 {
 
     fn new(content: &[u8]) -> Self {
-        MBC0 { rom: content.try_into().expect("yabe")}
+        MBC0 {
+            rom: content.try_into().expect("yabe"),
+        }
     }
 
     fn rom_dump(&self, f: &mut fmt::Formatter) -> fmt::Result {
@@ -62,6 +66,11 @@ impl Cartridge for MBC0 {
 
     fn write_byte(&mut self, addr: u16, value: u8) {
         self.rom[addr as usize] = value;
+    }
+
+    fn get_mode(&mut self) -> Mode {
+        let mode_byte = self.rom[0x143];
+        return if mode_byte == 0x80 || mode_byte == 0xc0 { Mode::COLOR } else { Mode::CLASSIC };
     }
 }
 
@@ -120,6 +129,11 @@ impl Cartridge for MBC1 {
             _ => panic!("error"),
         }
         self.rom[addr as usize] = value;
+    }
+
+    fn get_mode(&mut self) -> Mode {
+        let mode_byte = self.rom[0x143];
+        return if mode_byte == 0x80 || mode_byte == 0xc0 { Mode::COLOR } else { Mode::CLASSIC };
     }
 }
 

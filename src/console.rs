@@ -1,6 +1,7 @@
 use crate::cpu::Cpu;
 use crate::mmu::{Mmu};
 
+#[derive(PartialEq)]
 pub enum Mode {
     COLOR,
     CLASSIC
