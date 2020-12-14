@@ -4,6 +4,8 @@ use std::convert::TryInto;
 use std::fmt;
 use crate::console::GameboyType;
 
+const HEADER_INDEX_FOR_CARTRIDGE_TYPE: usize = 0x0147;
+
 
 pub trait Cartridge {
     fn new(content: &[u8]) -> Self where Self: Sized;
@@ -27,7 +29,7 @@ pub struct MBC0 {
 pub struct MBC1 {
     rom: Vec<u8>,
     rom_bank: usize,
-    
+
     ram: Vec<u8>,
     ram_on: bool,
     ram_mode: bool,
@@ -137,10 +139,20 @@ impl Cartridge for MBC1 {
     }
 }
 
-const HEADER_INDEX_FOR_CARTRIDGE_TYPE: usize = 0x0147;
 
-pub fn load_from_file_address(file_path: &str) -> Box<dyn Cartridge> {
-    let path = Path::new(file_path);
+pub fn load_buffer(buffer: Vec<u8>) -> Box<dyn Cartridge> {
+    let cartridge = match buffer[HEADER_INDEX_FOR_CARTRIDGE_TYPE] {
+        0x00 => MBC0::new(&buffer[..]),
+        //0x01..=0x03 => MBC1::new(&content[..]),
+        //0x05..=0x06 => MBC2::new(&content[..]),
+        //0x0F..=0x13 => MBC3::new(&content[..]),
+        _ => { panic!("no cartridge type exists");}
+    };
+
+    Box::new(cartridge)
+}
+
+pub fn load_local(file: &str) -> Box<dyn Cartridge> {
     let content : Vec<u8> = fs::read(path).expect("yabe");
     return load_from_bytes(content);
 }

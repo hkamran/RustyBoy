@@ -1,11 +1,18 @@
-use crate::cartridge::{Cartridge, load_from_file_address};
+use crate::cartridge::{Cartridge, load_buffer, load_local};
 use crate::ppu::Ppu;
 use crate::dma::{Dma, execute_odma};
 use crate::timer::Timer;
 use std::cell::RefCell;
 use std::rc::Rc;
+use wasm_bindgen::prelude::*;
+
+#[wasm_bindgen]
+extern "C" {
+    pub type FileReaderResult;
+}
 
 #[allow(unused)]
+#[wasm_bindgen]
 pub struct Mmu {
     zram: [u8; 0x7F],
     wram: [u8; 0x8000],
@@ -26,6 +33,7 @@ pub enum Speed {
 }
 
 #[allow(unused)]
+#[wasm_bindgen]
 impl Mmu {
 
     pub fn new() -> Self {
@@ -45,8 +53,18 @@ impl Mmu {
         };
     }
 
-    pub fn load_cartridge(&mut self, cart_path: &str) {
-        self.cartridge = Some(load(cart_path));
+    pub fn load_buffer(&mut self, result: FileReaderResult) {
+        let buffer: Vec<u8>;
+        match result {
+            ArrayBuffer => buffer = result.to_vec(),
+            _ => println!("yabe"),
+        }
+
+        self.cartridge = Cartridge::load_buffer(buffer);
+    }
+
+    pub fn load_local_cartridge(&mut self, cart_path: &str) {
+        self.cartridge = Some(load_local(cart_path));
     }
 
     pub fn read_byte(&self, address: u16) -> u8 {

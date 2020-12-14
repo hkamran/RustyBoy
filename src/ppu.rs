@@ -1,5 +1,7 @@
 use crate::console::GameboyType;
 use crate::mmu::Mmu;
+use wasm_bindgen::prelude::*;
+use web_sys::CanvasRenderingContext2d;
 
 pub const VRAM_SIZE: usize = 0x4000;
 pub const VOAM_SIZE: usize = 0xA0;
@@ -7,8 +9,6 @@ pub const SCREEN_W: usize = 160;
 pub const SCREEN_H: usize = 144;
 pub const INTERRUPT_TIMER_MASK: u8 = 0x02;
 pub const INTERRUPT_V_BLANK_MASK: u8 = 0x01;
-use wasm_bindgen::prelude::*;
-use web_sys::CanvasRenderingContext2d;
 
 #[derive(PartialEq, Copy, Clone)]
 enum PaletteType {
@@ -55,8 +55,8 @@ enum GpuMode {
     VBlank = 1,
 }
 
-#[wasm_bindgen]
 #[allow(dead_code)]
+#[wasm_bindgen]
 pub struct Ppu {
     // 0xFF40 (http://bgb.bircd.org/pandocs.htm#videodisplay)
     lcd_display_enable: bool,
@@ -123,8 +123,8 @@ pub struct Ppu {
 
 }
 
-#[wasm_bindgen]
 #[allow(dead_code)]
+#[wasm_bindgen]
 impl Ppu {
 
     pub fn new() -> Self {

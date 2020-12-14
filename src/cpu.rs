@@ -1,8 +1,10 @@
 use crate::mmu::Mmu;
 use crate::operations::execute_operation;
 use crate::logger::log;
+use wasm_bindgen::prelude::*;
 
 #[allow(unused)]
+#[wasm_bindgen]
 pub struct Cpu {
     pub a: u8,
     pub b: u8,
@@ -26,6 +28,7 @@ pub struct Cpu {
 }
 
 #[allow(unused)]
+#[wasm_bindgen]
 impl Cpu {
 
     pub fn new() -> Self {

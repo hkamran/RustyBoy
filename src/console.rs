@@ -4,6 +4,9 @@ use web_sys::CanvasRenderingContext2d;
 
 #[derive(PartialEq, Copy, Clone)]
 pub enum GameboyType {
+use wasm_bindgen::prelude::*;
+
+pub enum Mode {
     COLOR,
     CLASSIC
 }
@@ -43,4 +46,7 @@ impl Console {
         self.mmu.execute_ticks(cpu_ticks);
     }
 
+    pub fn load_local_cartridge(&mut self, cart_path: &str) {
+        self.mmu.load_local_cartridge(cart_path);
+    }
 }

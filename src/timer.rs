@@ -1,4 +1,5 @@
-
+use wasm_bindgen::prelude::*;
+#[wasm_bindgen]
 pub struct Timer {
     div:  u8,
     tima: u8,
@@ -11,6 +12,7 @@ pub struct Timer {
 }
 
 // https://www.coranac.com/tonc/text/timers.htm#sec-intro
+#[wasm_bindgen]
 impl Timer {
 
     pub fn new() -> Timer {

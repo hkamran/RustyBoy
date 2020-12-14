@@ -10,8 +10,6 @@ mod timer;
 mod screen;
 mod logger;
 
-extern crate minifb;
-
 const WIDTH: usize = 640;
 const HEIGHT: usize = 360;
 
@@ -21,9 +19,12 @@ fn main() {
     let mut console: Console = Console::new();
     let cart_path = "./roms/cpu_instrs.gb";
 
-    console.load(cart_path);
-    console.reset();
-    console.execute_ticks(300000);
+    console.mmu.load_cartridge(cart_path);
+    //println!("{:?}", console.mmu.cartridge.as_ref().unwrap().read_byte(0x0147));
+    for x in 0 .. 100 {
+        log("{}", x);
+        console.tick();
+    }
 
     print!("finished")
 }
