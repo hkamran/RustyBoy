@@ -132,23 +132,6 @@ impl Cartridge for MBC1 {
         }
         self.rom[addr as usize] = value;
     }
-
-    fn get_gameboy_type(&self) -> GameboyType {
-        let mode_byte = self.rom[0x143];
-        return if mode_byte == 0x80 || mode_byte == 0xc0 { GameboyType::COLOR } else { GameboyType::CLASSIC };
-    }
-}
-
-pub fn load_buffer(buffer: Vec<u8>) -> Box<dyn Cartridge> {
-    let cartridge = match buffer[HEADER_INDEX_FOR_CARTRIDGE_TYPE] {
-        0x00 => MBC0::new(&buffer[..]),
-        //0x01..=0x03 => MBC1::new(&content[..]),
-        //0x05..=0x06 => MBC2::new(&content[..]),
-        //0x0F..=0x13 => MBC3::new(&content[..]),
-        _ => { panic!("no cartridge type exists");}
-    };
-
-    Box::new(cartridge)
 }
 
 pub fn load(file: &str) -> Box<dyn Cartridge> {
