@@ -1,5 +1,4 @@
 use crate::mmu::Mmu;
-use wasm_bindgen::prelude::*;
 
 #[derive(PartialEq)]
 enum DMAType {
@@ -8,7 +7,6 @@ enum DMAType {
     HDMA,
 }
 
-#[wasm_bindgen]
 pub struct Dma {
     dma: [u8; 4],
     dma_status: DMAType,
@@ -17,7 +15,6 @@ pub struct Dma {
     dma_length: u8,
 }
 
-#[wasm_bindgen]
 impl Dma {
 
     pub fn new() -> Self {

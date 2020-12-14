@@ -1,12 +1,12 @@
 import("../pkg/index.js").catch(console.error);
-import Mmu;
+import { memory } from "rust-webpack-template";
 
 const screen_w = 160;
 const scree_h = 144;
 const BG_COLOR = "#FFFFFF";
+const canvas = document.getElementById("screen");
+const ctx = canvas.getContext('2d');
+canvas.height = screen_h;
+canvas.width = screen_w;
+ctx.fillStyle = BG_COLOR;
 
-var fileReader = new FileReader();
-fileReader.onloadend = e => Mmu.load_bytes(fileReader.result());
-
-var fileInputElement = document.getElementById("cartridge-input");
-fileInputElement.addEventListener("change", e => fileReader.readAsArrayBuffer(fileInputElement.files[0]));

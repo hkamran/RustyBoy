@@ -139,7 +139,6 @@ impl Cartridge for MBC1 {
     }
 }
 
-
 pub fn load_buffer(buffer: Vec<u8>) -> Box<dyn Cartridge> {
     let cartridge = match buffer[HEADER_INDEX_FOR_CARTRIDGE_TYPE] {
         0x00 => MBC0::new(&buffer[..]),
@@ -152,7 +151,7 @@ pub fn load_buffer(buffer: Vec<u8>) -> Box<dyn Cartridge> {
     Box::new(cartridge)
 }
 
-pub fn load_local(file: &str) -> Box<dyn Cartridge> {
+pub fn load(file: &str) -> Box<dyn Cartridge> {
     let content : Vec<u8> = fs::read(path).expect("yabe");
     return load_from_bytes(content);
 }
