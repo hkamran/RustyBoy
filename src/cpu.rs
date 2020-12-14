@@ -19,7 +19,7 @@ pub struct Cpu {
     pub disable_interrupt_counter: u8, // Schedules interrupt handling to be enabled after the next machine cycle
     pub enable_interrupt_counter: u8,  // Schedules interrupt handling to be enabled after the next machine cycle
 
-    pub cycles: u16,
+    pub cycles: usize,
     pub opcode: u16,
 }
 
@@ -88,7 +88,7 @@ impl Cpu {
         }
 
         self.opcode = mmu.read_byte(pc) as u8 as u16;
-        println!("{}", self.to_string());
+        //println!("{}", self.to_string());
         execute_operation(self.opcode as u8, self, mmu);
 
         return (self.cycles - cycles) as u32;

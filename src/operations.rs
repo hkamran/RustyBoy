@@ -246,9 +246,6 @@ pub fn execute_operation(opcode: u8, cpu: &mut Cpu, mmu: &mut Mmu) -> () {
         }
         0x27 => {
             panic!("not implemented");
-
-            cpu.pc += 1;
-            cpu.cycles += 2;
         }
         0x28 => {
             if cpu.get_f_zero() {
@@ -1354,7 +1351,7 @@ pub fn execute_operation(opcode: u8, cpu: &mut Cpu, mmu: &mut Mmu) -> () {
             }
         }
         0xD3 => {
-            panic!("error");
+            panic!("not implemented");
         }
         0xD4 => {
             if !cpu.get_f_carry() {
@@ -1415,7 +1412,7 @@ pub fn execute_operation(opcode: u8, cpu: &mut Cpu, mmu: &mut Mmu) -> () {
             }
         }
         0xDB => {
-            panic!("error");
+            panic!("not implemented");
         }
         0xDC => {
             if cpu.get_f_carry() {
@@ -1428,7 +1425,7 @@ pub fn execute_operation(opcode: u8, cpu: &mut Cpu, mmu: &mut Mmu) -> () {
             }
         }
         0xDD => {
-            panic!("error")
+            panic!("not implemented");
         }
         0xDE => {
             let value = mmu.read_byte(cpu.pc + 1);
@@ -1468,10 +1465,10 @@ pub fn execute_operation(opcode: u8, cpu: &mut Cpu, mmu: &mut Mmu) -> () {
             cpu.cycles += 2;
         }
         0xE3 => {
-            panic!("error")
+            panic!("not implemented");
         }
         0xE4 => {
-            panic!("error")
+            panic!("not implemented");
         }
         0xE5 => {
             cpu.push_word(mmu, cpu.get_hl());
@@ -1516,13 +1513,13 @@ pub fn execute_operation(opcode: u8, cpu: &mut Cpu, mmu: &mut Mmu) -> () {
             cpu.cycles += 4;
         }
         0xEB => {
-            panic!("error");
+            panic!("not implemented");
         }
         0xEC => {
-            panic!("error");
+            panic!("not implemented");
         }
         0xED => {
-            panic!("error");
+            panic!("not implemented");
         }
         0xEE => {
             let value = mmu.read_byte(cpu.pc + 1);
@@ -1567,7 +1564,7 @@ pub fn execute_operation(opcode: u8, cpu: &mut Cpu, mmu: &mut Mmu) -> () {
             cpu.cycles += 1;
         }
         0xF4 => {
-            panic!("error");
+            panic!("not implemented");
         }
         0xF5 => {
             cpu.push_word(mmu, cpu.get_af());
@@ -1618,10 +1615,10 @@ pub fn execute_operation(opcode: u8, cpu: &mut Cpu, mmu: &mut Mmu) -> () {
             cpu.cycles += 1;
         }
         0xFC => {
-            panic!("error");
+            panic!("not implemented");
         }
         0xFD => {
-            panic!("error");
+            panic!("not implemented");
         }
         0xFE => {
             let value = mmu.read_byte(cpu.pc + 1);
