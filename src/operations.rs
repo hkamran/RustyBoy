@@ -10,13 +10,13 @@ pub fn execute_operation(opcode: u8, cpu: &mut Cpu, mmu: &mut Mmu) -> () {
         }
         0x01 => {
             cpu.set_bc(mmu.read_word(cpu.pc));
-            cpu.pc += 2;
+            cpu.pc += 3;
             cpu.cycles += 3;
         }
         0x02 => {
             mmu.write_byte(cpu.get_bc(), cpu.a);
             cpu.pc += 1;
-            cpu.cycles += 7
+            cpu.cycles += 2;
         }
         0x03 => {
             cpu.set_bc(cpu.get_bc().wrapping_add(1));
@@ -26,17 +26,17 @@ pub fn execute_operation(opcode: u8, cpu: &mut Cpu, mmu: &mut Mmu) -> () {
         0x04 => {
             cpu.b = cpu.apply_inc8_with_flags(cpu.b);
             cpu.pc += 1;
-            cpu.cycles += 4;
+            cpu.cycles += 1;
         }
         0x05 => {
             cpu.b = cpu.apply_dec8_with_flags(cpu.b);
             cpu.pc += 1;
-            cpu.cycles += 4;
+            cpu.cycles += 1;
         }
         0x06 => {
             cpu.b = mmu.read_byte(cpu.pc + 1);
             cpu.pc += 2;
-            cpu.cycles += 7;
+            cpu.cycles += 1;
         }
         0x07 => {
             cpu.a = cpu.apply_rotate_left_with_flags(cpu.a, false);
@@ -98,8 +98,8 @@ pub fn execute_operation(opcode: u8, cpu: &mut Cpu, mmu: &mut Mmu) -> () {
         0x10 => {
             mmu.toggle_speed();
 
-            cpu.pc += 1;
-            cpu.cycles += 2;
+            cpu.pc += 2;
+            cpu.cycles += 1;
         }
         0x11 => {
             cpu.set_de(mmu.read_word(cpu.pc + 1));
@@ -147,6 +147,7 @@ pub fn execute_operation(opcode: u8, cpu: &mut Cpu, mmu: &mut Mmu) -> () {
             let offset = mmu.read_byte(cpu.pc + 1);
             cpu.pc = ((cpu.pc as u32 as i32) + (offset as i32)) as u16;
 
+            cpu.pc += 2;
             cpu.cycles += 3;
         }
         0x19 => {
@@ -172,7 +173,7 @@ pub fn execute_operation(opcode: u8, cpu: &mut Cpu, mmu: &mut Mmu) -> () {
             cpu.e = cpu.apply_inc8_with_flags(cpu.e);
 
             cpu.pc += 1;
-            cpu.cycles += 2;
+            cpu.cycles += 1;
         }
         0x1D => {
             cpu.e = cpu.apply_dec8_with_flags(cpu.e);
@@ -197,17 +198,17 @@ pub fn execute_operation(opcode: u8, cpu: &mut Cpu, mmu: &mut Mmu) -> () {
                 let offset = mmu.read_byte(cpu.pc + 1);
                 cpu.pc = ((cpu.pc as u32 as i32) + (offset as i32)) as u16;
 
-                cpu.cycles += 3;
-            } else {
-                cpu.pc += 1;
-                cpu.cycles += 2;
+                cpu.cycles += 1;
             }
+
+            cpu.pc += 2;
+            cpu.cycles += 2;
         }
         0x21 => {
             let value = mmu.read_word(cpu.pc + 1);
             cpu.set_hl(value);
 
-            cpu.pc += 2;
+            cpu.pc += 3;
             cpu.cycles += 3;
         }
         0x22 => {
@@ -244,8 +245,8 @@ pub fn execute_operation(opcode: u8, cpu: &mut Cpu, mmu: &mut Mmu) -> () {
             cpu.cycles += 2;
         }
         0x27 => {
-            // TODO
-            mmu.read_byte(cpu.pc + 1);
+            panic!("not implemented");
+
             cpu.pc += 1;
             cpu.cycles += 2;
         }
@@ -254,11 +255,11 @@ pub fn execute_operation(opcode: u8, cpu: &mut Cpu, mmu: &mut Mmu) -> () {
                 let offset = mmu.read_byte(cpu.pc + 1);
                 cpu.pc = ((cpu.pc as u32 as i32) + (offset as i32)) as u16;
 
-                cpu.cycles += 3;
-            } else {
-                cpu.pc += 1;
-                cpu.cycles += 2;
+                cpu.cycles += 1;
             }
+
+            cpu.pc += 2;
+            cpu.cycles += 2;
         }
         0x29 => {
             let result = cpu.apply_add16_with_flags(cpu.get_hl(), cpu.sp);
@@ -294,7 +295,7 @@ pub fn execute_operation(opcode: u8, cpu: &mut Cpu, mmu: &mut Mmu) -> () {
         0x2E => {
             cpu.l = mmu.read_byte(cpu.pc + 1);
 
-            cpu.pc += 1;
+            cpu.pc += 2;
             cpu.cycles += 2;
         }
         0x2F => {
@@ -310,16 +311,17 @@ pub fn execute_operation(opcode: u8, cpu: &mut Cpu, mmu: &mut Mmu) -> () {
                 let offset = mmu.read_byte(cpu.pc + 1);
                 cpu.pc = ((cpu.pc as u32 as i32) + (offset as i32)) as u16;
 
-                cpu.cycles += 3;
-            } else {
-                cpu.pc += 1;
-                cpu.cycles += 2;
+                cpu.cycles += 1;
             }
+
+            cpu.pc += 2;
+            cpu.cycles += 2;
         }
         0x31 => {
             cpu.sp = mmu.read_word(cpu.pc + 1);
-            cpu.pc += 1;
-            cpu.cycles += 2;
+
+            cpu.pc += 3;
+            cpu.cycles += 3;
         }
         0x32 => {
             mmu.write_byte(cpu.get_hl(), cpu.a);
@@ -368,10 +370,14 @@ pub fn execute_operation(opcode: u8, cpu: &mut Cpu, mmu: &mut Mmu) -> () {
             cpu.cycles += 1;
         }
         0x38 => {
-            let offset = mmu.read_byte(cpu.pc + 1);
-            cpu.pc = ((cpu.pc as u32 as i32) + (offset as i32)) as u16;
+            if cpu.get_f_carry() {
+                let offset = mmu.read_byte(cpu.pc + 1);
+                cpu.pc = ((cpu.pc as u32 as i32) + (offset as i32)) as u16;
 
-            cpu.pc += 1;
+                cpu.cycles += 1;
+            }
+
+            cpu.pc += 2;
             cpu.cycles += 2;
         }
         0x39 => {
@@ -413,7 +419,7 @@ pub fn execute_operation(opcode: u8, cpu: &mut Cpu, mmu: &mut Mmu) -> () {
         0x3E => {
             cpu.a = mmu.read_byte(cpu.pc + 1);
 
-            cpu.pc += 1;
+            cpu.pc += 2;
             cpu.cycles += 2;
         }
         0x3F => {
@@ -438,25 +444,25 @@ pub fn execute_operation(opcode: u8, cpu: &mut Cpu, mmu: &mut Mmu) -> () {
             cpu.b = cpu.d;
 
             cpu.pc += 1;
-            cpu.cycles += 2;
+            cpu.cycles += 1;
         }
         0x43 => {
             cpu.b = cpu.e;
 
             cpu.pc += 1;
-            cpu.cycles += 2;
+            cpu.cycles += 1;
         }
         0x44 => {
             cpu.b = cpu.h;
 
             cpu.pc += 1;
-            cpu.cycles += 2;
+            cpu.cycles += 1;
         }
         0x45 => {
             cpu.b = cpu.l;
 
             cpu.pc += 1;
-            cpu.cycles += 2;
+            cpu.cycles += 1;
         }
         0x46 => {
             cpu.b = mmu.read_byte(cpu.get_hl());
@@ -847,37 +853,37 @@ pub fn execute_operation(opcode: u8, cpu: &mut Cpu, mmu: &mut Mmu) -> () {
             cpu.a = cpu.apply_add8_with_flags(cpu.a, cpu.b, true);
 
             cpu.pc += 1;
-            cpu.cycles += 1;
+            cpu.cycles += 2;
         }
         0x89 => {
             cpu.a = cpu.apply_add8_with_flags(cpu.a, cpu.c, true);
 
             cpu.pc += 1;
-            cpu.cycles += 1;
+            cpu.cycles += 2;
         }
         0x8A => {
             cpu.a = cpu.apply_add8_with_flags(cpu.a, cpu.d, true);
 
             cpu.pc += 1;
-            cpu.cycles += 1;
+            cpu.cycles += 2;
         }
         0x8B => {
             cpu.a = cpu.apply_add8_with_flags(cpu.a, cpu.e, true);
 
             cpu.pc += 1;
-            cpu.cycles += 1;
+            cpu.cycles += 2;
         }
         0x8C => {
             cpu.a = cpu.apply_add8_with_flags(cpu.a, cpu.h, true);
 
             cpu.pc += 1;
-            cpu.cycles += 1;
+            cpu.cycles += 2;
         }
         0x8D => {
             cpu.a = cpu.apply_add8_with_flags(cpu.a, cpu.l, true);
 
             cpu.pc += 1;
-            cpu.cycles += 1;
+            cpu.cycles += 2;
         }
         0x8E => {
             let value = mmu.read_byte(cpu.get_hl());
@@ -890,7 +896,7 @@ pub fn execute_operation(opcode: u8, cpu: &mut Cpu, mmu: &mut Mmu) -> () {
             cpu.a = cpu.apply_add8_with_flags(cpu.a, cpu.a, true);
 
             cpu.pc += 1;
-            cpu.cycles += 1;
+            cpu.cycles += 2;
         }
         0x90 => {
             cpu.a = cpu.apply_sub8_with_flags(cpu.a, cpu.h, false);
@@ -1080,13 +1086,13 @@ pub fn execute_operation(opcode: u8, cpu: &mut Cpu, mmu: &mut Mmu) -> () {
             cpu.a = cpu.apply_xor8_with_flags(cpu.a, value);
 
             cpu.pc += 1;
-            cpu.cycles += 1;
+            cpu.cycles += 2;
         }
         0xAF => {
             cpu.a = cpu.apply_xor8_with_flags(cpu.a, cpu.a);
 
             cpu.pc += 1;
-            cpu.cycles += 2;
+            cpu.cycles += 1;
         }
         0xB0 => {
             cpu.a = cpu.apply_or8_with_flags(cpu.a, cpu.b);
@@ -1143,7 +1149,7 @@ pub fn execute_operation(opcode: u8, cpu: &mut Cpu, mmu: &mut Mmu) -> () {
             cpu.a = a;
 
             cpu.pc += 1;
-            cpu.cycles += 2;
+            cpu.cycles += 1;
         }
         0xB9 => {
             let a = cpu.a;
@@ -1151,7 +1157,7 @@ pub fn execute_operation(opcode: u8, cpu: &mut Cpu, mmu: &mut Mmu) -> () {
             cpu.a = a;
 
             cpu.pc += 1;
-            cpu.cycles += 2;
+            cpu.cycles += 1;
         }
         0xBA => {
             let a = cpu.a;
@@ -1159,7 +1165,7 @@ pub fn execute_operation(opcode: u8, cpu: &mut Cpu, mmu: &mut Mmu) -> () {
             cpu.a = a;
 
             cpu.pc += 1;
-            cpu.cycles += 2;
+            cpu.cycles += 1;
         }
         0xBB => {
             let a = cpu.a;
@@ -1167,7 +1173,7 @@ pub fn execute_operation(opcode: u8, cpu: &mut Cpu, mmu: &mut Mmu) -> () {
             cpu.a = a;
 
             cpu.pc += 1;
-            cpu.cycles += 2;
+            cpu.cycles += 1;
         }
         0xBC => {
             let a = cpu.a;
@@ -1175,7 +1181,7 @@ pub fn execute_operation(opcode: u8, cpu: &mut Cpu, mmu: &mut Mmu) -> () {
             cpu.a = a;
 
             cpu.pc += 1;
-            cpu.cycles += 2;
+            cpu.cycles += 1;
         }
         0xBD => {
             let a = cpu.a;
@@ -1183,7 +1189,7 @@ pub fn execute_operation(opcode: u8, cpu: &mut Cpu, mmu: &mut Mmu) -> () {
             cpu.a = a;
 
             cpu.pc += 1;
-            cpu.cycles += 2;
+            cpu.cycles += 1;
         }
         0xBE => {
             let value = mmu.read_byte(cpu.get_hl());
@@ -1192,7 +1198,7 @@ pub fn execute_operation(opcode: u8, cpu: &mut Cpu, mmu: &mut Mmu) -> () {
             cpu.a = a;
 
             cpu.pc += 1;
-            cpu.cycles += 2;
+            cpu.cycles += 1;
         }
         0xBF => {
             let a = cpu.a;
@@ -1200,14 +1206,14 @@ pub fn execute_operation(opcode: u8, cpu: &mut Cpu, mmu: &mut Mmu) -> () {
             cpu.a = a;
 
             cpu.pc += 1;
-            cpu.cycles += 2;
+            cpu.cycles += 1;
         }
         0xC0 => {
             if !cpu.get_f_zero() {
                 cpu.pc = cpu.pop_word(mmu);
                 cpu.cycles += 5;
             } else {
-                cpu.pc += 2;
+                cpu.cycles += 2;
             }
         }
         0xC1 => {
@@ -1223,8 +1229,7 @@ pub fn execute_operation(opcode: u8, cpu: &mut Cpu, mmu: &mut Mmu) -> () {
 
                 cpu.cycles += 4;
             } else {
-                cpu.pc += 2;
-
+                cpu.pc += 3;
                 cpu.cycles += 3;
             }
         }
@@ -1286,7 +1291,7 @@ pub fn execute_operation(opcode: u8, cpu: &mut Cpu, mmu: &mut Mmu) -> () {
 
                 cpu.cycles += 4;
             } else {
-                cpu.pc += 2;
+                cpu.pc += 3;
                 cpu.cycles += 3;
             }
         }
@@ -1300,7 +1305,7 @@ pub fn execute_operation(opcode: u8, cpu: &mut Cpu, mmu: &mut Mmu) -> () {
 
                 cpu.cycles += 6;
             } else {
-                cpu.pc += 2;
+                cpu.pc += 3;
                 cpu.cycles += 3;
             }
         }
@@ -1314,7 +1319,7 @@ pub fn execute_operation(opcode: u8, cpu: &mut Cpu, mmu: &mut Mmu) -> () {
             let value = mmu.read_byte(cpu.pc + 1);
             cpu.a = cpu.apply_add8_with_flags(cpu.a, value, true);
 
-            cpu.pc += 1;
+            cpu.pc += 2;
             cpu.cycles += 2;
         }
         0xCF => {
@@ -1344,7 +1349,7 @@ pub fn execute_operation(opcode: u8, cpu: &mut Cpu, mmu: &mut Mmu) -> () {
                 cpu.pc = mmu.read_word(cpu.pc + 1);
                 cpu.cycles += 4;
             } else {
-                cpu.pc += 2;
+                cpu.pc += 3;
                 cpu.cycles += 3;
             }
         }
@@ -1357,7 +1362,7 @@ pub fn execute_operation(opcode: u8, cpu: &mut Cpu, mmu: &mut Mmu) -> () {
                 cpu.pc = mmu.read_word(cpu.pc + 1);
                 cpu.cycles += 6;
             } else {
-                cpu.pc += 2;
+                cpu.pc += 3;
                 cpu.cycles += 3;
             }
         }
@@ -1405,7 +1410,7 @@ pub fn execute_operation(opcode: u8, cpu: &mut Cpu, mmu: &mut Mmu) -> () {
                 cpu.cycles += 4;
             } else {
 
-                cpu.pc += 2;
+                cpu.pc += 3;
                 cpu.cycles += 3;
             }
         }
@@ -1418,7 +1423,7 @@ pub fn execute_operation(opcode: u8, cpu: &mut Cpu, mmu: &mut Mmu) -> () {
                 cpu.pc = mmu.read_word(cpu.pc + 1);
                 cpu.cycles += 6;
             } else {
-                cpu.pc += 2;
+                cpu.pc += 3;
                 cpu.cycles += 3;
             }
         }
@@ -1489,10 +1494,13 @@ pub fn execute_operation(opcode: u8, cpu: &mut Cpu, mmu: &mut Mmu) -> () {
             cpu.cycles += 2;
         }
         0xE8 => {
-            // TODO
-            mmu.read_byte(cpu.pc + 1);
-            cpu.pc += 1;
-            cpu.cycles += 2;
+            let value = mmu.read_byte(cpu.pc + 1) as u16;
+            let result = cpu.apply_add16_with_flags(cpu.sp, value);
+            cpu.sp = result;
+            cpu.set_f_zero(false);
+
+            cpu.pc += 2;
+            cpu.cycles += 4;
         }
         0xE9 => {
             cpu.pc = cpu.get_hl();
@@ -1549,7 +1557,7 @@ pub fn execute_operation(opcode: u8, cpu: &mut Cpu, mmu: &mut Mmu) -> () {
             cpu.a = mmu.read_byte(address);
 
             cpu.pc += 1;
-            cpu.cycles += 3;
+            cpu.cycles += 2;
         }
         0xF3 => {
             // Schedules interrupt handling to be enabled after the next machine cycle
@@ -1582,10 +1590,13 @@ pub fn execute_operation(opcode: u8, cpu: &mut Cpu, mmu: &mut Mmu) -> () {
             cpu.cycles += 4;
         }
         0xF8 => {
-            // TODO
+            let value = mmu.read_byte(cpu.pc + 1) as u16;
+            let result = cpu.apply_add16_with_flags(cpu.sp, value);
+            cpu.set_hl(result);
+            cpu.set_f_zero(false);
 
-            cpu.pc += 1;
-            cpu.cycles += 2;
+            cpu.pc += 2;
+            cpu.cycles += 3;
         }
         0xF9 => {
             cpu.sp = cpu.get_hl();

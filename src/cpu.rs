@@ -53,7 +53,7 @@ impl Cpu {
         self.c = 0x13;
         self.d = 0x00;
         self.e = 0xD8;
-        self.f = 0xB0;
+        self.f = 0x90;
         self.h = 0x01;
         self.l = 0x4D;
         self.pc = 0x0100;
@@ -141,13 +141,17 @@ impl Cpu {
     }
 
     pub fn to_string(&mut self) -> String {
-        return format!("PC: {:#06X}, OPCODE: {:#04X}, AF: {:#04X}, BC: {:#04X}, DE: {:#04X}, HL: {:#04X}, SP: HL: {:#04X}",
+        return format!("PC: {:#06X} OPCODE: {:#04X} A: {:#04X} B: {:#04X} C: {:#04X} D: {:#04X} E: {:#04X} F: {:#04X}, H: {:#04X}, L: {:#04X} SP: {:#06X}",
                        self.pc,
                        self.opcode,
-                       self.get_af(),
-                       self.get_bc(),
-                       self.get_de(),
-                       self.get_hl(),
+                       self.a,
+                       self.b,
+                       self.c,
+                       self.d,
+                       self.e,
+                       self.f,
+                       self.h,
+                       self.l,
                        self.sp
         );
     }
