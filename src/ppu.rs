@@ -169,7 +169,7 @@ impl Ppu {
         self.h_blank = false;
         self.v_blank = false;
         self.clock = 0;
-        self.mode = GpuMode::VBlank;
+        self.mode = GpuMode::Read;
         self.ly = 0;
     }
 
@@ -217,7 +217,7 @@ impl Ppu {
                         self.set_mode(GpuMode::VBlank);
                         self.interrupt = INTERRUPT_V_BLANK_MASK;
 
-                        // print frame here
+                        println!("frame");
                         self.render_frame();
                     } else {
                         self.set_mode(GpuMode::Read);

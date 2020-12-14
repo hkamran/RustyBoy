@@ -88,7 +88,7 @@ impl Cpu {
         }
 
         self.opcode = mmu.read_byte(pc) as u8 as u16;
-        //println!("{}", self.to_string());
+        // println!("{}", self.to_string());
         execute_operation(self.opcode as u8, self, mmu);
 
         return (self.cycles - cycles) as u32;
@@ -407,12 +407,12 @@ impl Cpu {
     }
 
     pub fn push_byte(&mut self, mmu: &mut Mmu, value: u8) {
-        self.sp -= 1;
+        self.sp += 1;
         mmu.write_byte(self.sp, value);
     }
 
     pub fn push_word(&mut self, mmu: &mut Mmu, value: u16) {
-        self.sp -= 2;
+        self.sp += 2;
         mmu.write_word(self.sp, value);
     }
 
