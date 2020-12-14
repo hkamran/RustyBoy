@@ -1634,6 +1634,7 @@ pub fn execute_operation(opcode: u8, cpu: &mut Cpu, mmu: &mut Mmu) -> () {
 pub fn op_cb(cpu: &mut Cpu, mmu: &mut Mmu) {
     let opcode = mmu.read_byte(cpu.pc + 1);
 
+    cpu.opcode = (cpu.opcode << 8) as u16 | opcode as u16;
     cpu.pc += 1;
     match opcode {
         0x00 => {
