@@ -8,6 +8,7 @@ mod operations;
 mod dma;
 mod timer;
 mod screen;
+mod logger;
 
 use console_error_panic_hook;
 use wasm_bindgen::prelude::*;

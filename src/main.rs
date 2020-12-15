@@ -8,6 +8,7 @@ mod operations;
 mod dma;
 mod timer;
 mod screen;
+mod logger;
 
 extern crate minifb;
 
@@ -22,7 +23,7 @@ fn main() {
 
     console.load(cart_path);
     console.reset();
-    console.execute_ticks(80000);
+    console.execute_ticks(200);
 
     print!("finished")
 }

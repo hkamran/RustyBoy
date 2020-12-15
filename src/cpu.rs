@@ -1,5 +1,6 @@
 use crate::mmu::Mmu;
 use crate::operations::execute_operation;
+use crate::logger::log;
 
 #[allow(unused)]
 pub struct Cpu {
@@ -88,7 +89,7 @@ impl Cpu {
         }
 
         self.opcode = mmu.read_byte(pc) as u8 as u16;
-        // println!("{}", self.to_string());
+        // log(self.to_string());
         execute_operation(self.opcode as u8, self, mmu);
 
         return (self.cycles - cycles) as u32;
