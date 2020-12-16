@@ -1,4 +1,4 @@
-use crate::cartridge::{Cartridge, load_buffer, load_local};
+use crate::cartridge::Cartridge;
 use crate::ppu::Ppu;
 use crate::dma::{Dma, execute_odma};
 use crate::timer::Timer;

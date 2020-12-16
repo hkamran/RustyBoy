@@ -1,10 +1,15 @@
+extern crate serde_json;
+extern crate wasm_bindgen;
+
 use std::fs;
 use std::path::Path;
 use std::convert::TryInto;
 use std::fmt;
 use crate::console::GameboyType;
+use wasm_bindgen::prelude::*;
 
 const HEADER_INDEX_FOR_CARTRIDGE_TYPE: usize = 0x0147;
+static mut RAW_CARTRIDGE: Vec<u8> = Vec::new();
 
 pub trait Cartridge {
     fn new(content: &[u8]) -> Self where Self: Sized;
@@ -132,12 +137,12 @@ impl Cartridge for MBC1 {
         self.rom[addr as usize] = value;
     }
 }
-
-pub fn load_buffer(result: FileReaderResult) {
-    bytes = match result {
-        ArrayBuffer => result.to_vec(),
-        _ => println!("yabe"),
-    }
+//https://github.com/rustwasm/wasm-bindgen/issues/1052
+//https://stackoverflow.com/questions/52796222/how-to-pass-an-array-of-objects-to-webassembly-and-convert-it-to-a-vector-of-str
+#[wasm_bindgen]
+pub unsafe fn load_buffer(result: &JsValue) {
+    RAW_CARTRIDGE = result.into_serde().unwrap();
+    println!("{:?}", RAW_CARTRIDGE);
 }
 
 pub fn load(file: &str) -> Box<dyn Cartridge> {

@@ -10,6 +10,12 @@ mod timer;
 mod screen;
 mod logger;
 
+extern crate serde_json;
+extern crate wasm_bindgen;
+
+#[macro_use]
+extern crate serde_derive;
+
 use console_error_panic_hook;
 use console::Console;
 use wasm_bindgen::prelude::*;
@@ -60,12 +66,9 @@ pub fn main_js() -> Result<(), JsValue> {
 
     let mut console: Console = Console::new();
     let bytes: Vec<u8>;
-    console.mmu.cartridge = Cartridge::load(bytes);
+    //console.mmu.cartridge = Cartridge::load(bytes);
 
     //console.load_canvas_ctx(context);
     //context.beginPath();
-
-    stdweb::initialize();
-    stdweb::event_loop();
     Ok(())
 }
