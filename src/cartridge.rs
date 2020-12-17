@@ -154,7 +154,10 @@ impl Cartridge for MBC1 {
 //https://stackoverflow.com/questions/52796222/how-to-pass-an-array-of-objects-to-webassembly-and-convert-it-to-a-vector-of-str
 #[wasm_bindgen]
 pub fn load_buffer(result: &JsValue) {
-    let bytes: Vec<u8> = result.into_serde().unwrap();
+    let bytes: Vec<u8> = match result.into_serde() {
+        Ok(vec) => vec,
+        Err(err) => { log(&format!("rip {:?}", err)) ; panic!("rip") },
+    };
     log(&String::from_utf8(bytes).unwrap());
 }
 
