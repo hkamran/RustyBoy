@@ -156,7 +156,7 @@ impl Cartridge for MBC1 {
 pub fn load_buffer(result: &JsValue) {
     let bytes: Vec<u8> = match result.into_serde() {
         Ok(vec) => vec,
-        Err(err) => { log(&format!("rip {:?}", err)) ; panic!("rip") },
+        Err(err) => { log(&format!("rip, error: {:?}, object: {:?}", err, result)) ; panic!("rip") },
     };
     log(&String::from_utf8(bytes).unwrap());
 }

@@ -4,7 +4,7 @@ import("../pkg/index_bg.js").catch(console.error).then(wasm => {
   const BG_COLOR = "#FFFFFF";
 
   var fileReader = new FileReader();
-  fileReader.onloadend = e => wasm.load_buffer(fileReader.result);
+  fileReader.onloadend = e => { wasm.load_buffer(fileReader.result) };
 
   var fileInputElement = document.getElementById("cartridge-input");
   fileInputElement.addEventListener("change",
