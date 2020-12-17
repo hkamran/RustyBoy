@@ -11,6 +11,19 @@ use wasm_bindgen::prelude::*;
 const HEADER_INDEX_FOR_CARTRIDGE_TYPE: usize = 0x0147;
 static mut RAW_CARTRIDGE: Vec<u8> = Vec::new();
 
+// Logging
+#[wasm_bindgen]
+extern "C" {
+    #[wasm_bindgen(js_namespace = console)]
+    fn log(s: &str);
+
+    #[wasm_bindgen(js_namespace = console, js_name = log)]
+    fn log_u32(a: u32);
+
+    #[wasm_bindgen(js_namespace = console, js_name = log)]
+    fn log_many(a: &str, b: &str);
+}
+
 pub trait Cartridge {
     fn new(content: &[u8]) -> Self where Self: Sized;
     fn rom_dump(&self, f: &mut fmt::Formatter) -> fmt::Result;
@@ -140,9 +153,9 @@ impl Cartridge for MBC1 {
 //https://github.com/rustwasm/wasm-bindgen/issues/1052
 //https://stackoverflow.com/questions/52796222/how-to-pass-an-array-of-objects-to-webassembly-and-convert-it-to-a-vector-of-str
 #[wasm_bindgen]
-pub unsafe fn load_buffer(result: &JsValue) {
-    RAW_CARTRIDGE = result.into_serde().unwrap();
-    println!("{:?}", RAW_CARTRIDGE);
+pub fn load_buffer(result: &JsValue) {
+    let bytes: Vec<u8> = result.into_serde().unwrap();
+    log(&String::from_utf8(bytes).unwrap());
 }
 
 pub fn load(file: &str) -> Box<dyn Cartridge> {
