@@ -162,21 +162,14 @@ impl Cartridge for MBC1 {
 #[allow(non_snake_case)]
 #[no_mangle]
 pub fn load_buffer(result: &JsValue) {
-    let elements: Vec<u8> = result.into_serde().unwrap();
-    log("lol");
-    log_usize(elements.len());
-    for i in elements {
-        log_u8(i);
-    }
-    //elements.iter().map(|e| {
-    //    log(e);
-    //});
-    //log(std::str::from_utf8(result).unwrap());
-    //let bytes: Vec<u8> = match result.into_serde() {
-    //    Ok(vec) => vec,
-    //    Err(err) => { log(&format!("rip, error: {:?}, object: {:?}", err, result)) ; panic!("rip") },
-    //};
-    //log(&String::from_utf8(bytes).unwrap());
+    let bytes: Vec<u8> = result.into_serde().unwrap();
+    let cartridge = match bytes[0x0147] {
+        0x00 => MBC0::new(&bytes[..]),
+        //0x01..=0x03 => MBC1::new(&content[..]),
+        //0x05..=0x06 => MBC2::new(&content[..]),
+        //0x0F..=0x13 => MBC3::new(&content[..]),
+        _ => { panic!("no cartridge type exists");}
+    };
 }
 
 pub fn load(file: &str) -> Box<dyn Cartridge> {
