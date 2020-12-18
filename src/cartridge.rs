@@ -21,6 +21,12 @@ extern "C" {
     fn log_u32(a: u32);
 
     #[wasm_bindgen(js_namespace = console, js_name = log)]
+    fn log_u8(a: u8);
+
+    #[wasm_bindgen(js_namespace = console, js_name = log)]
+    fn log_usize(a: usize);
+
+    #[wasm_bindgen(js_namespace = console, js_name = log)]
     fn log_many(a: &str, b: &str);
 }
 
@@ -153,12 +159,24 @@ impl Cartridge for MBC1 {
 //https://github.com/rustwasm/wasm-bindgen/issues/1052
 //https://stackoverflow.com/questions/52796222/how-to-pass-an-array-of-objects-to-webassembly-and-convert-it-to-a-vector-of-str
 #[wasm_bindgen]
+#[allow(non_snake_case)]
+#[no_mangle]
 pub fn load_buffer(result: &JsValue) {
-    let bytes: Vec<u8> = match result.into_serde() {
-        Ok(vec) => vec,
-        Err(err) => { log(&format!("rip, error: {:?}, object: {:?}", err, result)) ; panic!("rip") },
-    };
-    log(&String::from_utf8(bytes).unwrap());
+    let elements: Vec<u8> = result.into_serde().unwrap();
+    log("lol");
+    log_usize(elements.len());
+    for i in elements {
+        log_u8(i);
+    }
+    //elements.iter().map(|e| {
+    //    log(e);
+    //});
+    //log(std::str::from_utf8(result).unwrap());
+    //let bytes: Vec<u8> = match result.into_serde() {
+    //    Ok(vec) => vec,
+    //    Err(err) => { log(&format!("rip, error: {:?}, object: {:?}", err, result)) ; panic!("rip") },
+    //};
+    //log(&String::from_utf8(bytes).unwrap());
 }
 
 pub fn load(file: &str) -> Box<dyn Cartridge> {
