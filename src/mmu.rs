@@ -49,7 +49,7 @@ impl Mmu {
         self.cartridge = Some(load_from_file_address(cart_path));
         match &mut self.cartridge {
             Some(c) => {
-                self.ppu.set_model(c.get_model().clone())
+                self.ppu.set_gameboy_type(c.get_gameboy_type().clone())
             },
             None => {
                 panic!("error")

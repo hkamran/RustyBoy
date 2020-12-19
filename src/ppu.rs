@@ -1,5 +1,5 @@
 use crate::screen::Screen;
-use crate::console::Model;
+use crate::console::GameboyType;
 
 pub const VRAM_SIZE: usize = 0x4000;
 pub const VOAM_SIZE: usize = 0xA0;
@@ -74,9 +74,13 @@ pub struct Ppu {
     lyc: u8,
 
     // http://bgb.bircd.org/pandocs.htm#lcdmonochromepalettes
-    gb_bg_palette: u8,
-    gb_obj_palette_0: u8,
-    gb_obj_palette_1: u8,
+    pal_bg_palette_data: u8,
+    pal_obj_palette_0_data: u8,
+    pal_obj_palette_1_data: u8,
+
+    pal_bg_palette: [u8; 4],
+    pal_obj_palette_0: [u8; 4],
+    pal_obj_palette_1: [u8; 4],
 
     // http://bgb.bircd.org/pandocs.htm#lcdcolorpalettescgbonly
     cbg_bg_palette_index: u8,
@@ -104,7 +108,7 @@ pub struct Ppu {
     mode: GpuMode,
     clock: u32,
     ly: u8,
-    model: Model,
+    gameboy_type: GameboyType,
 
     screen: Screen
 }
@@ -135,9 +139,13 @@ impl Ppu {
             lcd_y_coordinate: 0,
             lyc: 0,
 
-            gb_bg_palette: 0xFC,
-            gb_obj_palette_0: 0xFF,
-            gb_obj_palette_1: 0xFF,
+            pal_bg_palette_data: 0xFC,
+            pal_obj_palette_0_data: 0xFF,
+            pal_obj_palette_1_data: 0xFF,
+
+            pal_bg_palette: [0; 4],
+            pal_obj_palette_0: [0; 4],
+            pal_obj_palette_1: [0; 4],
 
             cbg_bg_palette_index: 0,
             cbg_bg_palette_increment: false,
@@ -161,7 +169,7 @@ impl Ppu {
             clock: 0,
             mode: GpuMode::VBlank,
             ly: 0,
-            model: Model::CLASSIC,
+            gameboy_type: GameboyType::CLASSIC,
 
             screen: Screen::new()
         };
@@ -280,14 +288,11 @@ impl Ppu {
     }
 
     fn render_bg_line(&mut self) {
-        let draw = self.lcd_display_enable;
+        let draw = self.gameboy_type == GameboyType::COLOR || self.lcd_display_enable;
 
-        if draw == false {
-            return;
-        }
-
-        let window_y_coord = if !self.window_display_enable {-1} else
-        {self.ly as i32 - self.window_y_coord as i32};
+        let window_y_coord =
+            if !self.window_display_enable || (self.gameboy_type != GameboyType::CLASSIC && !self.lcd_display_enable) { -1 }
+            else { self.ly as i32 - self.window_y_coord as i32 };
 
         if window_y_coord < 0 && draw == false {
             return;
@@ -331,6 +336,16 @@ impl Ppu {
     }
 
     fn get_bg_attributes(&mut self, tile_map_base: u16, tile_y: u16, tile_x: u16) -> TileEntry {
+        if self.gameboy_type == GameboyType::CLASSIC {
+            return TileEntry{
+                palette_number : 0,
+                vram_bank: 0,
+                x_flip: false,
+                y_flip: false,
+                has_priority: false,
+            }
+        }
+
         let tile_map = self.read_byte_from_vram(1, tile_map_base + tile_y * 32 + tile_x) as usize;
 
         let palette_number = tile_map & 0x07;
@@ -350,8 +365,9 @@ impl Ppu {
 
     fn get_bg_tile(&mut self, tile_map_base: u16, tile_x: u16, tile_y: u16, y_flip: bool, pixel_y: u16, bank: u8) -> TileData {
         let tile_entry = self.read_byte_from_vram(0, tile_map_base + tile_y * 32 + tile_x);
-        let tile_offset = if self.tilemap_base_select == 0x8000 {tile_entry as u16}
-        else {(tile_entry as i8 as i16 + 128) as u16};
+        let tile_offset =
+            if self.tilemap_base_select == 0x8000 {tile_entry as u16}
+            else {(tile_entry as i8 as i16 + 128) as u16};
         let tile_base_address = self.tilemap_base_select + tile_offset * 16;
 
         let tile_address = match y_flip {
@@ -403,11 +419,22 @@ impl Ppu {
                     continue;
                 }
 
-                let r = self.cbg_bg_palette[sprite_oam.palette_number as usize][palette_index][0];
-                let g = self.cbg_bg_palette[sprite_oam.palette_number as usize][palette_index][0];
-                let b = self.cbg_bg_palette[sprite_oam.palette_number as usize][palette_index][0];
+                if self.gameboy_type == GameboyType::COLOR {
+                    let r = self.cbg_bg_palette[sprite_oam.palette_number as usize][palette_index][0];
+                    let g = self.cbg_bg_palette[sprite_oam.palette_number as usize][palette_index][0];
+                    let b = self.cbg_bg_palette[sprite_oam.palette_number as usize][palette_index][0];
 
-                self.set_rgb_at(x as usize, line as usize, r, g, b);
+                    self.set_rgb_at(x as usize, line as usize, r, g, b);
+                } else {
+                    let palette = if sprite_oam.pal_palette_index == 1 { self.pal_obj_palette_1 } else { self.pal_obj_palette_0 };
+
+                    let r = palette[palette_index];
+                    let g = palette[palette_index];
+                    let b = palette[palette_index];
+
+                    self.set_rgb_at(x as usize, line as usize, r, g, b);
+                }
+
             }
 
         }
@@ -444,7 +471,7 @@ impl Ppu {
         let y_flip = flags & (1 << 6) != 0;
         let has_priority = flags & (1 << 7) != 0;
         let palette_number = (flags & 0x07) as u8;
-        let vram_bank = if flags & (1 << 3) != 0 {1u8} else {0u8};
+        let vram_bank = if self.gameboy_type == GameboyType::CLASSIC {0u8} else if flags & (1 << 3) != 0 {1u8} else {0u8};
 
         return SpriteOam{
             y_cord,
@@ -505,8 +532,8 @@ impl Ppu {
         self.update_interrupt_for_mode();
     }
 
-    pub fn set_model(&mut self, model: Model) {
-        self.model = model;
+    pub fn set_gameboy_type(&mut self, model: GameboyType) {
+        self.gameboy_type = model;
     }
 
     fn update_interrupt_for_mode(&mut self) {
@@ -529,6 +556,22 @@ impl Ppu {
         }
     }
 
+    fn update_pal_palettes(&mut self) {
+        for i in 0 .. 4 {
+            self.pal_bg_palette[i] = self.get_pal_color(self.pal_bg_palette_data, i);
+            self.pal_obj_palette_0[i] = self.get_pal_color(self.pal_obj_palette_0_data, i);
+            self.pal_obj_palette_1[i] = self.get_pal_color(self.pal_obj_palette_1_data, i);
+        }
+    }
+
+    fn get_pal_color(&self, value: u8, index: usize) -> u8 {
+        match (value >> 2 * index) & 0x03 {
+            0 => 255,
+            1 => 192,
+            2 => 96,
+            _ => 0
+        }
+    }
 
     pub fn read_byte(&self, address: u16) -> u8 {
         match address {
@@ -557,9 +600,9 @@ impl Ppu {
             0xFF44 => self.ly,
             0xFF45 => self.lyc,
             0xFF46 => 0,
-            0xFF47 => self.gb_bg_palette,
-            0xFF48 => self.gb_obj_palette_0,
-            0xFF49 => self.gb_obj_palette_1,
+            0xFF47 => self.pal_bg_palette_data,
+            0xFF48 => self.pal_obj_palette_0_data,
+            0xFF49 => self.pal_obj_palette_1_data,
             0xFF4A => self.window_y_coord,
             0xFF4B => self.window_x_coord,
             0xFF4F => self.vram_bank as u8,
@@ -612,9 +655,9 @@ impl Ppu {
             0xFF44 => {},
             0xFF45 => self.lyc = value,
             0xFF46 => {},
-            0xFF47 => { self.gb_bg_palette = value; },
-            0xFF48 => { self.gb_obj_palette_0 = value; },
-            0xFF49 => { self.gb_obj_palette_1 = value; },
+            0xFF47 => { self.pal_bg_palette_data = value; self.update_pal_palettes(); },
+            0xFF48 => { self.pal_obj_palette_0_data = value; self.update_pal_palettes(); },
+            0xFF49 => { self.pal_obj_palette_1_data = value; self.update_pal_palettes(); },
             0xFF4A => self.window_y_coord = value,
             0xFF4B => self.window_x_coord = value,
             0xFF4F => self.vram_bank = (value & 0x01) as usize,

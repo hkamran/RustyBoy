@@ -2,7 +2,7 @@ use crate::cpu::Cpu;
 use crate::mmu::{Mmu};
 
 #[derive(PartialEq, Copy, Clone)]
-pub enum Model {
+pub enum GameboyType {
     COLOR,
     CLASSIC
 }
