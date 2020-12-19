@@ -89,7 +89,7 @@ impl Cpu {
         }
 
         self.opcode = mmu.read_byte(pc) as u8 as u16;
-        // log(self.to_string());
+        log(self.to_string());
         execute_operation(self.opcode as u8, self, mmu);
 
         return (self.cycles - cycles) as u32;
@@ -142,7 +142,7 @@ impl Cpu {
     }
 
     pub fn to_string(&mut self) -> String {
-        return format!("PC: {:#06X} OPCODE: {:#04X} A: {:#04X} B: {:#04X} C: {:#04X} D: {:#04X} E: {:#04X} F: {:#04X}, H: {:#04X}, L: {:#04X} SP: {:#06X}",
+        return format!("PC: {:#06X} OPCODE: {:#04X} A: {:#04X} B: {:#04X} C: {:#04X} D: {:#04X} E: {:#04X} F: {:#04X} H: {:#04X} L: {:#04X} SP: {:#06X}",
                        self.pc,
                        self.opcode,
                        self.a,
@@ -165,12 +165,12 @@ impl Cpu {
 
     pub fn get_af(&self) -> u16 {
         return (self.a as u16) << 8
-            | self.f as u16;
+            | (self.f & 0xF0) as u16;
     }
 
     pub fn set_af(&mut self, value: u16) {
         self.a = ((value & 0xFF00) >> 8) as u8;
-        self.f = (value & 0xFF) as u8;
+        self.f = (value & 0x00F0) as u8;
     }
 
     pub fn get_bc(&self) -> u16 {
@@ -408,24 +408,27 @@ impl Cpu {
     }
 
     pub fn push_byte(&mut self, mmu: &mut Mmu, value: u8) {
-        self.sp += 1;
+        self.sp -= 1;
         mmu.write_byte(self.sp, value);
     }
 
     pub fn push_word(&mut self, mmu: &mut Mmu, value: u16) {
-        self.sp += 2;
-        mmu.write_word(self.sp, value);
+        let low = (value & 0xFF) as u8;
+        let high = (value >> 8) as u8;
+
+        self.push_byte(mmu, high);
+        self.push_byte(mmu, low);
     }
 
     pub fn pop_byte(&mut self, mmu: &mut Mmu) -> u8 {
         let value = mmu.read_byte(self.sp);
-        self.sp -= 1;
+        self.sp += 1;
         return value;
     }
 
     pub fn pop_word(&mut self, mmu: &mut Mmu) -> u16 {
         let value = mmu.read_word(self.sp);
-        self.sp -= 2;
+        self.sp += 2;
         return value;
     }
 }

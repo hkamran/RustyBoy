@@ -9,7 +9,7 @@ pub fn execute_operation(opcode: u8, cpu: &mut Cpu, mmu: &mut Mmu) -> () {
             cpu.cycles += 2;
         }
         0x01 => {
-            cpu.set_bc(mmu.read_word(cpu.pc));
+            cpu.set_bc(mmu.read_word(cpu.pc + 1));
             cpu.pc += 3;
             cpu.cycles += 3;
         }
@@ -212,9 +212,8 @@ pub fn execute_operation(opcode: u8, cpu: &mut Cpu, mmu: &mut Mmu) -> () {
             cpu.cycles += 3;
         }
         0x22 => {
-            let addr = cpu.get_hl().wrapping_add(1);
-            mmu.write_byte(addr, cpu.a);
-            cpu.set_hl(addr);
+            mmu.write_byte(cpu.get_hl(), cpu.a);
+            cpu.set_hl(cpu.get_hl().wrapping_add(1));
 
             cpu.pc += 1;
             cpu.cycles += 2;
@@ -266,7 +265,8 @@ pub fn execute_operation(opcode: u8, cpu: &mut Cpu, mmu: &mut Mmu) -> () {
             cpu.cycles += 2;
         }
         0x2A => {
-            cpu.a = mmu.read_byte(cpu.get_hl().wrapping_add(1));
+            cpu.a = mmu.read_byte(cpu.get_hl());
+            cpu.set_hl(cpu.get_hl().wrapping_add(1));
 
             cpu.pc += 1;
             cpu.cycles += 2;
@@ -1237,13 +1237,12 @@ pub fn execute_operation(opcode: u8, cpu: &mut Cpu, mmu: &mut Mmu) -> () {
         }
         0xC4 => {
             if !cpu.get_f_zero() {
-                cpu.push_word(mmu, cpu.pc + 2);
+                cpu.push_word(mmu, cpu.pc + 3);
                 cpu.pc = mmu.read_word(cpu.pc + 1);
 
                 cpu.cycles += 6;
             } else {
-                cpu.pc += 2;
-
+                cpu.pc += 3;
                 cpu.cycles += 3;
             }
         }
@@ -1297,7 +1296,7 @@ pub fn execute_operation(opcode: u8, cpu: &mut Cpu, mmu: &mut Mmu) -> () {
         }
         0xCC => {
             if cpu.get_f_zero() {
-                cpu.push_word(mmu,cpu.pc + 2);
+                cpu.push_word(mmu,cpu.pc + 3);
                 cpu.pc = mmu.read_word(cpu.pc + 1);
 
                 cpu.cycles += 6;
@@ -1307,7 +1306,7 @@ pub fn execute_operation(opcode: u8, cpu: &mut Cpu, mmu: &mut Mmu) -> () {
             }
         }
         0xCD => {
-            cpu.push_word(mmu, cpu.pc + 2);
+            cpu.push_word(mmu, cpu.pc + 3);
             cpu.pc = mmu.read_word(cpu.pc + 1);
 
             cpu.cycles += 6;
@@ -1355,7 +1354,7 @@ pub fn execute_operation(opcode: u8, cpu: &mut Cpu, mmu: &mut Mmu) -> () {
         }
         0xD4 => {
             if !cpu.get_f_carry() {
-                cpu.push_word(mmu, cpu.pc + 2);
+                cpu.push_word(mmu, cpu.pc + 3);
                 cpu.pc = mmu.read_word(cpu.pc + 1);
                 cpu.cycles += 6;
             } else {
@@ -1416,7 +1415,7 @@ pub fn execute_operation(opcode: u8, cpu: &mut Cpu, mmu: &mut Mmu) -> () {
         }
         0xDC => {
             if cpu.get_f_carry() {
-                cpu.push_word(mmu, cpu.pc + 2);
+                cpu.push_word(mmu, cpu.pc + 3);
                 cpu.pc = mmu.read_word(cpu.pc + 1);
                 cpu.cycles += 6;
             } else {
