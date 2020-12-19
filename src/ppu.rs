@@ -325,11 +325,19 @@ impl Ppu {
             let palette_index = if tile.tile_1 & (1 << bit_mask) != 0 { 1 } else { 0 }
                 | if tile.tile_2 & (1 << bit_mask) != 0 { 2 } else { 0 };
 
-            let r = self.cbg_bg_palette[attributes.palette_number][palette_index][0];
-            let g = self.cbg_bg_palette[attributes.palette_number][palette_index][1];
-            let b = self.cbg_bg_palette[attributes.palette_number][palette_index][2];
+            if self.gameboy_type == GameboyType::COLOR {
+                let r = self.cbg_bg_palette[attributes.palette_number][palette_index][0];
+                let g = self.cbg_bg_palette[attributes.palette_number][palette_index][1];
+                let b = self.cbg_bg_palette[attributes.palette_number][palette_index][2];
 
-            self.set_rgb_at(x, self.ly as usize, r, g, b);
+                self.set_rgb_at(x, self.ly as usize, r, g, b);
+            } else {
+                let r = self.pal_bg_palette[palette_index];
+                let g = self.pal_bg_palette[palette_index];
+                let b = self.pal_bg_palette[palette_index];
+
+                self.set_rgb_at(x, self.ly as usize, r, g, b);
+            }
         }
 
     }
