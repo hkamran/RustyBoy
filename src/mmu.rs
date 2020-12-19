@@ -47,6 +47,14 @@ impl Mmu {
 
     pub fn load_cartridge(&mut self, cart_path: &str) {
         self.cartridge = Some(load_from_file_address(cart_path));
+        match &mut self.cartridge {
+            Some(c) => {
+                self.ppu.set_model(c.get_model().clone())
+            },
+            None => {
+                panic!("error")
+            }
+        };
     }
 
     pub fn read_byte(&self, address: u16) -> u8 {

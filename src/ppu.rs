@@ -1,4 +1,5 @@
 use crate::screen::Screen;
+use crate::console::Model;
 
 pub const VRAM_SIZE: usize = 0x4000;
 pub const VOAM_SIZE: usize = 0xA0;
@@ -103,6 +104,7 @@ pub struct Ppu {
     mode: GpuMode,
     clock: u32,
     ly: u8,
+    model: Model,
 
     screen: Screen
 }
@@ -159,6 +161,7 @@ impl Ppu {
             clock: 0,
             mode: GpuMode::VBlank,
             ly: 0,
+            model: Model::CLASSIC,
 
             screen: Screen::new()
         };
@@ -500,6 +503,10 @@ impl Ppu {
         }
 
         self.update_interrupt_for_mode();
+    }
+
+    pub fn set_model(&mut self, model: Model) {
+        self.model = model;
     }
 
     fn update_interrupt_for_mode(&mut self) {

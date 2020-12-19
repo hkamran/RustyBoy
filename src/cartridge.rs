@@ -2,7 +2,7 @@ use std::fs;
 use std::path::Path;
 use std::convert::TryInto;
 use std::fmt;
-use crate::console::Mode;
+use crate::console::Model;
 
 
 pub trait Cartridge {
@@ -10,7 +10,7 @@ pub trait Cartridge {
     fn rom_dump(&self, f: &mut fmt::Formatter) -> fmt::Result;
     fn read_byte(&self, addr: u16) -> u8;
     fn write_byte(&mut self, addr: u16, value: u8) -> ();
-    fn get_mode(&mut self) -> Mode;
+    fn get_model(&self) -> Model;
 }
 
 impl fmt::Debug for dyn Cartridge {
@@ -68,9 +68,9 @@ impl Cartridge for MBC0 {
         self.rom[addr as usize] = value;
     }
 
-    fn get_mode(&mut self) -> Mode {
+    fn get_model(&self) -> Model {
         let mode_byte = self.rom[0x143];
-        return if mode_byte == 0x80 || mode_byte == 0xc0 { Mode::COLOR } else { Mode::CLASSIC };
+        return if mode_byte == 0x80 || mode_byte == 0xc0 { Model::COLOR } else { Model::CLASSIC };
     }
 }
 
@@ -131,9 +131,9 @@ impl Cartridge for MBC1 {
         self.rom[addr as usize] = value;
     }
 
-    fn get_mode(&mut self) -> Mode {
+    fn get_model(&self) -> Model {
         let mode_byte = self.rom[0x143];
-        return if mode_byte == 0x80 || mode_byte == 0xc0 { Mode::COLOR } else { Mode::CLASSIC };
+        return if mode_byte == 0x80 || mode_byte == 0xc0 { Model::COLOR } else { Model::CLASSIC };
     }
 }
 

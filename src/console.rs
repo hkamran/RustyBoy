@@ -1,8 +1,8 @@
 use crate::cpu::Cpu;
 use crate::mmu::{Mmu};
 
-#[derive(PartialEq)]
-pub enum Mode {
+#[derive(PartialEq, Copy, Clone)]
+pub enum Model {
     COLOR,
     CLASSIC
 }
