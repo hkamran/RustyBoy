@@ -23,7 +23,7 @@ fn main() {
 
     console.load(cart_path);
     console.reset();
-    console.execute_ticks(50000);
+    console.execute_ticks(300000);
 
     print!("finished")
 }

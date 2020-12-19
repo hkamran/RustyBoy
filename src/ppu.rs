@@ -254,7 +254,6 @@ impl Ppu {
     }
 
     fn render_frame(&mut self) {
-
         let mut buffer: Vec<u32> = vec![0; SCREEN_W * SCREEN_H];
 
         fn from_u8_rgb(r: u8, g: u8, b: u8) -> u32 {
@@ -497,15 +496,11 @@ impl Ppu {
     }
 
     fn set_rgb_at(&mut self, x: usize, y: usize, red: u8, green: u8, blue: u8) {
-        let base = y as usize * SCREEN_W * 3 + x * 3;
+        let base = (y as usize * SCREEN_W * 3) + (x * 3);
 
-        let r = red as u32;
-        let g = green as u32;
-        let b = blue as u32;
-
-        self.frame[base + 0] = ((r * 13 + g * 2 + b) >> 1) as u8;
-        self.frame[base + 1] = ((g * 3 + b) << 1) as u8;
-        self.frame[base + 2] = ((r * 3 + g * 2 + b * 11) >> 1) as u8;
+        self.frame[base + 0] = red;
+        self.frame[base + 1] = green;
+        self.frame[base + 2] = blue;
     }
 
     fn set_mode(&mut self, mode: GpuMode) {
