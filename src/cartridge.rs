@@ -65,7 +65,7 @@ impl Cartridge for MBC0 {
     }
 
     fn write_byte(&mut self, addr: u16, value: u8) {
-        self.rom[addr as usize] = value;
+        return;
     }
 
     fn get_gameboy_type(&self) -> GameboyType {

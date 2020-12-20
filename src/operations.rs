@@ -65,7 +65,7 @@ pub fn execute_operation(opcode: u8, cpu: &mut Cpu, mmu: &mut Mmu) -> () {
             cpu.cycles += 2;
         }
         0x0B => {
-            let value: u16 = cpu.get_bc().wrapping_add(1);
+            let value: u16 = cpu.get_bc().wrapping_sub(1);
             cpu.set_bc(value);
 
             cpu.pc += 1;
@@ -1271,7 +1271,7 @@ pub fn execute_operation(opcode: u8, cpu: &mut Cpu, mmu: &mut Mmu) -> () {
             cpu.cycles += 4;
         }
         0xC8 => {
-            if !cpu.get_f_zero() {
+            if cpu.get_f_zero() {
                 cpu.pc = cpu.pop_word(mmu);
 
                 cpu.cycles += 5;
@@ -1684,7 +1684,7 @@ pub fn op_cb(cpu: &mut Cpu, mmu: &mut Mmu) {
             let result = cpu.apply_rotate_left_with_flags(value, false);
             mmu.write_byte(address, result);
 
-            cpu.pc += 2;
+            cpu.pc += 1;
             cpu.cycles += 4;
         }
         0x07 => {
@@ -1729,7 +1729,7 @@ pub fn op_cb(cpu: &mut Cpu, mmu: &mut Mmu) {
             let result = cpu.apply_rotate_right_with_flags(value, false);
             mmu.write_byte(address, result);
 
-            cpu.pc += 2;
+            cpu.pc += 1;
             cpu.cycles += 4;
         }
         0x0F => {
@@ -1774,7 +1774,7 @@ pub fn op_cb(cpu: &mut Cpu, mmu: &mut Mmu) {
             let result = cpu.apply_rotate_left_with_flags(value, true);
             mmu.write_byte(address, result);
 
-            cpu.pc += 2;
+            cpu.pc += 1;
             cpu.cycles += 4;
         }
         0x17 => {
@@ -1819,7 +1819,7 @@ pub fn op_cb(cpu: &mut Cpu, mmu: &mut Mmu) {
             let result = cpu.apply_rotate_right_with_flags(value, true);
             mmu.write_byte(address, result);
 
-            cpu.pc += 2;
+            cpu.pc += 1;
             cpu.cycles += 4;
         }
         0x1F => {
@@ -1869,7 +1869,7 @@ pub fn op_cb(cpu: &mut Cpu, mmu: &mut Mmu) {
             let result = cpu.apply_shift_left_with_flags(value);
             mmu.write_byte(address, result);
 
-            cpu.pc += 2;
+            cpu.pc += 1;
             cpu.cycles += 4;
         }
         0x28 => {
@@ -1909,7 +1909,7 @@ pub fn op_cb(cpu: &mut Cpu, mmu: &mut Mmu) {
             let result = cpu.apply_shift_right_with_flags(value, true);
             mmu.write_byte(address, result);
 
-            cpu.pc += 2;
+            cpu.pc += 1;
             cpu.cycles += 4;
         }
         0x2F => {
@@ -1954,7 +1954,7 @@ pub fn op_cb(cpu: &mut Cpu, mmu: &mut Mmu) {
             let result = cpu.apply_swap_bytes(value);
             mmu.write_byte(address, result);
 
-            cpu.pc += 2;
+            cpu.pc += 1;
             cpu.cycles += 4;
         }
         0x37 => {
@@ -1999,7 +1999,7 @@ pub fn op_cb(cpu: &mut Cpu, mmu: &mut Mmu) {
             let result = cpu.apply_shift_right_with_flags(value, false);
             mmu.write_byte(address, result);
 
-            cpu.pc += 2;
+            cpu.pc += 1;
             cpu.cycles += 4;
         }
         0x3F => {
@@ -2043,7 +2043,7 @@ pub fn op_cb(cpu: &mut Cpu, mmu: &mut Mmu) {
 
             cpu.apply_bit_test(value, 0);
 
-            cpu.pc += 2;
+            cpu.pc += 1;
             cpu.cycles += 4;
         }
         0x47 => {
@@ -2087,7 +2087,7 @@ pub fn op_cb(cpu: &mut Cpu, mmu: &mut Mmu) {
 
             cpu.apply_bit_test(value, 1);
 
-            cpu.pc += 2;
+            cpu.pc += 1;
             cpu.cycles += 4;
         }
         0x4F => {
@@ -2131,7 +2131,7 @@ pub fn op_cb(cpu: &mut Cpu, mmu: &mut Mmu) {
 
             cpu.apply_bit_test(value, 2);
 
-            cpu.pc += 2;
+            cpu.pc += 1;
             cpu.cycles += 4;
         }
         0x57 => {
@@ -2175,7 +2175,7 @@ pub fn op_cb(cpu: &mut Cpu, mmu: &mut Mmu) {
 
             cpu.apply_bit_test(value, 3);
 
-            cpu.pc += 2;
+            cpu.pc += 1;
             cpu.cycles += 4;
         }
         0x5F => {
@@ -2219,7 +2219,7 @@ pub fn op_cb(cpu: &mut Cpu, mmu: &mut Mmu) {
 
             cpu.apply_bit_test(value, 4);
 
-            cpu.pc += 2;
+            cpu.pc += 1;
             cpu.cycles += 4;
         }
         0x67 => {
@@ -2263,7 +2263,7 @@ pub fn op_cb(cpu: &mut Cpu, mmu: &mut Mmu) {
 
             cpu.apply_bit_test(value, 5);
 
-            cpu.pc += 2;
+            cpu.pc += 1;
             cpu.cycles += 4;
         }
         0x6F => {
@@ -2307,7 +2307,7 @@ pub fn op_cb(cpu: &mut Cpu, mmu: &mut Mmu) {
 
             cpu.apply_bit_test(value, 6);
 
-            cpu.pc += 2;
+            cpu.pc += 1;
             cpu.cycles += 4;
         }
         0x77 => {
@@ -2351,7 +2351,7 @@ pub fn op_cb(cpu: &mut Cpu, mmu: &mut Mmu) {
 
             cpu.apply_bit_test(value, 7);
 
-            cpu.pc += 2;
+            cpu.pc += 1;
             cpu.cycles += 4;
         }
         0x7F => {
@@ -2395,7 +2395,7 @@ pub fn op_cb(cpu: &mut Cpu, mmu: &mut Mmu) {
 
             mmu.write_byte(address, value & !(1 << 0));
 
-            cpu.pc += 2;
+            cpu.pc += 1;
             cpu.cycles += 4;
         }
         0x87 => {
@@ -2439,7 +2439,7 @@ pub fn op_cb(cpu: &mut Cpu, mmu: &mut Mmu) {
 
             mmu.write_byte(address, value & !(1 << 1));
 
-            cpu.pc += 2;
+            cpu.pc += 1;
             cpu.cycles += 4;
         }
         0x8F => {
@@ -2483,7 +2483,7 @@ pub fn op_cb(cpu: &mut Cpu, mmu: &mut Mmu) {
 
             mmu.write_byte(address, value & !(1 << 2));
 
-            cpu.pc += 2;
+            cpu.pc += 1;
             cpu.cycles += 4;
         }
         0x97 => {
@@ -2527,7 +2527,7 @@ pub fn op_cb(cpu: &mut Cpu, mmu: &mut Mmu) {
 
             mmu.write_byte(address, value & !(1 << 3));
 
-            cpu.pc += 2;
+            cpu.pc += 1;
             cpu.cycles += 4;
         }
         0x9F => {
@@ -2571,7 +2571,7 @@ pub fn op_cb(cpu: &mut Cpu, mmu: &mut Mmu) {
 
             mmu.write_byte(address, value & !(1 << 4));
 
-            cpu.pc += 2;
+            cpu.pc += 1;
             cpu.cycles += 4;
         }
         0xA7 => {
@@ -2615,7 +2615,7 @@ pub fn op_cb(cpu: &mut Cpu, mmu: &mut Mmu) {
 
             mmu.write_byte(address, value & !(1 << 5));
 
-            cpu.pc += 2;
+            cpu.pc += 1;
             cpu.cycles += 4;
         }
         0xAF => {
@@ -2659,7 +2659,7 @@ pub fn op_cb(cpu: &mut Cpu, mmu: &mut Mmu) {
 
             mmu.write_byte(address, value & !(1 << 6));
 
-            cpu.pc += 2;
+            cpu.pc += 1;
             cpu.cycles += 4;
         }
         0xB7 => {
@@ -2703,7 +2703,7 @@ pub fn op_cb(cpu: &mut Cpu, mmu: &mut Mmu) {
 
             mmu.write_byte(address, value & !(1 << 7));
 
-            cpu.pc += 2;
+            cpu.pc += 1;
             cpu.cycles += 4;
         }
         0xBF => {
@@ -2747,7 +2747,7 @@ pub fn op_cb(cpu: &mut Cpu, mmu: &mut Mmu) {
 
             mmu.write_byte(address, value & (1 << 0));
 
-            cpu.pc += 2;
+            cpu.pc += 1;
             cpu.cycles += 4;
         }
         0xC7 => {
@@ -2791,7 +2791,7 @@ pub fn op_cb(cpu: &mut Cpu, mmu: &mut Mmu) {
 
             mmu.write_byte(address, value & (1 << 1));
 
-            cpu.pc += 2;
+            cpu.pc += 1;
             cpu.cycles += 4;
         }
         0xCF => {
@@ -2835,7 +2835,7 @@ pub fn op_cb(cpu: &mut Cpu, mmu: &mut Mmu) {
 
             mmu.write_byte(address, value & (1 << 2));
 
-            cpu.pc += 2;
+            cpu.pc += 1;
             cpu.cycles += 4;
         }
         0xD7 => {
@@ -2879,7 +2879,7 @@ pub fn op_cb(cpu: &mut Cpu, mmu: &mut Mmu) {
 
             mmu.write_byte(address, value & (1 << 3));
 
-            cpu.pc += 2;
+            cpu.pc += 1;
             cpu.cycles += 4;
         }
         0xDF => {
@@ -2923,7 +2923,7 @@ pub fn op_cb(cpu: &mut Cpu, mmu: &mut Mmu) {
 
             mmu.write_byte(address, value & (1 << 4));
 
-            cpu.pc += 2;
+            cpu.pc += 1;
             cpu.cycles += 4;
         }
         0xE7 => {
@@ -2967,7 +2967,7 @@ pub fn op_cb(cpu: &mut Cpu, mmu: &mut Mmu) {
 
             mmu.write_byte(address, value & (1 << 5));
 
-            cpu.pc += 2;
+            cpu.pc += 1;
             cpu.cycles += 4;
         }
         0xEF => {
@@ -3011,7 +3011,7 @@ pub fn op_cb(cpu: &mut Cpu, mmu: &mut Mmu) {
 
             mmu.write_byte(address, value & (1 << 6));
 
-            cpu.pc += 2;
+            cpu.pc += 1;
             cpu.cycles += 4;
         }
         0xF7 => {
@@ -3055,7 +3055,7 @@ pub fn op_cb(cpu: &mut Cpu, mmu: &mut Mmu) {
 
             mmu.write_byte(address, value & (1 << 7));
 
-            cpu.pc += 2;
+            cpu.pc += 1;
             cpu.cycles += 4;
         }
         0xFF => {

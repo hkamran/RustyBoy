@@ -22,6 +22,7 @@ pub struct Cpu {
 
     pub cycles: usize,
     pub opcode: u16,
+    pub ticks: usize,
 }
 
 #[allow(unused)]
@@ -45,6 +46,7 @@ impl Cpu {
             enable_interrupt_counter: 0,
             cycles: 0,
             opcode: 0,
+            ticks: 0,
         }
     }
 
@@ -65,6 +67,7 @@ impl Cpu {
         self.enable_interrupt_counter = 0;
         self.cycles = 0;
         self.opcode = 0;
+        self.ticks = 0;
     }
 
     pub fn execute_ticks(&mut self, mmu: &mut Mmu, ticks: u32) -> u32 {
@@ -92,6 +95,7 @@ impl Cpu {
         //log(self.to_string());
         execute_operation(self.opcode as u8, self, mmu);
 
+        self.ticks += 1;
         return (self.cycles - cycles) as u32;
     }
 
@@ -258,7 +262,7 @@ impl Cpu {
         let value = arg.wrapping_add(1);
 
         self.set_f_zero(value == 0);
-        self.set_f_half_carry((value & 0x0F) == 0x00);
+        self.set_f_half_carry(!(value & 0x0F) == 0x00);
         self.set_f_negative(false);
 
         return value;
@@ -420,7 +424,7 @@ impl Cpu {
     }
 
     pub fn push_byte(&mut self, mmu: &mut Mmu, value: u8) {
-        self.sp -= 1;
+        self.sp = self.sp.wrapping_sub(1);
         mmu.write_byte(self.sp, value);
     }
 
@@ -434,14 +438,14 @@ impl Cpu {
 
     pub fn pop_byte(&mut self, mmu: &mut Mmu) -> u8 {
         let value = mmu.read_byte(self.sp);
-        self.sp += 1;
+        self.sp = self.sp.wrapping_add(1);
         return value;
     }
 
     pub fn pop_word(&mut self, mmu: &mut Mmu) -> u16 {
-        let value = mmu.read_word(self.sp);
-        self.sp += 2;
-        return value;
+        let low = self.pop_byte(mmu) as u16;
+        let high = self.pop_byte(mmu) as u16;
+        return high << 8 | low;
     }
 }
 
