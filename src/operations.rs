@@ -1490,9 +1490,8 @@ pub fn execute_operation(opcode: u8, cpu: &mut Cpu, mmu: &mut Mmu) -> () {
         }
         0xE8 => {
             let value = mmu.read_byte(cpu.pc + 1) as u16;
-            let result = cpu.apply_add_u16_with_flags(cpu.sp, value);
+            let result = cpu.apply_add_i16_with_flags(cpu.sp, value);
             cpu.sp = result;
-            cpu.set_f_zero(false);
 
             cpu.pc += 2;
             cpu.cycles += 4;
@@ -1586,9 +1585,8 @@ pub fn execute_operation(opcode: u8, cpu: &mut Cpu, mmu: &mut Mmu) -> () {
         }
         0xF8 => {
             let value = mmu.read_byte(cpu.pc + 1) as u16;
-            let result = cpu.apply_add_u16_with_flags(cpu.sp, value);
+            let result = cpu.apply_add_i16_with_flags(cpu.sp, value);
             cpu.set_hl(result);
-            cpu.set_f_zero(false);
 
             cpu.pc += 2;
             cpu.cycles += 3;

@@ -333,6 +333,17 @@ impl Cpu {
         return result;
     }
 
+    pub fn apply_add_i16_with_flags(&mut self, a: u16, b: u16) -> u16 {
+        let result: u16 = a.wrapping_add(b);
+
+        self.set_f_negative(false);
+        self.set_f_zero(false);
+        self.set_f_half_carry((a & 0x000F) + (b & 0x000F) > 0x000F);
+        self.set_f_carry((a & 0x00FF) + (b & 0x00FF) > 0x00FF);
+
+        return result;
+    }
+
     pub fn apply_and_u8_with_flags(&mut self, a: u8, b: u8) -> u8 {
         let result = a & b;
 
