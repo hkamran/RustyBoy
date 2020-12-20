@@ -260,7 +260,7 @@ pub fn execute_operation(opcode: u8, cpu: &mut Cpu, mmu: &mut Mmu) -> () {
             }
         }
         0x29 => {
-            let result = cpu.apply_add_u16_with_flags(cpu.get_hl(), cpu.sp);
+            let result = cpu.apply_add_u16_with_flags(cpu.get_hl(), cpu.get_hl());
             cpu.set_hl(result);
 
             cpu.pc += 1;
@@ -1331,8 +1331,10 @@ pub fn execute_operation(opcode: u8, cpu: &mut Cpu, mmu: &mut Mmu) -> () {
             if !cpu.get_f_carry() {
                 cpu.pc = cpu.pop_word(mmu);
 
+                cpu.pc += 1;
                 cpu.cycles += 5;
             } else {
+                cpu.pc += 1;
                 cpu.cycles += 2;
             }
         }
@@ -1493,8 +1495,8 @@ pub fn execute_operation(opcode: u8, cpu: &mut Cpu, mmu: &mut Mmu) -> () {
             cpu.cycles += 2;
         }
         0xE8 => {
-            let value = mmu.read_byte(cpu.pc + 1) as u16;
-            let result = cpu.apply_add_i16_with_flags(cpu.sp, value);
+            let value = mmu.read_byte(cpu.pc + 1) as i8 as i32;
+            let result = cpu.apply_add_i16_with_flags(cpu.sp as i16 as i32, value);
             cpu.sp = result;
 
             cpu.pc += 2;
@@ -1588,8 +1590,8 @@ pub fn execute_operation(opcode: u8, cpu: &mut Cpu, mmu: &mut Mmu) -> () {
             cpu.cycles += 4;
         }
         0xF8 => {
-            let value = mmu.read_byte(cpu.pc + 1) as u16;
-            let result = cpu.apply_add_i16_with_flags(cpu.sp, value);
+            let value = mmu.read_byte(cpu.pc + 1) as i8 as i32;
+            let result = cpu.apply_add_i16_with_flags(cpu.sp as i8 as i32, value);
             cpu.set_hl(result);
 
             cpu.pc += 2;

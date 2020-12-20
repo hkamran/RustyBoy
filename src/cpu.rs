@@ -89,7 +89,7 @@ impl Cpu {
         }
 
         self.opcode = mmu.read_byte(pc) as u8 as u16;
-        log(self.to_string());
+        //log(self.to_string());
         execute_operation(self.opcode as u8, self, mmu);
 
         return (self.cycles - cycles) as u32;
@@ -258,7 +258,7 @@ impl Cpu {
         let value = arg.wrapping_add(1);
 
         self.set_f_zero(value == 0);
-        self.set_f_half_carry((arg & 0x0F) + 1 > 0x0F);
+        self.set_f_half_carry((value & 0x0F) == 0x00);
         self.set_f_negative(false);
 
         return value;
@@ -268,7 +268,7 @@ impl Cpu {
         let value = arg.wrapping_sub(1);
 
         self.set_f_zero(value == 0);
-        self.set_f_half_carry((arg & 0x0F) == 0x0);
+        self.set_f_half_carry(!(value & 0x0F) == 0x0F);
         self.set_f_negative(true);
 
         return value;
@@ -334,15 +334,15 @@ impl Cpu {
         return result;
     }
 
-    pub fn apply_add_i16_with_flags(&mut self, a: u16, b: u16) -> u16 {
-        let result: u16 = a.wrapping_add(b);
+    pub fn apply_add_i16_with_flags(&mut self, a:  i32, b: i32) -> u16 {
+        let result: i32 = a.wrapping_add(b);
 
         self.set_f_negative(false);
         self.set_f_zero(false);
         self.set_f_half_carry((a & 0x000F) + (b & 0x000F) > 0x000F);
         self.set_f_carry((a & 0x00FF) + (b & 0x00FF) > 0x00FF);
 
-        return result;
+        return result as u16;
     }
 
     pub fn apply_and_u8_with_flags(&mut self, a: u8, b: u8) -> u8 {

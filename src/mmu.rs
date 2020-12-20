@@ -75,7 +75,7 @@ impl Mmu {
             0xFF51 ..= 0xFF55 => { self.dma.borrow_mut().read_byte(address) },
             0xFF68 ..= 0xFF6B => { self.ppu.read_byte(address) },
             0xFF70 ..= 0xFF70 => { self.wram_bank as u8 },
-            0xFF80 ..= 0xFFFE => { self.zram[address as usize & 0x007F] },
+            0xFF80 ..= 0xFFFE => { self.zram[(address - 0xFF80) as usize] },
             0xFFFF ..= 0xFFFF => { self.interrupt_enable },
             _ => 0,
         }
@@ -100,7 +100,7 @@ impl Mmu {
             0xFF68 ..= 0xFF6B => { self.ppu.write_byte(address, value)},
             0xFF0F => { self.interrupt_flag = value },
             0xFF70 ..= 0xFF70 => { self.wram_bank = match value & 0x7 { 0 => 1, n => n as usize }; },
-            0xFF80 ..= 0xFFFE => { self.zram[address as usize & 0x007F] = value },
+            0xFF80 ..= 0xFFFE => { self.zram[(address - 0xFF80) as usize] = value; },
             0xFFFF ..= 0xFFFF => { self.interrupt_enable = value },
             _ => {},
         };
