@@ -59,7 +59,7 @@ pub struct Ppu {
     lcd_display_enable: bool,
     window_tile_map_select: u16,
     window_display_enable: bool,
-    tile_data_select: u16,
+    bg_tile_data_select: u16,
     bg_tile_map_select: u16,
     sprite_size: u32,
     sprite_enable: bool,
@@ -127,7 +127,7 @@ impl Ppu {
             lcd_display_enable: true,
             window_tile_map_select: 0x9800,
             window_display_enable: false,
-            tile_data_select: 0x8000,
+            bg_tile_data_select: 0x8000,
             bg_tile_map_select: 0x9800,
             sprite_size: 8,
             sprite_enable: false,
@@ -396,10 +396,10 @@ impl Ppu {
         // In the second case, patterns have signed numbers from -128 to 127 (i.e. pattern #0 lies at address $9000).
 
         let tile_offset =
-            if self.tile_data_select == 0x8000 { tile_number as u16}
+            if self.bg_tile_data_select == 0x8000 { tile_number as u16}
             else {(tile_number as i8 as i16 + 128) as u16};
 
-        let tile_pattern_base_address = self.tile_data_select + tile_offset * 16;
+        let tile_pattern_base_address = self.bg_tile_data_select + tile_offset * 16;
 
         // A sprite is 8x8 and each line is made up of 2 bytes
 
@@ -642,7 +642,7 @@ impl Ppu {
                 (if self.lcd_display_enable { 0x80 } else { 0 }) |
                     (if self.window_tile_map_select == 0x9C00 { 0x40 } else { 0 }) |
                     (if self.window_display_enable { 0x20 } else { 0 }) |
-                    (if self.tile_data_select == 0x8000 { 0x10 } else { 0 }) |
+                    (if self.bg_tile_data_select == 0x8000 { 0x10 } else { 0 }) |
                     (if self.bg_tile_map_select == 0x9C00 { 0x08 } else { 0 }) |
                     (if self.sprite_size == 16 { 0x04 } else { 0 }) |
                     (if self.sprite_enable { 0x02 } else { 0 }) |
@@ -701,7 +701,7 @@ impl Ppu {
                 self.lcd_display_enable = value & 0x80 == 0x80;
                 self.window_tile_map_select = if value & 0x40 == 0x40 { 0x9C00 } else { 0x9800 };
                 self.window_display_enable = value & 0x20 == 0x20;
-                self.tile_data_select = if value & 0x10 == 0x10 { 0x8000 } else { 0x8800 };
+                self.bg_tile_data_select = if value & 0x10 == 0x10 { 0x8000 } else { 0x8800 };
                 self.bg_tile_map_select = if value & 0x08 == 0x08 { 0x9C00 } else { 0x9800 };
                 self.sprite_size = if value & 0x04 == 0x04 { 16 } else { 8 };
                 self.sprite_enable = value & 0x02 == 0x02;
