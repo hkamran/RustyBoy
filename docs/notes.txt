@@ -4,3 +4,6 @@ https://gekkio.fi/files/gb-docs/gbctr.pdf
 https://gbdev.io/pandocs/#the-cartridge-header
 https://www.youtube.com/watch?v=HyzD8pNlpwI&t=29m12s
 https://github.com/retrio/gb-test-roms
+https://thomas.spurden.name/gameboy/
+https://robdor.com/2016/08/10/gameboy-emulator-half-carry-flag/
+http://blog.alasdairmorrison.com/gameboy-memory-map/

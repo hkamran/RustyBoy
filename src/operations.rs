@@ -198,11 +198,12 @@ pub fn execute_operation(opcode: u8, cpu: &mut Cpu, mmu: &mut Mmu) -> () {
                 let offset = mmu.read_byte(cpu.pc + 1) as i8;
                 cpu.pc = ((cpu.pc as u32 as i32) + (offset as i32)) as u16;
 
-                cpu.cycles += 1;
+                cpu.pc += 2;
+                cpu.cycles += 3;
+            } else {
+                cpu.pc += 2;
+                cpu.cycles += 2;
             }
-
-            cpu.pc += 2;
-            cpu.cycles += 2;
         }
         0x21 => {
             let value = mmu.read_word(cpu.pc + 1);
@@ -251,11 +252,12 @@ pub fn execute_operation(opcode: u8, cpu: &mut Cpu, mmu: &mut Mmu) -> () {
                 let offset = mmu.read_byte(cpu.pc + 1) as i8;
                 cpu.pc = ((cpu.pc as u32 as i32) + (offset as i32)) as u16;
 
-                cpu.cycles += 1;
+                cpu.pc += 2;
+                cpu.cycles += 3;
+            } else {
+                cpu.pc += 2;
+                cpu.cycles += 2;
             }
-
-            cpu.pc += 2;
-            cpu.cycles += 2;
         }
         0x29 => {
             let result = cpu.apply_add_u16_with_flags(cpu.get_hl(), cpu.sp);
@@ -308,11 +310,12 @@ pub fn execute_operation(opcode: u8, cpu: &mut Cpu, mmu: &mut Mmu) -> () {
                 let offset = mmu.read_byte(cpu.pc + 1) as i8;
                 cpu.pc = ((cpu.pc as u32 as i32) + (offset as i32)) as u16;
 
-                cpu.cycles += 1;
+                cpu.pc += 2;
+                cpu.cycles += 3;
+            } else {
+                cpu.pc += 2;
+                cpu.cycles += 2;
             }
-
-            cpu.pc += 2;
-            cpu.cycles += 2;
         }
         0x31 => {
             cpu.sp = mmu.read_word(cpu.pc + 1);
@@ -371,11 +374,12 @@ pub fn execute_operation(opcode: u8, cpu: &mut Cpu, mmu: &mut Mmu) -> () {
                 let offset = mmu.read_byte(cpu.pc + 1) as i8;
                 cpu.pc = ((cpu.pc as u32 as i32) + (offset as i32)) as u16;
 
-                cpu.cycles += 1;
+                cpu.pc += 2;
+                cpu.cycles += 3;
+            } else {
+                cpu.pc += 2;
+                cpu.cycles += 2;
             }
-
-            cpu.pc += 2;
-            cpu.cycles += 2;
         }
         0x39 => {
             let hl = cpu.get_hl();

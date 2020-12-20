@@ -137,6 +137,7 @@ impl Cpu {
 
         // go to the vector
         self.pc = 0x0040 | ((bit as u16) << 3);
+        self.cycles += 4;
 
         return true;
     }
