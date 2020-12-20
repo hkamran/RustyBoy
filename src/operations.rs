@@ -1401,7 +1401,6 @@ pub fn execute_operation(opcode: u8, cpu: &mut Cpu, mmu: &mut Mmu) -> () {
             cpu.pc = cpu.pop_word(mmu);
             cpu.enable_interrupt_counter = 1;
 
-            cpu.pc += 1;
             cpu.cycles += 4;
         }
         0xDA => {
@@ -1505,7 +1504,6 @@ pub fn execute_operation(opcode: u8, cpu: &mut Cpu, mmu: &mut Mmu) -> () {
         0xE9 => {
             cpu.pc = cpu.get_hl();
 
-            cpu.pc += 1;
             cpu.cycles += 1;
         }
         0xEA => {
