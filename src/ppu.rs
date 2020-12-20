@@ -59,11 +59,11 @@ pub struct Ppu {
     lcd_display_enable: bool,
     window_tile_map_select: u16,
     window_display_enable: bool,
-    tilemap_base_select: u16,
-    bg_tile_map: u16,
+    tile_data_select: u16,
+    bg_tile_map_select: u16,
     sprite_size: u32,
     sprite_enable: bool,
-    bg_display: bool,
+    bg_display_enable: bool,
 
     // 0xFF41 (http://bgb.bircd.org/pandocs.htm#lcdstatusregister)
     lyc_interrupt_enable: bool,
@@ -127,11 +127,11 @@ impl Ppu {
             lcd_display_enable: true,
             window_tile_map_select: 0x9800,
             window_display_enable: false,
-            tilemap_base_select: 0x8000,
-            bg_tile_map: 0x9800,
+            tile_data_select: 0x8000,
+            bg_tile_map_select: 0x9800,
             sprite_size: 8,
             sprite_enable: false,
-            bg_display: true,
+            bg_display_enable: true,
 
             lyc_interrupt_enable: false,
             mode_2_interrupt: false,
@@ -294,10 +294,10 @@ impl Ppu {
     }
 
     fn render_bg_line(&mut self) {
-        let draw = self.gameboy_type == GameboyType::COLOR || self.bg_display;
+        let draw = self.gameboy_type == GameboyType::COLOR || self.bg_display_enable;
 
         let window_y_coord =
-            if !self.window_display_enable || (self.gameboy_type != GameboyType::CLASSIC && !self.bg_display) { -1 }
+            if !self.window_display_enable || (self.gameboy_type != GameboyType::CLASSIC && !self.bg_display_enable) { -1 }
             else { self.ly as i32 - self.window_y_coord as i32 };
 
         if window_y_coord < 0 && draw == false {
@@ -316,13 +316,14 @@ impl Ppu {
             let (tile_map_base, tile_y, tile_x, pixel_y, pixel_x) = if window_y_coord >= 0 && window_x_coord >= 0 {
                 (self.window_tile_map_select, window_tile_y, (window_x_coord as u16 >> 3), window_tile_y as u16 & 0x07, window_x_coord as u8 & 0x07)
             } else if draw {
-                (self.bg_tile_map, bg_tile_y, (bg_tile_x as u16 >> 3) & 31, bg_y as u16 & 0x07, bg_tile_x as u8 & 0x07)
+                (self.bg_tile_map_select, bg_tile_y, (bg_tile_x as u16 >> 3) & 31, bg_y as u16 & 0x07, bg_tile_x as u8 & 0x07)
             } else {
                 continue;
             };
 
-            let attributes: TileEntry = self.get_bg_attributes(tile_map_base, tile_y, tile_x);
-            let tile: TileData = self.get_bg_tile(tile_map_base, tile_x, tile_y, attributes.y_flip, pixel_y, attributes.vram_bank);
+            let tile_map_address: u16 = tile_map_base + tile_y * 32 + tile_x;
+            let attributes: TileEntry = self.get_bg_tile_attributes(tile_map_address);
+            let tile: TileData = self.get_bg_tile_at_y(tile_map_address, attributes.y_flip, pixel_y, attributes.vram_bank);
 
             let bit_mask = match attributes.x_flip {
                 true => pixel_x,
@@ -349,7 +350,7 @@ impl Ppu {
 
     }
 
-    fn get_bg_attributes(&mut self, tile_map_base: u16, tile_y: u16, tile_x: u16) -> TileEntry {
+    fn get_bg_tile_attributes(&mut self, tile_map_address: u16) -> TileEntry {
         if self.gameboy_type == GameboyType::CLASSIC {
             return TileEntry{
                 palette_number : 0,
@@ -360,13 +361,20 @@ impl Ppu {
             }
         }
 
-        let tile_map = self.read_byte_from_vram(0, tile_map_base + tile_y * 32 + tile_x) as usize;
+        let tile_map = self.read_byte_from_vram(1, tile_map_address) as usize;
+
+        // Bit 0-2  Background Palette number  (BGP0-7)
+        // Bit 3    Tile VRAM Bank number      (0=Bank 0, 1=Bank 1)
+        // Bit 4    Not used
+        // Bit 5    Horizontal Flip            (0=Normal, 1=Mirror horizontally)
+        // Bit 6    Vertical Flip              (0=Normal, 1=Mirror vertically)
+        // Bit 7    BG-to-OAM Priority         (0=Use OAM priority bit, 1=BG Priority)
 
         let palette_number = tile_map & 0x07;
-        let vram_bank = if tile_map & (1 << 3) != 0 {1} else {0};
-        let x_flip = tile_map & (1 << 5) != 0;
-        let y_flip = tile_map & (1 << 6) != 0;
-        let has_priority = tile_map & (1 << 7) != 0;
+        let vram_bank = if tile_map & 0x8 != 0 {1} else {0};
+        let x_flip = tile_map & 0x20 != 0;
+        let y_flip = tile_map & 0x40 != 0;
+        let has_priority = tile_map & 0x80 != 0;
 
         return TileEntry{
             palette_number,
@@ -377,20 +385,31 @@ impl Ppu {
         }
     }
 
-    fn get_bg_tile(&mut self, tile_map_base: u16, tile_x: u16, tile_y: u16, y_flip: bool, pixel_y: u16, bank: u8) -> TileData {
-        let tile_entry = self.read_byte_from_vram(0, tile_map_base + tile_y * 32 + tile_x);
-        let tile_offset =
-            if self.tilemap_base_select == 0x8000 {tile_entry as u16}
-            else {(tile_entry as i8 as i16 + 128) as u16};
-        let tile_base_address = self.tilemap_base_select + tile_offset * 16;
+    fn get_bg_tile_at_y(&mut self, tile_map_address: u16, y_flip: bool, pixel_y: u16, bank: u8) -> TileData {
+        // An area of VRAM known as Background Tile Map contains the numbers of tiles to be displayed.
+        // It is organized as 32 rows of 32 bytes each. Each byte contains a number of a tile to be displayed.
+        // Tile patterns are taken from the Tile Data Table located either at $8000-8FFF or $8800-97FF.
 
-        let tile_address = match y_flip {
-            false => tile_base_address + (pixel_y * 2),
-            true => tile_base_address + (14 - (pixel_y * 2)),
+        let tile_number = self.read_byte_from_vram(0, tile_map_address);
+
+        // In the first case, patterns are numbered with unsigned numbers from 0 to 255 (i.e. pattern #0 lies at address $8000).
+        // In the second case, patterns have signed numbers from -128 to 127 (i.e. pattern #0 lies at address $9000).
+
+        let tile_offset =
+            if self.tile_data_select == 0x8000 { tile_number as u16}
+            else {(tile_number as i8 as i16 + 128) as u16};
+
+        let tile_pattern_base_address = self.tile_data_select + tile_offset * 16;
+
+        // A sprite is 8x8 and each line is made up of 2 bytes
+
+        let tile_pattern_address = match y_flip {
+            false => tile_pattern_base_address + (pixel_y * 2),
+            true => tile_pattern_base_address + (14 - (pixel_y * 2)),
         };
 
-        let tile_1 = self.read_byte_from_vram(bank, tile_address);
-        let tile_2 = self.read_byte_from_vram(bank, tile_address + 1);
+        let tile_1 = self.read_byte_from_vram(bank, tile_pattern_address);
+        let tile_2 = self.read_byte_from_vram(bank, tile_pattern_address + 1);
 
         return TileData{
             tile_1,
@@ -587,11 +606,11 @@ impl Ppu {
                 (if self.lcd_display_enable { 0x80 } else { 0 }) |
                     (if self.window_tile_map_select == 0x9C00 { 0x40 } else { 0 }) |
                     (if self.window_display_enable { 0x20 } else { 0 }) |
-                    (if self.tilemap_base_select == 0x8000 { 0x10 } else { 0 }) |
-                    (if self.bg_tile_map == 0x9C00 { 0x08 } else { 0 }) |
+                    (if self.tile_data_select == 0x8000 { 0x10 } else { 0 }) |
+                    (if self.bg_tile_map_select == 0x9C00 { 0x08 } else { 0 }) |
                     (if self.sprite_size == 16 { 0x04 } else { 0 }) |
                     (if self.sprite_enable { 0x02 } else { 0 }) |
-                    (if self.bg_display { 0x01 } else { 0 })
+                    (if self.bg_display_enable { 0x01 } else { 0 })
             },
             0xFF41 => {
                 (if self.lyc_interrupt_enable { 0x40 } else { 0 }) |
@@ -646,11 +665,11 @@ impl Ppu {
                 self.lcd_display_enable = value & 0x80 == 0x80;
                 self.window_tile_map_select = if value & 0x40 == 0x40 { 0x9C00 } else { 0x9800 };
                 self.window_display_enable = value & 0x20 == 0x20;
-                self.tilemap_base_select = if value & 0x10 == 0x10 { 0x8000 } else { 0x8800 };
-                self.bg_tile_map = if value & 0x08 == 0x08 { 0x9C00 } else { 0x9800 };
+                self.tile_data_select = if value & 0x10 == 0x10 { 0x8000 } else { 0x8800 };
+                self.bg_tile_map_select = if value & 0x08 == 0x08 { 0x9C00 } else { 0x9800 };
                 self.sprite_size = if value & 0x04 == 0x04 { 16 } else { 8 };
                 self.sprite_enable = value & 0x02 == 0x02;
-                self.bg_display = value & 0x01 == 0x01;
+                self.bg_display_enable = value & 0x01 == 0x01;
 
                 if last_lcd_display_enable && !self.lcd_display_enable {
                     self.mode = GpuMode::HBlank;
