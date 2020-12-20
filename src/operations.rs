@@ -388,9 +388,8 @@ pub fn execute_operation(opcode: u8, cpu: &mut Cpu, mmu: &mut Mmu) -> () {
             cpu.cycles += 2;
         }
         0x3A => {
-            let hl = cpu.get_hl();
-            cpu.a = mmu.read_byte(hl);
-            cpu.set_hl(hl - 1);
+            cpu.a = mmu.read_byte(cpu.get_hl());
+            cpu.set_hl(cpu.get_hl() - 1);
 
             cpu.pc += 1;
             cpu.cycles += 2;

@@ -207,7 +207,7 @@ impl Cpu {
         if value == true {
             self.f |= 0x10;
         } else {
-            self.f &= 0xEF;
+            self.f &= !0x10;
         }
     }
 
@@ -215,7 +215,7 @@ impl Cpu {
         if value == true {
             self.f |= 0x40;
         } else {
-            self.f &= 0xBF;
+            self.f &= !0x40;
         }
     }
 
@@ -223,7 +223,7 @@ impl Cpu {
         if value == true {
             self.f |= 0x20;
         } else {
-            self.f &= 0xDF;
+            self.f &= !0x20;
         }
     }
 
@@ -231,7 +231,7 @@ impl Cpu {
         if value == true {
             self.f |= 0x80;
         } else {
-            self.f &= 0x7F;
+            self.f &= !0x80;
         }
     }
 
@@ -267,7 +267,7 @@ impl Cpu {
         let value = arg.wrapping_sub(1);
 
         self.set_f_zero(value == 0);
-        self.set_f_half_carry((arg & 0x0F) == 0x0F);
+        self.set_f_half_carry((arg & 0x0F) == 0x0);
         self.set_f_negative(true);
 
         return value;
