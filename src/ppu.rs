@@ -262,8 +262,8 @@ impl Ppu {
         }
 
         let mut index = 0;
-        for x in 0 .. SCREEN_W {
-            for y in 0 .. SCREEN_H {
+        for y in 0 .. SCREEN_H {
+            for x in 0 .. SCREEN_W {
                 let base = (y as usize) * SCREEN_W * 3 + x as usize * 3;
                 let r = self.frame[base + 0];
                 let g = self.frame[base + 1];
@@ -297,7 +297,7 @@ impl Ppu {
             return;
         }
 
-        let window_tile_y: u16 = ((window_y_coord >> 3) & 31) as u16;
+        let window_tile_y= (window_y_coord as u16 >> 3) & 31;
 
         let bg_y = self.scroll_y_coord.wrapping_add(self.ly);
         let bg_tile_y = (bg_y as u16 >> 3) & 31;
@@ -309,7 +309,7 @@ impl Ppu {
             let (tile_map_base, tile_y, tile_x, pixel_y, pixel_x) = if window_y_coord >= 0 && window_x_coord >= 0 {
                 (self.window_tile_map_select, window_tile_y, (window_x_coord as u16 >> 3), window_tile_y as u16 & 0x07, window_x_coord as u8 & 0x07)
             } else if draw {
-                (self.bg_tile_map, bg_tile_y, (bg_tile_x as u16 >> 3) & 31, bg_tile_y as u16 & 0x07, bg_tile_x as u8 & 0x07)
+                (self.bg_tile_map, bg_tile_y, (bg_tile_x as u16 >> 3) & 31, bg_y as u16 & 0x07, bg_tile_x as u8 & 0x07)
             } else {
                 continue;
             };
