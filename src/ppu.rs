@@ -30,7 +30,7 @@ pub struct TileEntry {
 pub struct SpriteOam {
     y_cord: i32,
     x_cord: i32,
-    tile_num: u16,
+    tile_number: u16,
     x_flip: bool,
     y_flip: bool,
     has_priority: bool,
@@ -427,7 +427,7 @@ impl Ppu {
 
         // https://gbdev.io/pandocs/#fifo-pixel-fetcher
         // http://imrannazar.com/GameBoy-Emulation-in-JavaScript:-Sprites
-        for index in 0 .. 40u16 {
+        for index in 39 .. 0u16 {
             let sprite_oam: SpriteOam = self.get_sprite_attributes(index);
 
             let y_start = sprite_oam.y_cord;
@@ -436,7 +436,7 @@ impl Ppu {
             if line < y_start || line >= y_end { continue }
             if sprite_oam.x_cord < (-7) || sprite_oam.x_cord >= SCREEN_W as i32 { continue }
 
-            let sprite_tile = self.get_sprite_vram(&sprite_oam);
+            let sprite_tile = self.get_sprite_tile_at_y(&sprite_oam, self.ly);
 
             for x in 0 .. 8 {
                 if sprite_oam.x_cord + x < 0 || sprite_oam.x_cord + x >= SCREEN_W as i32 {
@@ -449,9 +449,11 @@ impl Ppu {
                 if palette_index == 0 { continue }
 
                 if self.gameboy_type == GameboyType::COLOR {
-                    let r = self.cbg_bg_palette[sprite_oam.palette_number as usize][palette_index][0];
-                    let g = self.cbg_bg_palette[sprite_oam.palette_number as usize][palette_index][1];
-                    let b = self.cbg_bg_palette[sprite_oam.palette_number as usize][palette_index][2];
+                    let palette = self.cbg_bg_palette[sprite_oam.palette_number as usize][palette_index];
+
+                    let r = palette[0];
+                    let g = palette[1];
+                    let b = palette[2];
 
                     self.set_rgb_at(x as usize, line as usize, r, g, b);
                 } else {
@@ -469,43 +471,77 @@ impl Ppu {
         }
     }
 
-    fn get_sprite_vram(&self, oam: &SpriteOam) -> TileData {
-        let tile_y: u16 = if oam.y_flip {
-            self.sprite_size - 1 - (self.ly - oam.y_cord as u8) as u32
+    fn get_sprite_tile_at_y(&self, oam: &SpriteOam, y: u8) -> TileData {
+        // Specifies the sprites Tile Number (00-FF). This (unsigned) value selects a tile from memory at 8000h-8FFFh.
+        // In CGB Mode this could be either in VRAM Bank 0 or 1, depending on Bit 3 of the following byte.
+
+        let offset: u16 = if oam.y_flip {
+            self.sprite_size - 1 - (y - oam.y_cord as u8) as u32
         } else {
-            (self.ly - oam.y_cord as u8) as u32
+            (y - oam.y_cord as u8) as u32
         } as u16;
 
-        let tile_address = 0x8000u16 + oam.tile_num as u16 * 16 + tile_y * 2;
-        let tile_1 = self.read_byte_from_vram(oam.vram_bank, tile_address);
-        let tile_2 = self.read_byte_from_vram(oam.vram_bank, tile_address + 1);
+        let tile_address = 0x8000u16 + oam.tile_number as u16 * 16 + offset * 2;
 
-        return TileData {
-            tile_1,
-            tile_2,
+        if self.gameboy_type == GameboyType::CLASSIC {
+            let tile_1 = self.read_byte_from_vram(0, tile_address);
+            let tile_2 = self.read_byte_from_vram(0, tile_address + 1);
+
+            return TileData {
+                tile_1,
+                tile_2,
+            }
+        } else {
+            let tile_1 = self.read_byte_from_vram(oam.vram_bank, tile_address);
+            let tile_2 = self.read_byte_from_vram(oam.vram_bank, tile_address + 1);
+
+            return TileData {
+                tile_1,
+                tile_2,
+            }
         }
     }
 
     fn get_sprite_attributes(&mut self, id: u16) -> SpriteOam {
+        // GameBoy video controller can display up to 40 sprites either in 8x8 or in 8x16 pixels.
+
         let index = 39 - id;
+
+        // Sprite attributes reside in the Sprite Attribute Table (OAM - Object Attribute Memory) at $FE00-FE9F.
+        // Each of the 40 entries consists of four bytes.
+
         let address = 0xFE00 + index * 4;
 
         let y_cord = self.read_byte(address + 0) as u16 as i32 - 16;
         let x_cord = self.read_byte(address + 1) as u16 as i32 - 8;
+
+        // Specifies the sprites Tile Number (00-FF). This (unsigned) value selects a tile from memory at 8000h-8FFFh.
+        // In CGB Mode this could be either in VRAM Bank 0 or 1, depending on Bit 3 of the following byte.
+        // In 8x16 mode, the lower bit of the tile number is ignored. Ie. the upper 8x8 tile is "NN AND FEh",
+        // and the lower 8x8 tile is "NN OR 01h".
+
         let tile_num = (self.read_byte(address + 2) & (if self.sprite_size == 16 {0xFE} else {0xFF})) as u16;
         let flags = self.read_byte(address + 3) as usize;
 
-        let pal_palette_index = if flags & (1 << 4) != 0 {1u8} else {0u8};
-        let x_flip = flags & (1 << 5) != 0;
-        let y_flip = flags & (1 << 6) != 0;
-        let has_priority = flags & (1 << 7) != 0;
-        let palette_number = (flags & 0x07) as u8;
-        let vram_bank = if self.gameboy_type == GameboyType::CLASSIC {0u8} else if flags & (1 << 3) != 0 {1u8} else {0u8};
+        //   Bit2-0 Palette number  **CGB Mode Only**     (OBP0-7)
+        //   Bit3   Tile VRAM-Bank  **CGB Mode Only**     (0=Bank 0, 1=Bank 1)
+        //   Bit4   Palette number  **Non CGB Mode Only** (0=OBP0, 1=OBP1)
+        //   Bit5   X flip          (0=Normal, 1=Horizontally mirrored)
+        //   Bit6   Y flip          (0=Normal, 1=Vertically mirrored)
+        //   Bit7   OBJ-to-BG Priority (0=OBJ Above BG, 1=OBJ Behind BG color 1-3)
+        //          (Used for both BG and Window. BG color 0 is always behind OBJ)
+
+        let palette_number: u8 = (flags & 0x07) as u8;
+        let vram_bank: u8 = if self.gameboy_type == GameboyType::CLASSIC {0} else if flags & 0x8 != 0 {1} else {0};
+        let pal_palette_index = if flags & 0x10 != 0 {1u8} else {0u8};
+        let x_flip = flags & 0x20 != 0;
+        let y_flip = flags & 0x40 != 0;
+        let has_priority = flags & 0x80 != 0;
 
         return SpriteOam{
             y_cord,
             x_cord,
-            tile_num,
+            tile_number: tile_num,
             x_flip,
             y_flip,
             has_priority,
