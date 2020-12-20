@@ -253,7 +253,7 @@ impl Cpu {
 
     // operation helpers
 
-    pub fn apply_inc8_with_flags(&mut self, arg: u8) -> u8 {
+    pub fn apply_inc_u8_with_flags(&mut self, arg: u8) -> u8 {
         let value = arg.wrapping_add(1);
 
         self.set_f_zero(value == 0);
@@ -263,7 +263,7 @@ impl Cpu {
         return value;
     }
 
-    pub fn apply_dec8_with_flags(&mut self, arg: u8) -> u8 {
+    pub fn apply_dec_u8_with_flags(&mut self, arg: u8) -> u8 {
         let value = arg.wrapping_sub(1);
 
         self.set_f_zero(value == 0);
@@ -299,7 +299,7 @@ impl Cpu {
         return result;
     }
 
-    pub fn apply_add8_with_flags(&mut self, a: u8, b: u8, apply_with_carry: bool) -> u8 {
+    pub fn apply_add_u8_with_flags(&mut self, a: u8, b: u8, apply_with_carry: bool) -> u8 {
         let carry: u8 = if apply_with_carry { if self.get_f_carry() {1} else {0} } else { 0 };
         let result = a.wrapping_add(b).wrapping_add(carry);
 
@@ -311,7 +311,7 @@ impl Cpu {
         return result;
     }
 
-    pub fn apply_sub8_with_flags(&mut self, a: u8, b: u8, apply_with_carry: bool) -> u8 {
+    pub fn apply_sub_u8_with_flags(&mut self, a: u8, b: u8, apply_with_carry: bool) -> u8 {
         let carry: u8 = if apply_with_carry { if self.get_f_carry() {1} else {0} } else { 0 };
         let result = a.wrapping_sub(b).wrapping_sub(carry);
 
@@ -323,7 +323,7 @@ impl Cpu {
         return result;
     }
 
-    pub fn apply_add16_with_flags(&mut self, a: u16, b: u16) -> u16 {
+    pub fn apply_add_u16_with_flags(&mut self, a: u16, b: u16) -> u16 {
         let result: u16 = a.wrapping_add(b);
 
         self.set_f_half_carry((a & 0x07FF) + (b & 0x07FF) > 0x07FF);
@@ -333,7 +333,7 @@ impl Cpu {
         return result;
     }
 
-    pub fn apply_and8_with_flags(&mut self, a: u8, b: u8) -> u8 {
+    pub fn apply_and_u8_with_flags(&mut self, a: u8, b: u8) -> u8 {
         let result = a & b;
 
         self.set_f_zero(result == 0);
@@ -344,7 +344,7 @@ impl Cpu {
         return result;
     }
 
-    pub fn apply_or8_with_flags(&mut self, a: u8, b: u8) -> u8 {
+    pub fn apply_or_u8_with_flags(&mut self, a: u8, b: u8) -> u8 {
         let result = a | b;
 
         self.set_f_zero(result == 0);
@@ -355,7 +355,7 @@ impl Cpu {
         return result;
     }
 
-    pub fn apply_xor8_with_flags(&mut self, a: u8, b: u8) -> u8 {
+    pub fn apply_xor_u8_with_flags(&mut self, a: u8, b: u8) -> u8 {
         let result = a ^ b;
 
         self.set_f_zero(result == 0);

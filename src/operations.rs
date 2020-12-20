@@ -24,12 +24,12 @@ pub fn execute_operation(opcode: u8, cpu: &mut Cpu, mmu: &mut Mmu) -> () {
             cpu.cycles += 6;
         }
         0x04 => {
-            cpu.b = cpu.apply_inc8_with_flags(cpu.b);
+            cpu.b = cpu.apply_inc_u8_with_flags(cpu.b);
             cpu.pc += 1;
             cpu.cycles += 1;
         }
         0x05 => {
-            cpu.b = cpu.apply_dec8_with_flags(cpu.b);
+            cpu.b = cpu.apply_dec_u8_with_flags(cpu.b);
             cpu.pc += 1;
             cpu.cycles += 1;
         }
@@ -52,7 +52,7 @@ pub fn execute_operation(opcode: u8, cpu: &mut Cpu, mmu: &mut Mmu) -> () {
             cpu.cycles += 5;
         }
         0x09 => {
-            let value = cpu.apply_add16_with_flags(cpu.get_hl(), cpu.get_bc());
+            let value = cpu.apply_add_u16_with_flags(cpu.get_hl(), cpu.get_bc());
             cpu.set_hl(value);
 
             cpu.pc += 1;
@@ -72,13 +72,13 @@ pub fn execute_operation(opcode: u8, cpu: &mut Cpu, mmu: &mut Mmu) -> () {
             cpu.cycles += 2;
         }
         0x0C => {
-            cpu.c = cpu.apply_inc8_with_flags(cpu.c);
+            cpu.c = cpu.apply_inc_u8_with_flags(cpu.c);
 
             cpu.pc += 1;
             cpu.cycles += 1;
         }
         0x0D => {
-            cpu.c = cpu.apply_dec8_with_flags(cpu.c);
+            cpu.c = cpu.apply_dec_u8_with_flags(cpu.c);
 
             cpu.pc += 1;
             cpu.cycles += 1;
@@ -120,13 +120,13 @@ pub fn execute_operation(opcode: u8, cpu: &mut Cpu, mmu: &mut Mmu) -> () {
             cpu.cycles += 2;
         }
         0x14 => {
-            cpu.d = cpu.apply_inc8_with_flags(cpu.d);
+            cpu.d = cpu.apply_inc_u8_with_flags(cpu.d);
 
             cpu.pc += 1;
             cpu.cycles += 1;
         }
         0x15 => {
-            cpu.d = cpu.apply_dec8_with_flags(cpu.d);
+            cpu.d = cpu.apply_dec_u8_with_flags(cpu.d);
 
             cpu.pc += 1;
             cpu.cycles += 1;
@@ -151,7 +151,7 @@ pub fn execute_operation(opcode: u8, cpu: &mut Cpu, mmu: &mut Mmu) -> () {
             cpu.cycles += 3;
         }
         0x19 => {
-            let value = cpu.apply_add16_with_flags(cpu.get_hl(), cpu.get_de());
+            let value = cpu.apply_add_u16_with_flags(cpu.get_hl(), cpu.get_de());
             cpu.set_hl(value);
 
             cpu.pc += 1;
@@ -170,13 +170,13 @@ pub fn execute_operation(opcode: u8, cpu: &mut Cpu, mmu: &mut Mmu) -> () {
             cpu.cycles += 2;
         }
         0x1C => {
-            cpu.e = cpu.apply_inc8_with_flags(cpu.e);
+            cpu.e = cpu.apply_inc_u8_with_flags(cpu.e);
 
             cpu.pc += 1;
             cpu.cycles += 1;
         }
         0x1D => {
-            cpu.e = cpu.apply_dec8_with_flags(cpu.e);
+            cpu.e = cpu.apply_dec_u8_with_flags(cpu.e);
 
             cpu.pc += 1;
             cpu.cycles += 1;
@@ -226,13 +226,13 @@ pub fn execute_operation(opcode: u8, cpu: &mut Cpu, mmu: &mut Mmu) -> () {
             cpu.cycles += 2;
         }
         0x24 => {
-            cpu.h = cpu.apply_inc8_with_flags(cpu.h);
+            cpu.h = cpu.apply_inc_u8_with_flags(cpu.h);
 
             cpu.pc += 1;
             cpu.cycles += 1;
         }
         0x25 => {
-            cpu.h = cpu.apply_dec8_with_flags(cpu.h);
+            cpu.h = cpu.apply_dec_u8_with_flags(cpu.h);
 
             cpu.pc += 1;
             cpu.cycles += 1;
@@ -258,7 +258,7 @@ pub fn execute_operation(opcode: u8, cpu: &mut Cpu, mmu: &mut Mmu) -> () {
             cpu.cycles += 2;
         }
         0x29 => {
-            let result = cpu.apply_add16_with_flags(cpu.get_hl(), cpu.sp);
+            let result = cpu.apply_add_u16_with_flags(cpu.get_hl(), cpu.sp);
             cpu.set_hl(result);
 
             cpu.pc += 1;
@@ -278,13 +278,13 @@ pub fn execute_operation(opcode: u8, cpu: &mut Cpu, mmu: &mut Mmu) -> () {
             cpu.cycles += 2;
         }
         0x2C => {
-            cpu.l = cpu.apply_inc8_with_flags(cpu.l);
+            cpu.l = cpu.apply_inc_u8_with_flags(cpu.l);
 
             cpu.pc += 1;
             cpu.cycles += 1;
         }
         0x2D => {
-            cpu.l = cpu.apply_dec8_with_flags(cpu.l);
+            cpu.l = cpu.apply_dec_u8_with_flags(cpu.l);
 
             cpu.pc += 1;
             cpu.cycles += 1;
@@ -336,7 +336,7 @@ pub fn execute_operation(opcode: u8, cpu: &mut Cpu, mmu: &mut Mmu) -> () {
         0x34 => {
             let addr = cpu.get_hl();
             let mut value = mmu.read_byte(addr);
-            value = cpu.apply_inc8_with_flags(value);
+            value = cpu.apply_inc_u8_with_flags(value);
             mmu.write_byte(cpu.a as u16, value);
 
             cpu.pc += 1;
@@ -345,7 +345,7 @@ pub fn execute_operation(opcode: u8, cpu: &mut Cpu, mmu: &mut Mmu) -> () {
         0x35 => {
             let addr = cpu.get_hl();
             let mut value = mmu.read_byte(addr);
-            value = cpu.apply_dec8_with_flags(value);
+            value = cpu.apply_dec_u8_with_flags(value);
             mmu.write_byte(cpu.a as u16, value);
 
             cpu.pc += 1;
@@ -381,7 +381,7 @@ pub fn execute_operation(opcode: u8, cpu: &mut Cpu, mmu: &mut Mmu) -> () {
             let hl = cpu.get_hl();
             let sp = cpu.sp;
 
-            let result = cpu.apply_add16_with_flags(hl, sp);
+            let result = cpu.apply_add_u16_with_flags(hl, sp);
             cpu.set_hl(result);
 
             cpu.pc += 1;
@@ -401,13 +401,13 @@ pub fn execute_operation(opcode: u8, cpu: &mut Cpu, mmu: &mut Mmu) -> () {
             cpu.cycles += 2;
         }
         0x3C => {
-            cpu.a = cpu.apply_inc8_with_flags(cpu.a);
+            cpu.a = cpu.apply_inc_u8_with_flags(cpu.a);
 
             cpu.pc += 1;
             cpu.cycles += 1;
         }
         0x3D => {
-            cpu.a = cpu.apply_dec8_with_flags(cpu.a);
+            cpu.a = cpu.apply_dec_u8_with_flags(cpu.a);
 
             cpu.pc += 1;
             cpu.cycles += 1;
@@ -797,351 +797,351 @@ pub fn execute_operation(opcode: u8, cpu: &mut Cpu, mmu: &mut Mmu) -> () {
             cpu.cycles += 1;
         }
         0x80 => {
-            cpu.a = cpu.apply_add8_with_flags(cpu.a, cpu.b, false);
+            cpu.a = cpu.apply_add_u8_with_flags(cpu.a, cpu.b, false);
 
             cpu.pc += 1;
             cpu.cycles += 1;
         }
         0x81 => {
-            cpu.a = cpu.apply_add8_with_flags(cpu.a, cpu.c, false);
+            cpu.a = cpu.apply_add_u8_with_flags(cpu.a, cpu.c, false);
 
             cpu.pc += 1;
             cpu.cycles += 1;
         }
         0x82 => {
-            cpu.a = cpu.apply_add8_with_flags(cpu.a, cpu.d, false);
+            cpu.a = cpu.apply_add_u8_with_flags(cpu.a, cpu.d, false);
 
             cpu.pc += 1;
             cpu.cycles += 1;
         }
         0x83 => {
-            cpu.a = cpu.apply_add8_with_flags(cpu.a, cpu.e, false);
+            cpu.a = cpu.apply_add_u8_with_flags(cpu.a, cpu.e, false);
 
             cpu.pc += 1;
             cpu.cycles += 1;
         }
         0x84 => {
-            cpu.a = cpu.apply_add8_with_flags(cpu.a, cpu.h, false);
+            cpu.a = cpu.apply_add_u8_with_flags(cpu.a, cpu.h, false);
 
             cpu.pc += 1;
             cpu.cycles += 1;
         }
         0x85 => {
-            cpu.a = cpu.apply_add8_with_flags(cpu.a, cpu.l, false);
+            cpu.a = cpu.apply_add_u8_with_flags(cpu.a, cpu.l, false);
 
             cpu.pc += 1;
             cpu.cycles += 1;
         }
         0x86 => {
             let value = mmu.read_byte(cpu.get_hl());
-            cpu.a = cpu.apply_add8_with_flags(cpu.a, value, false);
+            cpu.a = cpu.apply_add_u8_with_flags(cpu.a, value, false);
 
             cpu.pc += 1;
             cpu.cycles += 2;
         }
         0x87 => {
-            cpu.a = cpu.apply_add8_with_flags(cpu.a, cpu.a, false);
+            cpu.a = cpu.apply_add_u8_with_flags(cpu.a, cpu.a, false);
 
             cpu.pc += 1;
             cpu.cycles += 1;
         }
         0x88 => {
-            cpu.a = cpu.apply_add8_with_flags(cpu.a, cpu.b, true);
+            cpu.a = cpu.apply_add_u8_with_flags(cpu.a, cpu.b, true);
 
             cpu.pc += 1;
             cpu.cycles += 2;
         }
         0x89 => {
-            cpu.a = cpu.apply_add8_with_flags(cpu.a, cpu.c, true);
+            cpu.a = cpu.apply_add_u8_with_flags(cpu.a, cpu.c, true);
 
             cpu.pc += 1;
             cpu.cycles += 2;
         }
         0x8A => {
-            cpu.a = cpu.apply_add8_with_flags(cpu.a, cpu.d, true);
+            cpu.a = cpu.apply_add_u8_with_flags(cpu.a, cpu.d, true);
 
             cpu.pc += 1;
             cpu.cycles += 2;
         }
         0x8B => {
-            cpu.a = cpu.apply_add8_with_flags(cpu.a, cpu.e, true);
+            cpu.a = cpu.apply_add_u8_with_flags(cpu.a, cpu.e, true);
 
             cpu.pc += 1;
             cpu.cycles += 2;
         }
         0x8C => {
-            cpu.a = cpu.apply_add8_with_flags(cpu.a, cpu.h, true);
+            cpu.a = cpu.apply_add_u8_with_flags(cpu.a, cpu.h, true);
 
             cpu.pc += 1;
             cpu.cycles += 2;
         }
         0x8D => {
-            cpu.a = cpu.apply_add8_with_flags(cpu.a, cpu.l, true);
+            cpu.a = cpu.apply_add_u8_with_flags(cpu.a, cpu.l, true);
 
             cpu.pc += 1;
             cpu.cycles += 2;
         }
         0x8E => {
             let value = mmu.read_byte(cpu.get_hl());
-            cpu.a = cpu.apply_add8_with_flags(cpu.a, value, true);
+            cpu.a = cpu.apply_add_u8_with_flags(cpu.a, value, true);
 
             cpu.pc += 1;
             cpu.cycles += 2;
         }
         0x8F => {
-            cpu.a = cpu.apply_add8_with_flags(cpu.a, cpu.a, true);
+            cpu.a = cpu.apply_add_u8_with_flags(cpu.a, cpu.a, true);
 
             cpu.pc += 1;
             cpu.cycles += 2;
         }
         0x90 => {
-            cpu.a = cpu.apply_sub8_with_flags(cpu.a, cpu.h, false);
+            cpu.a = cpu.apply_sub_u8_with_flags(cpu.a, cpu.h, false);
 
             cpu.pc += 1;
             cpu.cycles += 1;
         }
         0x91 => {
-            cpu.a = cpu.apply_sub8_with_flags(cpu.a, cpu.c, false);
+            cpu.a = cpu.apply_sub_u8_with_flags(cpu.a, cpu.c, false);
 
             cpu.pc += 1;
             cpu.cycles += 1;
         }
         0x92 => {
-            cpu.a = cpu.apply_sub8_with_flags(cpu.a, cpu.d, false);
+            cpu.a = cpu.apply_sub_u8_with_flags(cpu.a, cpu.d, false);
 
             cpu.pc += 1;
             cpu.cycles += 1;
         }
         0x93 => {
-            cpu.a = cpu.apply_sub8_with_flags(cpu.a, cpu.d, false);
+            cpu.a = cpu.apply_sub_u8_with_flags(cpu.a, cpu.d, false);
 
             cpu.pc += 1;
             cpu.cycles += 1;
         }
         0x94 => {
-            cpu.a = cpu.apply_sub8_with_flags(cpu.a, cpu.h, false);
+            cpu.a = cpu.apply_sub_u8_with_flags(cpu.a, cpu.h, false);
 
             cpu.pc += 1;
             cpu.cycles += 1;
         }
         0x95 => {
-            cpu.a = cpu.apply_sub8_with_flags(cpu.a, cpu.l, false);
+            cpu.a = cpu.apply_sub_u8_with_flags(cpu.a, cpu.l, false);
 
             cpu.pc += 1;
             cpu.cycles += 1;
         }
         0x96 => {
             let value = mmu.read_byte(cpu.get_hl());
-            cpu.a = cpu.apply_sub8_with_flags(cpu.a, value, false);
+            cpu.a = cpu.apply_sub_u8_with_flags(cpu.a, value, false);
 
             cpu.pc += 1;
             cpu.cycles += 2;
         }
         0x97 => {
-            cpu.a = cpu.apply_sub8_with_flags(cpu.a, cpu.a, false);
+            cpu.a = cpu.apply_sub_u8_with_flags(cpu.a, cpu.a, false);
 
             cpu.pc += 1;
             cpu.cycles += 1;
         }
         0x98 => {
-            cpu.a = cpu.apply_sub8_with_flags(cpu.a, cpu.b, true);
+            cpu.a = cpu.apply_sub_u8_with_flags(cpu.a, cpu.b, true);
 
             cpu.pc += 1;
             cpu.cycles += 1;
         }
         0x99 => {
-            cpu.a = cpu.apply_sub8_with_flags(cpu.a, cpu.c, true);
+            cpu.a = cpu.apply_sub_u8_with_flags(cpu.a, cpu.c, true);
 
             cpu.pc += 1;
             cpu.cycles += 1;
         }
         0x9A => {
-            cpu.a = cpu.apply_sub8_with_flags(cpu.a, cpu.d, true);
+            cpu.a = cpu.apply_sub_u8_with_flags(cpu.a, cpu.d, true);
 
             cpu.pc += 1;
             cpu.cycles += 1;
         }
         0x9B => {
-            cpu.a = cpu.apply_sub8_with_flags(cpu.a, cpu.e, true);
+            cpu.a = cpu.apply_sub_u8_with_flags(cpu.a, cpu.e, true);
 
             cpu.pc += 1;
             cpu.cycles += 1;
         }
         0x9C => {
-            cpu.a = cpu.apply_sub8_with_flags(cpu.a, cpu.h, true);
+            cpu.a = cpu.apply_sub_u8_with_flags(cpu.a, cpu.h, true);
 
             cpu.pc += 1;
             cpu.cycles += 1;
         }
         0x9D => {
-            cpu.a = cpu.apply_sub8_with_flags(cpu.a, cpu.l, true);
+            cpu.a = cpu.apply_sub_u8_with_flags(cpu.a, cpu.l, true);
 
             cpu.pc += 1;
             cpu.cycles += 1;
         }
         0x9E => {
             let value = mmu.read_byte(cpu.get_hl());
-            cpu.a = cpu.apply_sub8_with_flags(cpu.a, value, true);
+            cpu.a = cpu.apply_sub_u8_with_flags(cpu.a, value, true);
 
             cpu.pc += 1;
             cpu.cycles += 2;
         }
         0x9F => {
-            cpu.a = cpu.apply_sub8_with_flags(cpu.a, cpu.a, true);
+            cpu.a = cpu.apply_sub_u8_with_flags(cpu.a, cpu.a, true);
 
             cpu.pc += 1;
             cpu.cycles += 1;
         }
         0xA0 => {
-            cpu.a = cpu.apply_and8_with_flags(cpu.a, cpu.b);
+            cpu.a = cpu.apply_and_u8_with_flags(cpu.a, cpu.b);
 
             cpu.pc += 1;
             cpu.cycles += 1;
         }
         0xA1 => {
-            cpu.a = cpu.apply_and8_with_flags(cpu.a, cpu.c);
+            cpu.a = cpu.apply_and_u8_with_flags(cpu.a, cpu.c);
 
             cpu.pc += 1;
             cpu.cycles += 1;
         }
         0xA2 => {
-            cpu.a = cpu.apply_and8_with_flags(cpu.a, cpu.d);
+            cpu.a = cpu.apply_and_u8_with_flags(cpu.a, cpu.d);
 
             cpu.pc += 1;
             cpu.cycles += 1;
         }
         0xA3 => {
-            cpu.a = cpu.apply_and8_with_flags(cpu.a, cpu.e);
+            cpu.a = cpu.apply_and_u8_with_flags(cpu.a, cpu.e);
 
             cpu.pc += 1;
             cpu.cycles += 1;
         }
         0xA4 => {
-            cpu.a = cpu.apply_and8_with_flags(cpu.a, cpu.h);
+            cpu.a = cpu.apply_and_u8_with_flags(cpu.a, cpu.h);
 
             cpu.pc += 1;
             cpu.cycles += 1;
         }
         0xA5 => {
-            cpu.a = cpu.apply_and8_with_flags(cpu.a, cpu.l);
+            cpu.a = cpu.apply_and_u8_with_flags(cpu.a, cpu.l);
 
             cpu.pc += 1;
             cpu.cycles += 1;
         }
         0xA6 => {
             let value = mmu.read_byte(cpu.get_hl());
-            cpu.a = cpu.apply_and8_with_flags(cpu.a, value);
+            cpu.a = cpu.apply_and_u8_with_flags(cpu.a, value);
 
             cpu.pc += 1;
             cpu.cycles += 2;
         }
         0xA7 => {
-            cpu.a = cpu.apply_and8_with_flags(cpu.a, cpu.a);
+            cpu.a = cpu.apply_and_u8_with_flags(cpu.a, cpu.a);
 
             cpu.pc += 1;
             cpu.cycles += 1;
         }
         0xA8 => {
-            cpu.a = cpu.apply_xor8_with_flags(cpu.a, cpu.b);
+            cpu.a = cpu.apply_xor_u8_with_flags(cpu.a, cpu.b);
 
             cpu.pc += 1;
             cpu.cycles += 1;
         }
         0xA9 => {
-            cpu.a = cpu.apply_xor8_with_flags(cpu.a, cpu.c);
+            cpu.a = cpu.apply_xor_u8_with_flags(cpu.a, cpu.c);
 
             cpu.pc += 1;
             cpu.cycles += 1;
         }
         0xAA => {
-            cpu.a = cpu.apply_xor8_with_flags(cpu.a, cpu.d);
+            cpu.a = cpu.apply_xor_u8_with_flags(cpu.a, cpu.d);
 
             cpu.pc += 1;
             cpu.cycles += 1;
         }
         0xAB => {
-            cpu.a = cpu.apply_xor8_with_flags(cpu.a, cpu.e);
+            cpu.a = cpu.apply_xor_u8_with_flags(cpu.a, cpu.e);
 
             cpu.pc += 1;
             cpu.cycles += 1;
         }
         0xAC => {
-            cpu.a = cpu.apply_xor8_with_flags(cpu.a, cpu.h);
+            cpu.a = cpu.apply_xor_u8_with_flags(cpu.a, cpu.h);
 
             cpu.pc += 1;
             cpu.cycles += 1;
         }
         0xAD => {
-            cpu.a = cpu.apply_xor8_with_flags(cpu.a, cpu.l);
+            cpu.a = cpu.apply_xor_u8_with_flags(cpu.a, cpu.l);
 
             cpu.pc += 1;
             cpu.cycles += 1;
         }
         0xAE => {
             let value = mmu.read_byte(cpu.get_hl());
-            cpu.a = cpu.apply_xor8_with_flags(cpu.a, value);
+            cpu.a = cpu.apply_xor_u8_with_flags(cpu.a, value);
 
             cpu.pc += 1;
             cpu.cycles += 2;
         }
         0xAF => {
-            cpu.a = cpu.apply_xor8_with_flags(cpu.a, cpu.a);
+            cpu.a = cpu.apply_xor_u8_with_flags(cpu.a, cpu.a);
 
             cpu.pc += 1;
             cpu.cycles += 1;
         }
         0xB0 => {
-            cpu.a = cpu.apply_or8_with_flags(cpu.a, cpu.b);
+            cpu.a = cpu.apply_or_u8_with_flags(cpu.a, cpu.b);
 
             cpu.pc += 1;
             cpu.cycles += 1;
         }
         0xB1 => {
-            cpu.a = cpu.apply_or8_with_flags(cpu.a, cpu.c);
+            cpu.a = cpu.apply_or_u8_with_flags(cpu.a, cpu.c);
 
             cpu.pc += 1;
             cpu.cycles += 1;
         }
         0xB2 => {
-            cpu.a = cpu.apply_or8_with_flags(cpu.a, cpu.d);
+            cpu.a = cpu.apply_or_u8_with_flags(cpu.a, cpu.d);
 
             cpu.pc += 1;
             cpu.cycles += 1;
         }
         0xB3 => {
-            cpu.a = cpu.apply_or8_with_flags(cpu.a, cpu.e);
+            cpu.a = cpu.apply_or_u8_with_flags(cpu.a, cpu.e);
 
             cpu.pc += 1;
             cpu.cycles += 1;
         }
         0xB4 => {
-            cpu.a = cpu.apply_or8_with_flags(cpu.a, cpu.h);
+            cpu.a = cpu.apply_or_u8_with_flags(cpu.a, cpu.h);
 
             cpu.pc += 1;
             cpu.cycles += 1;
         }
         0xB5 => {
-            cpu.a = cpu.apply_or8_with_flags(cpu.a, cpu.l);
+            cpu.a = cpu.apply_or_u8_with_flags(cpu.a, cpu.l);
 
             cpu.pc += 1;
             cpu.cycles += 1;
         }
         0xB6 => {
             let value = mmu.read_byte(cpu.get_hl());
-            cpu.a = cpu.apply_or8_with_flags(cpu.a, value);
+            cpu.a = cpu.apply_or_u8_with_flags(cpu.a, value);
 
             cpu.pc += 1;
             cpu.cycles += 2;
         }
         0xB7 => {
-            cpu.a = cpu.apply_or8_with_flags(cpu.a, cpu.a);
+            cpu.a = cpu.apply_or_u8_with_flags(cpu.a, cpu.a);
 
             cpu.pc += 1;
             cpu.cycles += 1;
         }
         0xB8 => {
             let a = cpu.a;
-            cpu.apply_sub8_with_flags(cpu.a, cpu.b, false);
+            cpu.apply_sub_u8_with_flags(cpu.a, cpu.b, false);
             cpu.a = a;
 
             cpu.pc += 1;
@@ -1149,7 +1149,7 @@ pub fn execute_operation(opcode: u8, cpu: &mut Cpu, mmu: &mut Mmu) -> () {
         }
         0xB9 => {
             let a = cpu.a;
-            cpu.apply_sub8_with_flags(cpu.a, cpu.c, false);
+            cpu.apply_sub_u8_with_flags(cpu.a, cpu.c, false);
             cpu.a = a;
 
             cpu.pc += 1;
@@ -1157,7 +1157,7 @@ pub fn execute_operation(opcode: u8, cpu: &mut Cpu, mmu: &mut Mmu) -> () {
         }
         0xBA => {
             let a = cpu.a;
-            cpu.apply_sub8_with_flags(cpu.a, cpu.d, false);
+            cpu.apply_sub_u8_with_flags(cpu.a, cpu.d, false);
             cpu.a = a;
 
             cpu.pc += 1;
@@ -1165,7 +1165,7 @@ pub fn execute_operation(opcode: u8, cpu: &mut Cpu, mmu: &mut Mmu) -> () {
         }
         0xBB => {
             let a = cpu.a;
-            cpu.apply_sub8_with_flags(cpu.a, cpu.e, false);
+            cpu.apply_sub_u8_with_flags(cpu.a, cpu.e, false);
             cpu.a = a;
 
             cpu.pc += 1;
@@ -1173,7 +1173,7 @@ pub fn execute_operation(opcode: u8, cpu: &mut Cpu, mmu: &mut Mmu) -> () {
         }
         0xBC => {
             let a = cpu.a;
-            cpu.apply_sub8_with_flags(cpu.a, cpu.h, false);
+            cpu.apply_sub_u8_with_flags(cpu.a, cpu.h, false);
             cpu.a = a;
 
             cpu.pc += 1;
@@ -1181,7 +1181,7 @@ pub fn execute_operation(opcode: u8, cpu: &mut Cpu, mmu: &mut Mmu) -> () {
         }
         0xBD => {
             let a = cpu.a;
-            cpu.apply_sub8_with_flags(cpu.a, cpu.l, false);
+            cpu.apply_sub_u8_with_flags(cpu.a, cpu.l, false);
             cpu.a = a;
 
             cpu.pc += 1;
@@ -1190,7 +1190,7 @@ pub fn execute_operation(opcode: u8, cpu: &mut Cpu, mmu: &mut Mmu) -> () {
         0xBE => {
             let value = mmu.read_byte(cpu.get_hl());
             let a = cpu.a;
-            cpu.apply_sub8_with_flags(cpu.a, value, false);
+            cpu.apply_sub_u8_with_flags(cpu.a, value, false);
             cpu.a = a;
 
             cpu.pc += 1;
@@ -1198,7 +1198,7 @@ pub fn execute_operation(opcode: u8, cpu: &mut Cpu, mmu: &mut Mmu) -> () {
         }
         0xBF => {
             let a = cpu.a;
-            cpu.apply_sub8_with_flags(cpu.a, cpu.a, false);
+            cpu.apply_sub_u8_with_flags(cpu.a, cpu.a, false);
             cpu.a = a;
 
             cpu.pc += 1;
@@ -1253,7 +1253,7 @@ pub fn execute_operation(opcode: u8, cpu: &mut Cpu, mmu: &mut Mmu) -> () {
         }
         0xC6 => {
             let value = mmu.read_byte(cpu.pc + 1);
-            cpu.a = cpu.apply_add8_with_flags(cpu.a, value, false);
+            cpu.a = cpu.apply_add_u8_with_flags(cpu.a, value, false);
 
 
             cpu.pc += 2;
@@ -1312,7 +1312,7 @@ pub fn execute_operation(opcode: u8, cpu: &mut Cpu, mmu: &mut Mmu) -> () {
         }
         0xCE => {
             let value = mmu.read_byte(cpu.pc + 1);
-            cpu.a = cpu.apply_add8_with_flags(cpu.a, value, true);
+            cpu.a = cpu.apply_add_u8_with_flags(cpu.a, value, true);
 
             cpu.pc += 2;
             cpu.cycles += 2;
@@ -1369,7 +1369,7 @@ pub fn execute_operation(opcode: u8, cpu: &mut Cpu, mmu: &mut Mmu) -> () {
         }
         0xD6 => {
             let value = mmu.read_byte(cpu.pc + 1);
-            cpu.a = cpu.apply_sub8_with_flags(cpu.a, value, false);
+            cpu.a = cpu.apply_sub_u8_with_flags(cpu.a, value, false);
 
             cpu.pc += 2;
             cpu.cycles += 2;
@@ -1427,7 +1427,7 @@ pub fn execute_operation(opcode: u8, cpu: &mut Cpu, mmu: &mut Mmu) -> () {
         }
         0xDE => {
             let value = mmu.read_byte(cpu.pc + 1);
-            cpu.a = cpu.apply_sub8_with_flags(cpu.a, value, true);
+            cpu.a = cpu.apply_sub_u8_with_flags(cpu.a, value, true);
 
             cpu.pc += 2;
             cpu.cycles += 2;
@@ -1476,7 +1476,7 @@ pub fn execute_operation(opcode: u8, cpu: &mut Cpu, mmu: &mut Mmu) -> () {
         }
         0xE6 => {
             let value = mmu.read_byte(cpu.pc + 1);
-            cpu.a = cpu.apply_and8_with_flags(cpu.a, value);
+            cpu.a = cpu.apply_and_u8_with_flags(cpu.a, value);
 
             cpu.pc += 2;
             cpu.cycles += 2;
@@ -1490,7 +1490,7 @@ pub fn execute_operation(opcode: u8, cpu: &mut Cpu, mmu: &mut Mmu) -> () {
         }
         0xE8 => {
             let value = mmu.read_byte(cpu.pc + 1) as u16;
-            let result = cpu.apply_add16_with_flags(cpu.sp, value);
+            let result = cpu.apply_add_u16_with_flags(cpu.sp, value);
             cpu.sp = result;
             cpu.set_f_zero(false);
 
@@ -1521,7 +1521,7 @@ pub fn execute_operation(opcode: u8, cpu: &mut Cpu, mmu: &mut Mmu) -> () {
         }
         0xEE => {
             let value = mmu.read_byte(cpu.pc + 1);
-            cpu.a = cpu.apply_xor8_with_flags(cpu.a, value);
+            cpu.a = cpu.apply_xor_u8_with_flags(cpu.a, value);
 
             cpu.pc += 2;
             cpu.cycles += 2;
@@ -1572,7 +1572,7 @@ pub fn execute_operation(opcode: u8, cpu: &mut Cpu, mmu: &mut Mmu) -> () {
         }
         0xF6 => {
             let value = mmu.read_byte(cpu.pc + 1);
-            cpu.a = cpu.apply_or8_with_flags(cpu.a, value);
+            cpu.a = cpu.apply_or_u8_with_flags(cpu.a, value);
 
             cpu.pc += 2;
             cpu.cycles += 2;
@@ -1586,7 +1586,7 @@ pub fn execute_operation(opcode: u8, cpu: &mut Cpu, mmu: &mut Mmu) -> () {
         }
         0xF8 => {
             let value = mmu.read_byte(cpu.pc + 1) as u16;
-            let result = cpu.apply_add16_with_flags(cpu.sp, value);
+            let result = cpu.apply_add_u16_with_flags(cpu.sp, value);
             cpu.set_hl(result);
             cpu.set_f_zero(false);
 
@@ -1620,7 +1620,7 @@ pub fn execute_operation(opcode: u8, cpu: &mut Cpu, mmu: &mut Mmu) -> () {
         }
         0xFE => {
             let value = mmu.read_byte(cpu.pc + 1);
-            cpu.apply_sub8_with_flags(cpu.a, value, false);
+            cpu.apply_sub_u8_with_flags(cpu.a, value, false);
 
             cpu.pc += 2;
             cpu.cycles += 2;
