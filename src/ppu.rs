@@ -8,6 +8,12 @@ pub const SCREEN_H: usize = 144;
 pub const INTERRUPT_TIMER_MASK: u8 = 0x02;
 pub const INTERRUPT_V_BLANK_MASK: u8 = 0x01;
 
+#[derive(PartialEq, Copy, Clone)]
+enum PaletteType {
+    BACKGROUND,
+    OBJECTS
+}
+
 pub struct TileData {
     tile_1: u8,
     tile_2: u8,
@@ -192,9 +198,10 @@ impl Ppu {
 
     #[allow(unused)]
     pub fn execute_tick(&mut self) -> () {
-        if !self.lcd_display_enable {
-            return;
-        }
+        // TODO LOOK OVER THIS
+        // if !self.lcd_display_enable {
+        //     return;
+        // }
 
         self.clock += 1;
 
@@ -287,10 +294,10 @@ impl Ppu {
     }
 
     fn render_bg_line(&mut self) {
-        let draw = self.gameboy_type == GameboyType::COLOR || self.lcd_display_enable;
+        let draw = self.gameboy_type == GameboyType::COLOR || self.bg_display;
 
         let window_y_coord =
-            if !self.window_display_enable || (self.gameboy_type != GameboyType::CLASSIC && !self.lcd_display_enable) { -1 }
+            if !self.window_display_enable || (self.gameboy_type != GameboyType::CLASSIC && !self.bg_display) { -1 }
             else { self.ly as i32 - self.window_y_coord as i32 };
 
         if window_y_coord < 0 && draw == false {
@@ -353,7 +360,7 @@ impl Ppu {
             }
         }
 
-        let tile_map = self.read_byte_from_vram(1, tile_map_base + tile_y * 32 + tile_x) as usize;
+        let tile_map = self.read_byte_from_vram(0, tile_map_base + tile_y * 32 + tile_x) as usize;
 
         let palette_number = tile_map & 0x07;
         let vram_bank = if tile_map & (1 << 3) != 0 {1} else {0};
@@ -422,14 +429,10 @@ impl Ppu {
                     (if sprite_tile.tile_2 & bit_mask != 0 {2} else {0});
                 if palette_index == 0 { continue }
 
-                if self.lcd_display_enable && sprite_oam.has_priority {
-                    continue;
-                }
-
                 if self.gameboy_type == GameboyType::COLOR {
                     let r = self.cbg_bg_palette[sprite_oam.palette_number as usize][palette_index][0];
-                    let g = self.cbg_bg_palette[sprite_oam.palette_number as usize][palette_index][0];
-                    let b = self.cbg_bg_palette[sprite_oam.palette_number as usize][palette_index][0];
+                    let g = self.cbg_bg_palette[sprite_oam.palette_number as usize][palette_index][1];
+                    let b = self.cbg_bg_palette[sprite_oam.palette_number as usize][palette_index][2];
 
                     self.set_rgb_at(x as usize, line as usize, r, g, b);
                 } else {
@@ -638,6 +641,8 @@ impl Ppu {
             0x8000 ..= 0x9FFF => self.vram[(self.vram_bank * 0x2000) | (address as usize & 0x1FFF)] = value,
             0xFE00 ..= 0xFE9F => self.voam[address as usize - 0xFE00] = value,
             0xFF40 => {
+                let last_lcd_display_enable = self.lcd_display_enable;
+
                 self.lcd_display_enable = value & 0x80 == 0x80;
                 self.window_tile_map_select = if value & 0x40 == 0x40 { 0x9C00 } else { 0x9800 };
                 self.window_display_enable = value & 0x20 == 0x20;
@@ -646,6 +651,12 @@ impl Ppu {
                 self.sprite_size = if value & 0x04 == 0x04 { 16 } else { 8 };
                 self.sprite_enable = value & 0x02 == 0x02;
                 self.bg_display = value & 0x01 == 0x01;
+
+                if last_lcd_display_enable && !self.lcd_display_enable {
+                    self.mode = GpuMode::HBlank;
+                    self.ly = 0;
+                    self.clock = 0;
+                }
             },
             0xFF41 => {
                 self.lyc_interrupt_enable = value & 0x40 == 0x40;
@@ -666,31 +677,64 @@ impl Ppu {
             0xFF4F => self.vram_bank = (value & 0x01) as usize,
             0xFF68 => { self.cbg_bg_palette_index = value & 0x3F; self.cbg_bg_palette_increment = value & 0x80 == 0x80; },
             0xFF69 => {
-                let pal_num = (self.cbg_bg_palette_index >> 3) as usize;
-                let col_num = ((self.cbg_bg_palette_index >> 1) & 0x03) as usize;
-                if self.cbg_bg_palette_index & 0x01 == 0x00 {
-                    self.cbg_bg_palette[pal_num][col_num][0] = value & 0x1F;
-                    self.cbg_bg_palette[pal_num][col_num][1] = (self.cbg_bg_palette[pal_num][col_num][1] & 0x18) | (value >> 5);
-                } else {
-                    self.cbg_bg_palette[pal_num][col_num][1] = (self.cbg_bg_palette[pal_num][col_num][1] & 0x07) | ((value & 0x3) << 3);
-                    self.cbg_bg_palette[pal_num][col_num][2] = (value >> 2) & 0x1F;
-                }
+                self.update_palette(PaletteType::BACKGROUND, value);
+
                 if self.cbg_bg_palette_increment { self.cbg_bg_palette_index = (self.cbg_bg_palette_index + 1) & 0x3F; };
             },
             0xFF6A => { self.cbg_obj_index = value & 0x3F; self.cbg_obj_increment = value & 0x80 == 0x80; },
             0xFF6B => {
-                let pal_num = (self.cbg_obj_index >> 3) as usize;
-                let col_num = ((self.cbg_obj_index >> 1) & 0x03) as usize;
-                if self.cbg_obj_index & 0x01 == 0x00 {
-                    self.cbg_obj[pal_num][col_num][0] = value & 0x1F;
-                    self.cbg_obj[pal_num][col_num][1] = (self.cbg_obj[pal_num][col_num][1] & 0x18) | (value >> 5);
-                } else {
-                    self.cbg_obj[pal_num][col_num][1] = (self.cbg_obj[pal_num][col_num][1] & 0x07) | ((value & 0x3) << 3);
-                    self.cbg_obj[pal_num][col_num][2] = (value >> 2) & 0x1F;
-                }
+                self.update_palette(PaletteType::OBJECTS, value);
+
                 if self.cbg_obj_increment { self.cbg_obj_index = (self.cbg_obj_index + 1) & 0x3F; };
             },
             _ => panic!("invalid {}", address),
+        }
+    }
+
+    fn update_palette(&mut self, palette_type: PaletteType, palette_value: u8) {
+        // To get the full color GB requires two writes (two bytes)
+        // Bit 0-4   Red Intensity   (00-1F)
+        // Bit 5-9   Green Intensity (00-1F)
+        // Bit 10-14 Blue Intensity  (00-1F)
+
+        let mut pal_num: usize;
+        let mut col_num: usize;
+        let mut palette: &mut [u8];
+        let mut byte_index;
+
+        if palette_type == PaletteType::BACKGROUND {
+            pal_num = (self.cbg_bg_palette_index >> 3) as usize;
+            col_num = ((self.cbg_bg_palette_index >> 1) & 0x03) as usize;
+            palette = &mut self.cbg_bg_palette[pal_num][col_num];
+            byte_index = if self.cbg_bg_palette_index & 0x01 == 0x00 {0} else {1};
+        } else {
+            pal_num = (self.cbg_obj_index >> 3) as usize;
+            col_num = ((self.cbg_obj_index >> 1) & 0x03) as usize;
+            palette = &mut self.cbg_obj[pal_num][col_num];
+            byte_index = if self.cbg_obj_index & 0x01 == 0x00 {0} else {1};
+        }
+
+        const RED: usize = 0;
+        const GREEN: usize = 1;
+        const BLUE: usize = 2;
+
+        if byte_index == 0 {
+            // First write
+            palette[RED] = palette_value & 0x1F;
+            palette[GREEN] = (palette[GREEN] & 0x18) | (palette_value >> 5) ;
+        } else {
+            // Second write
+            palette[GREEN] = (palette[GREEN] & 0x07) | ((palette_value & 0x3) << 3) & 0x1F;
+            palette[BLUE] = (palette_value >> 2) & 0x1F;
+        }
+
+        if byte_index == 1 {
+            // all colors are in range of 0x00 - 0x1F
+            // need logic to transform it to 00 - 255
+
+            palette[RED] *= 8;
+            palette[GREEN] *= 8;
+            palette[BLUE] *= 8;
         }
     }
 }
