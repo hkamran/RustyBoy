@@ -1331,7 +1331,6 @@ pub fn execute_operation(opcode: u8, cpu: &mut Cpu, mmu: &mut Mmu) -> () {
             if !cpu.get_f_carry() {
                 cpu.pc = cpu.pop_word(mmu);
 
-                cpu.pc += 1;
                 cpu.cycles += 5;
             } else {
                 cpu.pc += 1;

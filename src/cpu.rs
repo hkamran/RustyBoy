@@ -20,9 +20,9 @@ pub struct Cpu {
     pub disable_interrupt_counter: u8, // Schedules interrupt handling to be enabled after the next machine cycle
     pub enable_interrupt_counter: u8,  // Schedules interrupt handling to be enabled after the next machine cycle
 
-    pub cycles: usize,
+    pub cycles: u32,
+    pub ticks: u32,
     pub opcode: u16,
-    pub ticks: usize,
 }
 
 #[allow(unused)]
