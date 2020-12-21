@@ -303,27 +303,23 @@ impl Ppu {
         if window_y_coord < 0 && draw == false {
             return;
         }
+        let display_y = self.ly;
+        let bg_y = (display_y.wrapping_add(self.scroll_y_coord)) as usize;
 
-        let window_tile_y= (window_y_coord as u16 >> 3) & 31;
+        for i in 0 .. SCREEN_W {
+            let bg_x = (i as u8).wrapping_add(self.scroll_x_coord) as usize;
 
-        let bg_y = self.scroll_y_coord.wrapping_add(self.ly);
-        let bg_tile_y = (bg_y as u16 >> 3) & 31;
+            let tile_x = bg_x / 8;
+            let tile_y = bg_y / 8;
 
-        for x in 0 .. SCREEN_W {
-            let window_x_coord = ((self.window_x_coord as i32) - 7) + (x as i32);
-            let bg_tile_x = self.scroll_x_coord as u32 + x as u32;
+            let pixel_x = bg_x % 8;
+            let pixel_y = bg_y % 8;
 
-            let (tile_map_base, tile_y, tile_x, pixel_y, pixel_x) = if window_y_coord >= 0 && window_x_coord >= 0 {
-                (self.window_tile_map_select, window_tile_y, (window_x_coord as u16 >> 3), window_tile_y as u16 & 0x07, window_x_coord as u8 & 0x07)
-            } else if draw {
-                (self.bg_tile_map_select, bg_tile_y, (bg_tile_x as u16 >> 3) & 31, bg_y as u16 & 0x07, bg_tile_x as u8 & 0x07)
-            } else {
-                continue;
-            };
+            let tile_map_index = (tile_y * 32 + tile_x) as u16;
+            let tile_map_address = self.bg_tile_map_select + tile_map_index;
 
-            let tile_map_address: u16 = tile_map_base + tile_y * 32 + tile_x;
             let attributes: TileEntry = self.get_bg_tile_attributes(tile_map_address);
-            let tile: TileData = self.get_bg_tile_at_y(tile_map_address, attributes.y_flip, pixel_y, attributes.vram_bank);
+            let tile: TileData = self.get_bg_tile_at_y(tile_map_address, attributes.y_flip, pixel_y as u16, attributes.vram_bank);
 
             let bit_mask = match attributes.x_flip {
                 true => pixel_x,
@@ -338,13 +334,13 @@ impl Ppu {
                 let g = self.cbg_bg_palette[attributes.palette_number][palette_index][1];
                 let b = self.cbg_bg_palette[attributes.palette_number][palette_index][2];
 
-                self.set_rgb_at(x, self.ly as usize, r, g, b);
+                self.set_rgb_at(bg_x as usize, self.ly as usize, r, g, b);
             } else {
                 let r = self.pal_bg_palette[palette_index];
                 let g = self.pal_bg_palette[palette_index];
                 let b = self.pal_bg_palette[palette_index];
 
-                self.set_rgb_at(x, self.ly as usize, r, g, b);
+                self.set_rgb_at(bg_x as usize, self.ly as usize, r, g, b);
             }
         }
 
@@ -390,26 +386,26 @@ impl Ppu {
         // It is organized as 32 rows of 32 bytes each. Each byte contains a number of a tile to be displayed.
         // Tile patterns are taken from the Tile Data Table located either at $8000-8FFF or $8800-97FF.
 
-        let tile_number = self.read_byte_from_vram(0, tile_map_address);
+        let tile_data_number = self.read_byte_from_vram(1, tile_map_address) as u16;
 
         // In the first case, patterns are numbered with unsigned numbers from 0 to 255 (i.e. pattern #0 lies at address $8000).
         // In the second case, patterns have signed numbers from -128 to 127 (i.e. pattern #0 lies at address $9000).
 
-        let tile_offset =
-            if self.bg_tile_data_select == 0x8000 { tile_number as u16}
-            else {(tile_number as i8 as i16 + 128) as u16};
+        let tile_data_offset =
+            if self.bg_tile_data_select == 0x8000 { (tile_data_number * 16) }
+            else {(((tile_data_number as i8) as i16) * 16) as u16};
 
-        let tile_pattern_base_address = self.bg_tile_data_select + tile_offset * 16;
+        let tile_data_base_address = self.bg_tile_data_select.wrapping_add(tile_data_offset);
 
         // A sprite is 8x8 and each line is made up of 2 bytes
 
-        let tile_pattern_address = match y_flip {
-            false => tile_pattern_base_address + (pixel_y * 2),
-            true => tile_pattern_base_address + (14 - (pixel_y * 2)),
+        let tile_data_address = match y_flip {
+            false => tile_data_base_address + (pixel_y * 2),
+            true => tile_data_base_address + (14 - (pixel_y * 2)),
         };
 
-        let tile_1 = self.read_byte_from_vram(bank, tile_pattern_address);
-        let tile_2 = self.read_byte_from_vram(bank, tile_pattern_address + 1);
+        let tile_1 = self.read_byte_from_vram(0, tile_data_address);
+        let tile_2 = self.read_byte_from_vram(0, tile_data_address + 1);
 
         return TileData{
             tile_1,
