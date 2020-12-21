@@ -61,7 +61,7 @@ pub struct Ppu {
     window_display_enable: bool,
     bg_tile_data_select: u16,
     bg_tile_map_select: u16,
-    sprite_size: u32,
+    sprite_size: i32,
     sprite_enable: bool,
     bg_display_enable: bool,
 
@@ -440,40 +440,44 @@ impl Ppu {
             return;
         }
 
-        let line = self.ly as i32;
+        let display_y = self.ly as i32;
         let sprite_size = self.sprite_size as i32;
 
         // https://gbdev.io/pandocs/#fifo-pixel-fetcher
         // http://imrannazar.com/GameBoy-Emulation-in-JavaScript:-Sprites
-        for index in 39 .. 0u16 {
+        for index in 0 .. 40 {
             let sprite_oam: SpriteOam = self.get_sprite_attributes(index);
 
-            let y_start = sprite_oam.y_cord;
-            let y_end = sprite_oam.y_cord + sprite_size;
+            // is y out of bounds
+            if display_y < sprite_oam.y_cord || display_y >= sprite_oam.y_cord + sprite_size { continue }
 
-            if line < y_start || line >= y_end { continue }
+            // is x out of bounds
             if sprite_oam.x_cord < (-7) || sprite_oam.x_cord >= SCREEN_W as i32 { continue }
 
-            let sprite_tile = self.get_sprite_tile_at_y(&sprite_oam, self.ly);
+            let sprite_tile = self.get_sprite_tile_at_y(&sprite_oam, display_y);
 
-            for x in 0 .. 8 {
+            for x in 0 .. 8i32 {
                 if sprite_oam.x_cord + x < 0 || sprite_oam.x_cord + x >= SCREEN_W as i32 {
                     continue;
                 }
 
-                let bit_mask = 1 << (if sprite_oam.x_flip {x} else {7 - x} as u32);
-                let palette_index = (if sprite_tile.tile_1 & bit_mask != 0 {1} else {0}) |
+                let bit_mask = 1 << (if sprite_oam.x_flip { x } else { 7 - x } as u32);
+                let palette_index =
+                    (if sprite_tile.tile_1 & bit_mask != 0 {1} else {0}) |
                     (if sprite_tile.tile_2 & bit_mask != 0 {2} else {0});
-                if palette_index == 0 { continue }
+
+                if palette_index == 0 {
+                    continue
+                }
 
                 if self.gameboy_type == GameboyType::COLOR {
-                    let palette = self.cbg_bg_palette[sprite_oam.palette_number as usize][palette_index];
+                    let palette = self.cbg_obj[sprite_oam.palette_number as usize][palette_index];
 
                     let r = palette[0];
                     let g = palette[1];
                     let b = palette[2];
 
-                    self.set_rgb_at(x as usize, line as usize, r, g, b);
+                    self.set_rgb_at(x as usize, display_y as usize, r, g, b);
                 } else {
                     let palette = if sprite_oam.pal_palette_index == 1 { self.pal_obj_palette_1 } else { self.pal_obj_palette_0 };
 
@@ -481,7 +485,7 @@ impl Ppu {
                     let g = palette[palette_index];
                     let b = palette[palette_index];
 
-                    self.set_rgb_at(x as usize, line as usize, r, g, b);
+                    self.set_rgb_at(x as usize, display_y as usize, r, g, b);
                 }
 
             }
@@ -489,34 +493,26 @@ impl Ppu {
         }
     }
 
-    fn get_sprite_tile_at_y(&self, oam: &SpriteOam, y: u8) -> TileData {
+    fn get_sprite_tile_at_y(&self, oam: &SpriteOam, y: i32) -> TileData {
         // Specifies the sprites Tile Number (00-FF). This (unsigned) value selects a tile from memory at 8000h-8FFFh.
         // In CGB Mode this could be either in VRAM Bank 0 or 1, depending on Bit 3 of the following byte.
 
-        let offset: u16 = if oam.y_flip {
-            self.sprite_size - 1 - (y - oam.y_cord as u8) as u32
+        let tile_x: u16 = if oam.y_flip {
+            (self.sprite_size - 1 - (y - oam.y_cord)) as u16
         } else {
-            (y - oam.y_cord as u8) as u32
+            (y - oam.y_cord) as u16
         } as u16;
 
-        let tile_address = 0x8000u16 + oam.tile_number as u16 * 16 + offset * 2;
+        let tile_y: u16 = oam.tile_number;
 
-        if self.gameboy_type == GameboyType::CLASSIC {
-            let tile_1 = self.read_byte_from_vram(0, tile_address);
-            let tile_2 = self.read_byte_from_vram(0, tile_address + 1);
+        let tile_address = 0x8000u16 + (tile_y * 16) + (tile_x * 2);
 
-            return TileData {
-                tile_1,
-                tile_2,
-            }
-        } else {
-            let tile_1 = self.read_byte_from_vram(oam.vram_bank, tile_address);
-            let tile_2 = self.read_byte_from_vram(oam.vram_bank, tile_address + 1);
+        let tile_1 = self.read_byte_from_vram(oam.vram_bank, tile_address);
+        let tile_2 = self.read_byte_from_vram(oam.vram_bank, tile_address + 1);
 
-            return TileData {
-                tile_1,
-                tile_2,
-            }
+        return TileData {
+            tile_1,
+            tile_2,
         }
     }
 
@@ -528,17 +524,17 @@ impl Ppu {
         // Sprite attributes reside in the Sprite Attribute Table (OAM - Object Attribute Memory) at $FE00-FE9F.
         // Each of the 40 entries consists of four bytes.
 
-        let address = 0xFE00 + index * 4;
+        let address = 0xFE00 + (index * 4);
 
-        let y_cord = self.read_byte(address + 0) as u16 as i32 - 16;
-        let x_cord = self.read_byte(address + 1) as u16 as i32 - 8;
+        let y_cord = self.read_byte(address + 0) as i32 - 16;
+        let x_cord = self.read_byte(address + 1) as i32 - 8;
 
         // Specifies the sprites Tile Number (00-FF). This (unsigned) value selects a tile from memory at 8000h-8FFFh.
         // In CGB Mode this could be either in VRAM Bank 0 or 1, depending on Bit 3 of the following byte.
         // In 8x16 mode, the lower bit of the tile number is ignored. Ie. the upper 8x8 tile is "NN AND FEh",
         // and the lower 8x8 tile is "NN OR 01h".
 
-        let tile_num = (self.read_byte(address + 2) & (if self.sprite_size == 16 {0xFE} else {0xFF})) as u16;
+        let tile_number = (self.read_byte(address + 2) & (if self.sprite_size == 16 {0xFE} else {0xFF})) as u16;
         let flags = self.read_byte(address + 3) as usize;
 
         //   Bit2-0 Palette number  **CGB Mode Only**     (OBP0-7)
@@ -559,7 +555,7 @@ impl Ppu {
         return SpriteOam{
             y_cord,
             x_cord,
-            tile_number: tile_num,
+            tile_number,
             x_flip,
             y_flip,
             has_priority,
