@@ -231,7 +231,7 @@ impl Ppu {
                     // Check interrupt here
                     self.update_interrupt_for_lyc();
 
-                    if self.ly == 143 {
+                    if self.ly >= 143 {
                         self.set_mode(GpuMode::VBlank);
                         self.interrupt = INTERRUPT_V_BLANK_MASK;
 
@@ -386,7 +386,7 @@ impl Ppu {
         // It is organized as 32 rows of 32 bytes each. Each byte contains a number of a tile to be displayed.
         // Tile patterns are taken from the Tile Data Table located either at $8000-8FFF or $8800-97FF.
 
-        let tile_data_number = self.read_byte_from_vram(1, tile_map_address) as u16;
+        let tile_data_number = self.read_byte_from_vram(0, tile_map_address) as u16;
 
         // In the first case, patterns are numbered with unsigned numbers from 0 to 255 (i.e. pattern #0 lies at address $8000).
         // In the second case, patterns have signed numbers from -128 to 127 (i.e. pattern #0 lies at address $9000).
@@ -404,8 +404,8 @@ impl Ppu {
             true => tile_data_base_address + (14 - (pixel_y * 2)),
         };
 
-        let tile_1 = self.read_byte_from_vram(0, tile_data_address);
-        let tile_2 = self.read_byte_from_vram(0, tile_data_address + 1);
+        let tile_1 = self.read_byte_from_vram(bank, tile_data_address);
+        let tile_2 = self.read_byte_from_vram(bank, tile_data_address + 1);
 
         return TileData{
             tile_1,
