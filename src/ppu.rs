@@ -296,27 +296,49 @@ impl Ppu {
     fn render_bg_line(&mut self) {
         let draw = self.gameboy_type == GameboyType::COLOR || self.bg_display_enable;
 
-        let window_y_coord =
-            if !self.window_display_enable || (self.gameboy_type != GameboyType::CLASSIC && !self.bg_display_enable) { -1 }
-            else { self.ly as i32 - self.window_y_coord as i32 };
+        let display_y = self.ly;
 
-        if window_y_coord < 0 && draw == false {
+        let bg_y = (display_y.wrapping_add(self.scroll_y_coord)) as usize;
+        let mut window_y = display_y as i32 - self.window_y_coord as i32;
+
+        if !self.window_display_enable || (self.gameboy_type == GameboyType::CLASSIC && !self.lcd_display_enable) {
+            window_y = -1;
+        }
+
+        if window_y < 0 && draw == false {
             return;
         }
-        let display_y = self.ly;
-        let bg_y = (display_y.wrapping_add(self.scroll_y_coord)) as usize;
 
-        for i in 0 .. SCREEN_W {
-            let bg_x = (i as u8).wrapping_add(self.scroll_x_coord) as usize;
+        for x in 0 .. SCREEN_W {
+            let window_x = ((self.window_x_coord as i32) - 7) + (x as i32);
+            let bg_x = x.wrapping_add(self.scroll_x_coord as usize) as usize;
 
-            let tile_x = bg_x / 8;
-            let tile_y = bg_y / 8;
+            let mut tile_x= 0;
+            let mut tile_y= 0;
 
-            let pixel_x = bg_x % 8;
-            let pixel_y = bg_y % 8;
+            let mut pixel_x= 0;
+            let mut pixel_y= 0;
 
-            let tile_map_index = (tile_y * 32 + tile_x) as u16;
-            let tile_map_address = self.bg_tile_map_select + tile_map_index;
+            let mut tile_map_base_address= 0;
+
+            if window_y >= 0 && window_x >= 0 {
+                tile_map_base_address = self.window_tile_map_select;
+                tile_x = window_x as u16 / 8;
+                tile_y = window_y as u16 / 8;
+                pixel_x = window_y as u16 % 8;
+                pixel_y = window_x as u16 % 8;
+            } else if draw {
+                tile_map_base_address = self.bg_tile_map_select;
+                tile_x = (bg_x / 8) as u16;
+                tile_y = (bg_y / 8) as u16;
+                pixel_x = (bg_x % 8) as u16;
+                pixel_y = (bg_y % 8) as u16;
+            } else {
+                continue;
+            }
+
+            let tile_map_index = (tile_y * 32) + tile_x;
+            let tile_map_address = tile_map_base_address + tile_map_index;
 
             let attributes: TileEntry = self.get_bg_tile_attributes(tile_map_address);
             let tile: TileData = self.get_bg_tile_at_y(tile_map_address, attributes.y_flip, pixel_y as u16, attributes.vram_bank);
@@ -334,7 +356,7 @@ impl Ppu {
                 let g = self.cbg_bg_palette[attributes.palette_number][palette_index][1];
                 let b = self.cbg_bg_palette[attributes.palette_number][palette_index][2];
 
-                self.set_rgb_at(bg_x as usize, self.ly as usize, r, g, b);
+                self.set_rgb_at(x as usize, self.ly as usize, r, g, b);
             } else {
                 let r = self.pal_bg_palette[palette_index];
                 let g = self.pal_bg_palette[palette_index];
@@ -367,10 +389,10 @@ impl Ppu {
         // Bit 7    BG-to-OAM Priority         (0=Use OAM priority bit, 1=BG Priority)
 
         let palette_number = tile_map & 0x07;
-        let vram_bank = if tile_map & 0x8 != 0 {1} else {0};
-        let x_flip = tile_map & 0x20 != 0;
-        let y_flip = tile_map & 0x40 != 0;
-        let has_priority = tile_map & 0x80 != 0;
+        let vram_bank = if tile_map & 0x8 > 0 {1} else {0};
+        let x_flip = tile_map & 0x20 > 0;
+        let y_flip = tile_map & 0x40 > 0;
+        let has_priority = tile_map & 0x80 > 0;
 
         return TileEntry{
             palette_number,
@@ -392,10 +414,10 @@ impl Ppu {
         // In the second case, patterns have signed numbers from -128 to 127 (i.e. pattern #0 lies at address $9000).
 
         let tile_data_offset =
-            if self.bg_tile_data_select == 0x8000 { (tile_data_number * 16) }
-            else {(((tile_data_number as i8) as i16) * 16) as u16};
+            if self.bg_tile_data_select == 0x8000 { tile_data_number as u16 }
+            else { (tile_data_number as i8 as i16 + 128) as u16 };
 
-        let tile_data_base_address = self.bg_tile_data_select.wrapping_add(tile_data_offset);
+        let tile_data_base_address = self.bg_tile_data_select + tile_data_offset * 16;
 
         // A sprite is 8x8 and each line is made up of 2 bytes
 
