@@ -1235,7 +1235,6 @@ pub fn execute_operation(opcode: u8, cpu: &mut Cpu, mmu: &mut Mmu) -> () {
         }
         0xC3 => {
             cpu.pc = mmu.read_word(cpu.pc + 1);
-
             cpu.cycles += 4;
         }
         0xC4 => {

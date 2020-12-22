@@ -7,7 +7,6 @@ mod io;
 mod operations;
 mod dma;
 mod timer;
-mod screen;
 mod logger;
 
 extern crate serde_json;

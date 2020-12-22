@@ -9,8 +9,6 @@ pub const SCREEN_W: usize = 160;
 pub const SCREEN_H: usize = 144;
 pub const INTERRUPT_TIMER_MASK: u8 = 0x02;
 pub const INTERRUPT_V_BLANK_MASK: u8 = 0x01;
-use wasm_bindgen::prelude::*;
-use web_sys::CanvasRenderingContext2d;
 
 #[derive(PartialEq, Copy, Clone)]
 enum PaletteType {
@@ -192,6 +190,11 @@ impl Ppu {
         self.screen = Some(context);
     }
 
+    pub fn execute_ticks(&mut self, ticks: u32) -> () {
+        for _i in 0 .. ticks {
+            self.execute_tick();
+        }
+    }
     #[allow(unused)]
     pub fn execute_tick(&mut self) -> () {
         // TODO LOOK OVER THIS

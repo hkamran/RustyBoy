@@ -104,7 +104,7 @@ impl Mmu {
         let low = (self.read_byte(address) as u16);
         let high  = (self.read_byte(address + 1) as u16);
 
-        return (high << 8) | low;
+        return (high << 16) | low;
     }
 
     pub fn write_word(&mut self, address: u16, value: u16) {
@@ -150,7 +150,6 @@ impl Mmu {
         let mut dma = self.dma.clone();
 
         self.timer.reset();
-        self.ppu.reset();
         self.dma.borrow_mut().reset();
 
         self.write_byte(0xFF05, 0);

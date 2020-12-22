@@ -2,7 +2,6 @@ extern crate serde_json;
 extern crate wasm_bindgen;
 
 use std::fs;
-use std::path::Path;
 use std::convert::TryInto;
 use std::fmt;
 use crate::console::GameboyType;
@@ -35,7 +34,11 @@ pub trait Cartridge {
     fn rom_dump(&self, f: &mut fmt::Formatter) -> fmt::Result;
     fn read_byte(&self, addr: u16) -> u8;
     fn write_byte(&mut self, addr: u16, value: u8) -> ();
-    fn get_gameboy_type(&self) -> GameboyType;
+    fn get_rom(&self) -> &Vec<u8>;
+    fn get_gameboy_type(&self) -> GameboyType {
+        let mode_byte = self.get_rom()[0x143];
+        return if mode_byte == 0x80 || mode_byte == 0xc0 { GameboyType::COLOR } else { GameboyType::CLASSIC };
+    }
 }
 
 impl fmt::Debug for dyn Cartridge {
@@ -46,7 +49,7 @@ impl fmt::Debug for dyn Cartridge {
 
 #[derive(Debug)]
 pub struct MBC0 {
-    rom: [u8; 0x8000],
+    rom: Vec<u8>,
 }
 
 pub struct MBC1 {
@@ -93,10 +96,8 @@ impl Cartridge for MBC0 {
         return;
     }
 
-    fn get_gameboy_type(&self) -> GameboyType {
-        let mode_byte = self.rom[0x143];
-        return if mode_byte == 0x80 || mode_byte == 0xc0 { GameboyType::COLOR } else { GameboyType::CLASSIC };
-    }
+    fn get_rom(&self) -> &Vec<u8> { &self.rom }
+
 }
 
 impl Cartridge for MBC1 {
@@ -155,6 +156,8 @@ impl Cartridge for MBC1 {
         }
         self.rom[addr as usize] = value;
     }
+
+    fn get_rom(&self) -> &Vec<u8> { &self.rom }
 }
 //https://github.com/rustwasm/wasm-bindgen/issues/1052
 //https://stackoverflow.com/questions/52796222/how-to-pass-an-array-of-objects-to-webassembly-and-convert-it-to-a-vector-of-str
@@ -170,11 +173,6 @@ pub fn load_buffer(result: &JsValue) {
         //0x0F..=0x13 => MBC3::new(&content[..]),
         _ => { panic!("no cartridge type exists");}
     };
-}
-
-pub fn load(file: &str) -> Box<dyn Cartridge> {
-    let content : Vec<u8> = fs::read(path).expect("yabe");
-    return load_from_bytes(content);
 }
 
 pub fn load_from_bytes(content: Vec<u8>) -> Box<dyn Cartridge> {

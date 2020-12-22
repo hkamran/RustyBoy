@@ -1,7 +1,6 @@
 use crate::mmu::Mmu;
 use crate::operations::execute_operation;
 use crate::logger::log;
-use wasm_bindgen::prelude::*;
 
 #[allow(unused)]
 pub struct Cpu {
@@ -93,7 +92,7 @@ impl Cpu {
         }
 
         self.opcode = mmu.read_byte(pc) as u8 as u16;
-        //log(self.to_string());
+        log(self.to_string());
         execute_operation(self.opcode as u8, self, mmu);
 
         self.ticks += 1;
