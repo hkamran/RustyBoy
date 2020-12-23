@@ -743,7 +743,10 @@ impl Ppu {
             0xFF49 => { self.pal_obj_palette_1_data = value; self.update_pal_palettes(); },
             0xFF4A => self.window_y_coord = value,
             0xFF4B => self.window_x_coord = value,
+            0xFF4C => {}, // i dunno
+            0xFF4D => {}, // i dunno
             0xFF4F => self.vram_bank = (value & 0x01) as usize,
+            0xFF4E => {}, // i dunno
             0xFF68 => { self.cbg_bg_palette_index = value & 0x3F; self.cbg_bg_palette_increment = value & 0x80 == 0x80; },
             0xFF69 => {
                 self.update_palette(PaletteType::BACKGROUND, value);
