@@ -1,6 +1,6 @@
 extern crate minifb;
 
-use self::minifb::{Window, WindowOptions};
+use self::minifb::{Window, WindowOptions, Scale};
 use crate::ppu::{SCREEN_W, SCREEN_H};
 
 pub struct Screen {
@@ -14,7 +14,12 @@ impl Screen {
             "RustyShit",
             SCREEN_W,
             SCREEN_H,
-            WindowOptions::default(),
+            WindowOptions {
+                resize: true,
+                scale: Scale::X4,
+
+                ..WindowOptions::default()
+            },
         )
             .unwrap_or_else(|e| {
                 panic!("{}", e);

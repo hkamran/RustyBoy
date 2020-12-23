@@ -144,7 +144,7 @@ pub fn execute_operation(opcode: u8, cpu: &mut Cpu, mmu: &mut Mmu) -> () {
             cpu.cycles += 1;
         }
         0x18 => {
-            let offset = mmu.read_byte(cpu.pc + 1);
+            let offset = mmu.read_byte(cpu.pc + 1) as i8;
             cpu.pc = ((cpu.pc as u32 as i32) + (offset as i32)) as u16;
 
             cpu.pc += 2;
@@ -1489,8 +1489,8 @@ pub fn execute_operation(opcode: u8, cpu: &mut Cpu, mmu: &mut Mmu) -> () {
             cpu.cycles += 2;
         }
         0xE8 => {
-            let value = mmu.read_byte(cpu.pc + 1) as i8 as i32;
-            let result = cpu.apply_add_i16_with_flags(cpu.sp as i16 as i32, value);
+            let value = mmu.read_byte(cpu.pc + 1) as i8 as i16;
+            let result = cpu.apply_add_i16_with_flags(cpu.sp as i16, value);
             cpu.sp = result;
 
             cpu.pc += 2;
@@ -1581,8 +1581,8 @@ pub fn execute_operation(opcode: u8, cpu: &mut Cpu, mmu: &mut Mmu) -> () {
             cpu.cycles += 4;
         }
         0xF8 => {
-            let value = mmu.read_byte(cpu.pc + 1) as i8 as i32;
-            let result = cpu.apply_add_i16_with_flags(cpu.sp as i8 as i32, value);
+            let value = mmu.read_byte(cpu.pc + 1) as i8 as i16;
+            let result = cpu.apply_add_i16_with_flags(cpu.sp as i16, value);
             cpu.set_hl(result);
 
             cpu.pc += 2;

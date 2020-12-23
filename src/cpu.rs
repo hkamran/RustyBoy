@@ -92,7 +92,7 @@ impl Cpu {
         }
 
         self.opcode = mmu.read_byte(pc) as u8 as u16;
-        //log(self.to_string());
+        // log(self.to_string());
         execute_operation(self.opcode as u8, self, mmu);
 
         self.ticks += 1;
@@ -323,7 +323,7 @@ impl Cpu {
         self.set_f_zero(result == 0);
         self.set_f_half_carry((a & 0x0F) < (b & 0x0F) + carry);
         self.set_f_negative(true);
-        self.set_f_carry((a as u16) < (b as u16) + (carry as u16));
+        self.set_f_carry((a as i16 - b as i16 - carry as i16) < 0);
 
         return result;
     }
@@ -338,15 +338,15 @@ impl Cpu {
         return result;
     }
 
-    pub fn apply_add_i16_with_flags(&mut self, a:  i32, b: i32) -> u16 {
-        let result: i32 = a.wrapping_add(b);
+    pub fn apply_add_i16_with_flags(&mut self, a:  i16, b: i16) -> u16 {
+        let result: u16 = a.wrapping_add(b) as u16;
 
         self.set_f_negative(false);
         self.set_f_zero(false);
         self.set_f_half_carry((a & 0x000F) + (b & 0x000F) > 0x000F);
         self.set_f_carry((a & 0x00FF) + (b & 0x00FF) > 0x00FF);
 
-        return result as u16;
+        return result;
     }
 
     pub fn apply_and_u8_with_flags(&mut self, a: u8, b: u8) -> u8 {
