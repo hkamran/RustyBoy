@@ -9,6 +9,7 @@ mod dma;
 mod timer;
 mod screen;
 mod logger;
+mod joypad;
 
 extern crate minifb;
 
@@ -19,11 +20,11 @@ use crate::console::{Console};
 
 fn main() {
     let mut console: Console = Console::new();
-    let cart_path = "./roms/cpu_instrs.gb";
+    let cart_path = "./roms/Tetris.gb";
 
     console.load(cart_path);
     console.reset();
-    console.execute_ticks(300000);
+    console.execute_ticks(100000);
 
     print!("finished")
 }

@@ -79,7 +79,7 @@ impl Cartridge for MBC1 {
     fn new(content: &[u8]) -> Self {
         MBC1 {
             rom: content.try_into().expect("yabe"),
-            rom_bank: 0,
+            rom_bank: 1,
             ram: vec![],
             ram_on: false,
             ram_mode: false,
@@ -99,7 +99,7 @@ impl Cartridge for MBC1 {
                 self.ram[(ram_bank * 0x2000) | ((addr & 0x1FFF) as usize)]
             }
             _ => {
-                let index = if addr < 4000 { addr as usize }
+                let index = if addr < 0x4000 { addr as usize }
                 else  { self.rom_bank  * 0x4000 | ((addr as usize) & 0x3FFF) };
 
                 return *self.rom.get(index).unwrap_or(&0);

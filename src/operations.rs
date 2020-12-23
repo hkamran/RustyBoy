@@ -1264,10 +1264,9 @@ pub fn execute_operation(opcode: u8, cpu: &mut Cpu, mmu: &mut Mmu) -> () {
             cpu.cycles += 2;
         }
         0xC7 => {
-            cpu.push_word(mmu, cpu.pc);
+            cpu.push_word(mmu, cpu.pc + 1);
             cpu.pc = 0x00;
 
-            cpu.pc += 1;
             cpu.cycles += 4;
         }
         0xC8 => {
@@ -1322,7 +1321,7 @@ pub fn execute_operation(opcode: u8, cpu: &mut Cpu, mmu: &mut Mmu) -> () {
             cpu.cycles += 2;
         }
         0xCF => {
-            cpu.push_word(mmu, cpu.pc);
+            cpu.push_word(mmu, cpu.pc + 1);
             cpu.pc = 0x08;
 
             cpu.cycles += 4;
@@ -1380,10 +1379,9 @@ pub fn execute_operation(opcode: u8, cpu: &mut Cpu, mmu: &mut Mmu) -> () {
             cpu.cycles += 2;
         }
         0xD7 => {
-            cpu.push_word(mmu, cpu.pc);
+            cpu.push_word(mmu, cpu.pc + 1);
             cpu.pc = 0x10;
 
-            cpu.pc += 1;
             cpu.cycles += 4;
         }
         0xD8 => {
@@ -1437,10 +1435,9 @@ pub fn execute_operation(opcode: u8, cpu: &mut Cpu, mmu: &mut Mmu) -> () {
             cpu.cycles += 2;
         }
         0xDF => {
-            cpu.push_word(mmu, cpu.pc);
+            cpu.push_word(mmu, cpu.pc + 1);
             cpu.pc = 0x18;
 
-            cpu.pc += 1;
             cpu.cycles += 4;
         }
         0xE0 => {
@@ -1486,10 +1483,9 @@ pub fn execute_operation(opcode: u8, cpu: &mut Cpu, mmu: &mut Mmu) -> () {
             cpu.cycles += 2;
         }
         0xE7 => {
-            cpu.push_word(mmu, cpu.pc);
+            cpu.push_word(mmu, cpu.pc + 1);
             cpu.pc = 0x20;
 
-            cpu.pc += 1;
             cpu.cycles += 2;
         }
         0xE8 => {
@@ -1529,10 +1525,9 @@ pub fn execute_operation(opcode: u8, cpu: &mut Cpu, mmu: &mut Mmu) -> () {
             cpu.cycles += 2;
         }
         0xEF => {
-            cpu.push_word(mmu, cpu.pc);
+            cpu.push_word(mmu, cpu.pc + 1);
             cpu.pc = 0x28;
 
-            cpu.pc += 1;
             cpu.cycles += 4;
         }
         0xF0 => {
@@ -1580,10 +1575,9 @@ pub fn execute_operation(opcode: u8, cpu: &mut Cpu, mmu: &mut Mmu) -> () {
             cpu.cycles += 2;
         }
         0xF7 => {
-            cpu.push_word(mmu,cpu.pc);
+            cpu.push_word(mmu,cpu.pc + 1);
             cpu.pc = 0x30;
 
-            cpu.pc += 1;
             cpu.cycles += 4;
         }
         0xF8 => {
@@ -1627,10 +1621,9 @@ pub fn execute_operation(opcode: u8, cpu: &mut Cpu, mmu: &mut Mmu) -> () {
             cpu.cycles += 2;
         }
         0xFF => {
-            cpu.push_word(mmu,cpu.pc);
+            cpu.push_word(mmu,cpu.pc + 1);
             cpu.pc = 0x38;
 
-            cpu.pc += 1;
             cpu.cycles += 4;
         }
         _ => { panic!("opcode not found {}", opcode) }
