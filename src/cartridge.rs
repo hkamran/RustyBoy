@@ -29,7 +29,27 @@ extern "C" {
     fn log_many(a: &str, b: &str);
 }
 
-pub trait Cartridge {
+
+pub struct Cartridge {
+    cartridge_type: CartridgeType,
+    rom: Vec<u8>,
+    rom_bank: usize,
+
+    ram: Vec<u8>,
+    ram_on: bool,
+    ram_mode: bool,
+    ram_bank: usize,
+}
+
+pub enum CartridgeType {
+    MBC0 = 0,
+    MBC1 = 1,
+    MBC2 = 2,
+    MBC3 = 3,
+    MBC4 = 4,
+}
+
+impl CartridgeType {
     fn new(content: &[u8]) -> Self where Self: Sized;
     fn rom_dump(&self, f: &mut fmt::Formatter) -> fmt::Result;
     fn read_byte(&self, addr: u16) -> u8;
@@ -164,16 +184,6 @@ impl Cartridge for MBC1 {
 #[wasm_bindgen]
 #[allow(non_snake_case)]
 #[no_mangle]
-pub fn load_buffer(result: &JsValue) {
-    let bytes: Vec<u8> = result.into_serde().unwrap();
-    let cartridge = match bytes[0x0147] {
-        0x00 => MBC0::new(&bytes[..]),
-        //0x01..=0x03 => MBC1::new(&content[..]),
-        //0x05..=0x06 => MBC2::new(&content[..]),
-        //0x0F..=0x13 => MBC3::new(&content[..]),
-        _ => { panic!("no cartridge type exists");}
-    };
-}
 
 pub fn load_from_bytes(content: Vec<u8>) -> Box<dyn Cartridge> {
     let cartridge_type = content[HEADER_INDEX_FOR_CARTRIDGE_TYPE];

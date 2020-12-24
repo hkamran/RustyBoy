@@ -1,4 +1,4 @@
-use crate::cartridge::Cartridge;
+use crate::cartridge::{Cartridge, CartridgeType};
 use crate::ppu::Ppu;
 use crate::dma::{Dma, execute_odma};
 use crate::timer::Timer;
@@ -6,10 +6,6 @@ use std::cell::RefCell;
 use std::rc::Rc;
 use wasm_bindgen::prelude::*;
 
-#[wasm_bindgen]
-extern "C" {
-    pub type FileReaderResult;
-}
 
 #[allow(unused)]
 pub struct Mmu {
@@ -21,7 +17,7 @@ pub struct Mmu {
     pub interrupt_enable: u8,
     pub interrupt_flag: u8,
     pub ppu: Ppu,
-    pub cartridge: Option<Box<dyn Cartridge>>,
+    pub cartridge: Option<Cartridge>,
     pub dma: Rc<RefCell<Dma>>,
     pub timer: Timer,
 }
@@ -184,5 +180,17 @@ impl Mmu {
         self.write_byte(0xFF4A, 0);
         self.write_byte(0xFF4B, 0);
     }
+
+    pub fn load_cartridge(&mut self, result: &JsValue) {
+        let bytes: Vec<u8> = result.into_serde().unwrap();
+        self.cartridge.cartridge_type = match bytes[0x0147] {
+            0x00 => CartridgeType::MBC0,
+            0x01..=0x03 => CartridgeType::MBC1,
+            0x05..=0x06 => CartridgeType::MBC2,
+            0x0F..=0x13 => CartridgeType::MBC3,
+            _ => { panic!("no cartridge type exists");}
+        };
+    }
+
 
 }
