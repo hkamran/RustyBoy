@@ -40,6 +40,7 @@ pub fn execute_operation(opcode: u8, cpu: &mut Cpu, mmu: &mut Mmu) -> () {
         }
         0x07 => {
             cpu.a = cpu.apply_rotate_left_with_flags(cpu.a, false);
+            cpu.set_f_zero(false);
 
             cpu.pc += 1;
             cpu.cycles += 1;
@@ -91,6 +92,7 @@ pub fn execute_operation(opcode: u8, cpu: &mut Cpu, mmu: &mut Mmu) -> () {
         }
         0x0F => {
             cpu.a = cpu.apply_rotate_right_with_flags(cpu.a, false);
+            cpu.set_f_zero(false);
 
             cpu.pc += 1;
             cpu.cycles += 1;
@@ -139,6 +141,7 @@ pub fn execute_operation(opcode: u8, cpu: &mut Cpu, mmu: &mut Mmu) -> () {
         }
         0x17 => {
             cpu.a = cpu.apply_rotate_left_with_flags(cpu.a, true);
+            cpu.set_f_zero(false);
 
             cpu.pc += 1;
             cpu.cycles += 1;
@@ -189,6 +192,7 @@ pub fn execute_operation(opcode: u8, cpu: &mut Cpu, mmu: &mut Mmu) -> () {
         }
         0x1F => {
             cpu.a = cpu.apply_rotate_right_with_flags(cpu.a, true);
+            cpu.set_f_zero(false);
 
             cpu.pc += 1;
             cpu.cycles += 1;
@@ -340,7 +344,7 @@ pub fn execute_operation(opcode: u8, cpu: &mut Cpu, mmu: &mut Mmu) -> () {
             let addr = cpu.get_hl();
             let mut value = mmu.read_byte(addr);
             value = cpu.apply_inc_u8_with_flags(value);
-            mmu.write_byte(cpu.a as u16, value);
+            mmu.write_byte(addr, value);
 
             cpu.pc += 1;
             cpu.cycles += 3;
@@ -349,7 +353,7 @@ pub fn execute_operation(opcode: u8, cpu: &mut Cpu, mmu: &mut Mmu) -> () {
             let addr = cpu.get_hl();
             let mut value = mmu.read_byte(addr);
             value = cpu.apply_dec_u8_with_flags(value);
-            mmu.write_byte(cpu.a as u16, value);
+            mmu.write_byte(addr, value);
 
             cpu.pc += 1;
             cpu.cycles += 3;
@@ -382,10 +386,7 @@ pub fn execute_operation(opcode: u8, cpu: &mut Cpu, mmu: &mut Mmu) -> () {
             }
         }
         0x39 => {
-            let hl = cpu.get_hl();
-            let sp = cpu.sp;
-
-            let result = cpu.apply_add_u16_with_flags(hl, sp);
+            let result = cpu.apply_add_u16_with_flags(cpu.get_hl(), cpu.sp);
             cpu.set_hl(result);
 
             cpu.pc += 1;
@@ -737,7 +738,7 @@ pub fn execute_operation(opcode: u8, cpu: &mut Cpu, mmu: &mut Mmu) -> () {
             cpu.cycles += 2;
         }
         0x75 => {
-            mmu.write_byte(cpu.get_hl(), cpu.h);
+            mmu.write_byte(cpu.get_hl(), cpu.l);
 
             cpu.pc += 1;
             cpu.cycles += 2;
@@ -899,7 +900,7 @@ pub fn execute_operation(opcode: u8, cpu: &mut Cpu, mmu: &mut Mmu) -> () {
             cpu.cycles += 2;
         }
         0x90 => {
-            cpu.a = cpu.apply_sub_u8_with_flags(cpu.a, cpu.h, false);
+            cpu.a = cpu.apply_sub_u8_with_flags(cpu.a, cpu.b, false);
 
             cpu.pc += 1;
             cpu.cycles += 1;
@@ -917,7 +918,7 @@ pub fn execute_operation(opcode: u8, cpu: &mut Cpu, mmu: &mut Mmu) -> () {
             cpu.cycles += 1;
         }
         0x93 => {
-            cpu.a = cpu.apply_sub_u8_with_flags(cpu.a, cpu.d, false);
+            cpu.a = cpu.apply_sub_u8_with_flags(cpu.a, cpu.e, false);
 
             cpu.pc += 1;
             cpu.cycles += 1;
@@ -1144,49 +1145,37 @@ pub fn execute_operation(opcode: u8, cpu: &mut Cpu, mmu: &mut Mmu) -> () {
             cpu.cycles += 1;
         }
         0xB8 => {
-            let a = cpu.a;
             cpu.apply_sub_u8_with_flags(cpu.a, cpu.b, false);
-            cpu.a = a;
 
             cpu.pc += 1;
             cpu.cycles += 1;
         }
         0xB9 => {
-            let a = cpu.a;
             cpu.apply_sub_u8_with_flags(cpu.a, cpu.c, false);
-            cpu.a = a;
 
             cpu.pc += 1;
             cpu.cycles += 1;
         }
         0xBA => {
-            let a = cpu.a;
             cpu.apply_sub_u8_with_flags(cpu.a, cpu.d, false);
-            cpu.a = a;
 
             cpu.pc += 1;
             cpu.cycles += 1;
         }
         0xBB => {
-            let a = cpu.a;
             cpu.apply_sub_u8_with_flags(cpu.a, cpu.e, false);
-            cpu.a = a;
 
             cpu.pc += 1;
             cpu.cycles += 1;
         }
         0xBC => {
-            let a = cpu.a;
             cpu.apply_sub_u8_with_flags(cpu.a, cpu.h, false);
-            cpu.a = a;
 
             cpu.pc += 1;
             cpu.cycles += 1;
         }
         0xBD => {
-            let a = cpu.a;
             cpu.apply_sub_u8_with_flags(cpu.a, cpu.l, false);
-            cpu.a = a;
 
             cpu.pc += 1;
             cpu.cycles += 1;
@@ -1201,9 +1190,7 @@ pub fn execute_operation(opcode: u8, cpu: &mut Cpu, mmu: &mut Mmu) -> () {
             cpu.cycles += 1;
         }
         0xBF => {
-            let a = cpu.a;
             cpu.apply_sub_u8_with_flags(cpu.a, cpu.a, false);
-            cpu.a = a;
 
             cpu.pc += 1;
             cpu.cycles += 1;

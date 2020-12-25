@@ -42,7 +42,9 @@ pub struct SpriteOam {
 
 #[derive(PartialEq, Copy, Clone)]
 enum PriorityType {
-    Normal,
+    None,
+    BgColor0,
+    BgPriority
 }
 
 // https://gbdev.io/pandocs/#ff41-stat-lcdc-status-r-w
@@ -102,7 +104,7 @@ pub struct Ppu {
     vram: [u8; VRAM_SIZE],
     voam: [u8; VOAM_SIZE],
 
-    bg_priority: [PriorityType; SCREEN_W],
+    scanline_priority: [PriorityType; SCREEN_W],
 
     frame: [u8; SCREEN_W * SCREEN_H * 3],
 
@@ -166,7 +168,7 @@ impl Ppu {
             vram: [0; VRAM_SIZE],
             voam: [0; VOAM_SIZE],
 
-            bg_priority: [PriorityType::Normal; SCREEN_W],
+            scanline_priority: [PriorityType::None; SCREEN_W],
             frame: [0; SCREEN_W * SCREEN_H * 3],
             interrupt: 0,
 
@@ -287,7 +289,7 @@ impl Ppu {
     fn render_scan_line(&mut self) {
         for x in 0 .. SCREEN_W {
             self.set_rgb_at(x, self.ly as usize, 255, 255, 255);
-            self.bg_priority[x] = PriorityType::Normal;
+            self.scanline_priority[x] = PriorityType::None;
         }
 
         self.render_bg_line();
@@ -295,22 +297,16 @@ impl Ppu {
     }
 
     fn render_bg_line(&mut self) {
-        let draw = self.gameboy_type == GameboyType::COLOR || self.bg_display_enable;
+        let draw_window = self.window_display_enable && self.gameboy_type == GameboyType::COLOR;
+        let draw_background = self.gameboy_type == GameboyType::COLOR || self.bg_display_enable;
 
         let display_y = self.ly;
-        let bg_y = (display_y.wrapping_add(self.scroll_y_coord)) as usize;
-        let mut window_y = display_y as i32 - self.window_y_coord as i32;
 
-        if !self.window_display_enable || (self.gameboy_type == GameboyType::CLASSIC && !self.lcd_display_enable) {
-            window_y = -1;
-        }
-
-        if window_y < 0 && draw == false {
-            return;
-        }
-
-        for x in 0 .. SCREEN_W {
+        for x in 0 .. SCREEN_W {;
+            let window_y = display_y as i32 - self.window_y_coord as i32;
             let window_x = - ((self.window_x_coord as i32) - 7) + (x as i32);
+
+            let bg_y = (display_y.wrapping_add(self.scroll_y_coord)) as usize;
             let bg_x = x.wrapping_add(self.scroll_x_coord as usize) as usize;
 
             let mut tile_x= 0;
@@ -321,13 +317,14 @@ impl Ppu {
 
             let mut tile_map_base_address= 0;
 
-            if window_y >= 0 && window_x >= 0 {
+            let is_window_in_range = window_y >= 0 && window_x >= 0;
+            if draw_window && is_window_in_range {
                 tile_map_base_address = self.window_tile_map_select;
-                tile_x = window_x as u16 / 8;
-                tile_y = window_y as u16 / 8;
-                pixel_x = window_y as u16 % 8;
-                pixel_y = window_x as u16 % 8;
-            } else if draw {
+                tile_x = (window_x / 8) as u16;
+                tile_y = (window_y / 8) as u16;
+                pixel_x = (window_y % 8) as u16;
+                pixel_y = (window_x % 8) as u16;
+            } else if draw_background {
                 tile_map_base_address = self.bg_tile_map_select;
                 tile_x = (bg_x / 8) as u16;
                 tile_y = (bg_y / 8) as u16;
@@ -353,6 +350,11 @@ impl Ppu {
 
             let palette_index = if tile.tile_1 & (1 << bit_mask) != 0 { 1 } else { 0 }
                 | if tile.tile_2 & (1 << bit_mask) != 0 { 2 } else { 0 };
+
+            self.scanline_priority[x] =
+                if palette_index == 0 { PriorityType::BgColor0 }
+                else if attributes.has_priority { PriorityType::BgPriority }
+                else { PriorityType::None };
 
             if self.gameboy_type == GameboyType::COLOR {
                 let r = self.cbg_bg_palette[attributes.palette_number][palette_index][0];
@@ -500,7 +502,26 @@ impl Ppu {
                     continue
                 }
 
+                let priority = self.scanline_priority[sprite_x_cord as usize];
+
                 if self.gameboy_type == GameboyType::COLOR {
+                    // Priority
+                    // Bit 7 of the sprite attribute flags determines that a sprite will appear above the background & window if it is 0
+                    // below them both (visible only through colo(u)r 0 of background & window) if it is 1.
+                    // When bit 7 of bank 1 of tile attribute memory ($9800-$9fff) is set to 1 it will force the background and/or window to have priority over the sprite attribute flags and to appear over sprites no matter what the setting of the sprite attribute flags.
+                    // If bit 0 of register LCDC ($ff40) is 0 then sprites will always appear above the background & window regardless of the settings of sprite attribute flags & tile attribute memory.
+
+                    let has_priority = sprite_oam.has_priority || (!sprite_oam.has_priority && priority == PriorityType::BgColor0);
+                    if !self.lcd_display_enable {
+                        // render
+                    } else if priority == PriorityType::BgPriority {
+                        continue;
+                    } else if has_priority {
+                        // render
+                    } else {
+                        continue;
+                    }
+
                     let palette = self.cbg_obj[sprite_oam.palette_number as usize][palette_index];
 
                     let r = palette[0];
@@ -582,7 +603,7 @@ impl Ppu {
         let pal_palette_index = if flags & 0x10 != 0 {1u8} else {0u8};
         let x_flip = flags & 0x20 != 0;
         let y_flip = flags & 0x40 != 0;
-        let has_priority = flags & 0x80 != 0;
+        let has_priority = flags & 0x80 == 0;
 
         return SpriteOam{
             y_cord,
