@@ -1,5 +1,6 @@
 use crate::screen::Screen;
 use crate::console::GameboyType;
+use crate::logger::log;
 
 pub const VRAM_SIZE: usize = 0x4000;
 pub const VOAM_SIZE: usize = 0xA0;
@@ -297,7 +298,6 @@ impl Ppu {
         let draw = self.gameboy_type == GameboyType::COLOR || self.bg_display_enable;
 
         let display_y = self.ly;
-
         let bg_y = (display_y.wrapping_add(self.scroll_y_coord)) as usize;
         let mut window_y = display_y as i32 - self.window_y_coord as i32;
 
@@ -414,7 +414,7 @@ impl Ppu {
         // Tile patterns are taken from the Tile Data Table located either at $8000-8FFF or $8800-97FF.
         // http://www.codeslinger.co.uk/pages/projects/gameboy/graphics.html
 
-        let tile_pattern_index = self.read_byte_from_vram(bank, tile_map_address) as u16;
+        let tile_pattern_index = self.read_byte_from_vram(0, tile_map_address) as u16;
 
         // In the first case, patterns are numbered with unsigned numbers from 0 to 255 (i.e. pattern #0 lies at address $8000).
         // In the second case, patterns have signed numbers from -128 to 127 (i.e. pattern #0 lies at address $9000).
@@ -455,12 +455,22 @@ impl Ppu {
             return;
         }
 
+        let mut sprite_counter = 0;
+
         let display_y = self.ly as i32;
         let sprite_size = self.sprite_size as i32;
 
         // https://gbdev.io/pandocs/#fifo-pixel-fetcher
         // http://imrannazar.com/GameBoy-Emulation-in-JavaScript:-Sprites
+
         for index in 0 .. 40 {
+
+            // If we reach max sprite per line exit.
+            if sprite_counter >= 10 {
+                break;
+            }
+
+            let mut is_rendered = false;
             let sprite_oam: SpriteOam = self.get_sprite_attributes(index);
 
             // is y out of bounds
@@ -472,7 +482,12 @@ impl Ppu {
             let sprite_tile = self.get_sprite_tile_at_y(&sprite_oam, display_y);
 
             for x in 0 .. 8i32 {
-                if sprite_oam.x_cord + x < 0 || sprite_oam.x_cord + x >= SCREEN_W as i32 {
+                is_rendered = true;
+
+                let sprite_x_cord = sprite_oam.x_cord + x;
+                let sprite_y_cord = display_y;
+
+                if sprite_x_cord < 0 || sprite_x_cord >= SCREEN_W as i32 {
                     continue;
                 }
 
@@ -492,7 +507,7 @@ impl Ppu {
                     let g = palette[1];
                     let b = palette[2];
 
-                    self.set_rgb_at(x as usize, display_y as usize, r, g, b);
+                    self.set_rgb_at(sprite_x_cord as usize, sprite_y_cord as usize, r, g, b);
                 } else {
                     let palette = if sprite_oam.pal_palette_index == 1 { self.pal_obj_palette_1 } else { self.pal_obj_palette_0 };
 
@@ -500,11 +515,13 @@ impl Ppu {
                     let g = palette[palette_index];
                     let b = palette[palette_index];
 
-                    self.set_rgb_at(x as usize, display_y as usize, r, g, b);
+                    self.set_rgb_at(sprite_x_cord as usize, sprite_y_cord as usize, r, g, b);
                 }
 
             }
-
+            if is_rendered {
+                sprite_counter += 1;
+            }
         }
     }
 
@@ -534,7 +551,7 @@ impl Ppu {
     fn get_sprite_attributes(&mut self, id: u16) -> SpriteOam {
         // GameBoy video controller can display up to 40 sprites either in 8x8 or in 8x16 pixels.
 
-        let index = 39 - id;
+        let index = id;
 
         // Sprite attributes reside in the Sprite Attribute Table (OAM - Object Attribute Memory) at $FE00-FE9F.
         // Each of the 40 entries consists of four bytes.
@@ -726,7 +743,7 @@ impl Ppu {
                 self.lcd_display_enable = value & 0x80 == 0x80;
                 self.window_tile_map_select = if value & 0x40 == 0x40 { 0x9C00 } else { 0x9800 };
                 self.window_display_enable = value & 0x20 == 0x20;
-                self.bg_tile_data_select = if value & 0x10 == 0x10 { 0x8800 } else { 0x8000 };
+                self.bg_tile_data_select = if value & 0x10 == 0x10 { 0x8000 } else { 0x8800 };
                 self.bg_tile_map_select = if value & 0x08 == 0x08 { 0x9C00 } else { 0x9800 };
                 self.sprite_size = if value & 0x04 == 0x04 { 16 } else { 8 };
                 self.sprite_enable = value & 0x02 == 0x02;

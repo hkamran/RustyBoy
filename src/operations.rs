@@ -2702,32 +2702,32 @@ pub fn op_cb(cpu: &mut Cpu, mmu: &mut Mmu) {
             cpu.cycles += 2;
         }
         0xC0 => {
-            cpu.b = cpu.b & (1 << 0);
+            cpu.b = cpu.b | (1 << 0);
             cpu.pc += 1;
             cpu.cycles += 2;
         }
         0xC1 => {
-            cpu.c = cpu.c & (1 << 0);
+            cpu.c = cpu.c | (1 << 0);
             cpu.pc += 1;
             cpu.cycles += 2;
         }
         0xC2 => {
-            cpu.d = cpu.d & (1 << 0);
+            cpu.d = cpu.d | (1 << 0);
             cpu.pc += 1;
             cpu.cycles += 2;
         }
         0xC3 => {
-            cpu.e = cpu.e & (1 << 0);
+            cpu.e = cpu.e | (1 << 0);
             cpu.pc += 1;
             cpu.cycles += 2;
         }
         0xC4 => {
-            cpu.h = cpu.h & (1 << 0);
+            cpu.h = cpu.h | (1 << 0);
             cpu.pc += 1;
             cpu.cycles += 2;
         }
         0xC5 => {
-            cpu.l = cpu.l & (1 << 0);
+            cpu.l = cpu.l | (1 << 0);
             cpu.pc += 1;
             cpu.cycles += 2;
         }
@@ -2735,43 +2735,43 @@ pub fn op_cb(cpu: &mut Cpu, mmu: &mut Mmu) {
             let address = cpu.get_hl();
             let value = mmu.read_byte(address);
 
-            mmu.write_byte(address, value & (1 << 0));
+            mmu.write_byte(address, value | (1 << 0));
 
             cpu.pc += 1;
             cpu.cycles += 4;
         }
         0xC7 => {
-            cpu.a = cpu.a & (1 << 0);
+            cpu.a = cpu.a | (1 << 0);
             cpu.pc += 1;
             cpu.cycles += 2;
         }
         0xC8 => {
-            cpu.b = cpu.b & (1 << 1);
+            cpu.b = cpu.b | (1 << 1);
             cpu.pc += 1;
             cpu.cycles += 2;
         }
         0xC9 => {
-            cpu.c = cpu.c & (1 << 1);
+            cpu.c = cpu.c | (1 << 1);
             cpu.pc += 1;
             cpu.cycles += 2;
         }
         0xCA => {
-            cpu.d = cpu.d & (1 << 1);
+            cpu.d = cpu.d | (1 << 1);
             cpu.pc += 1;
             cpu.cycles += 2;
         }
         0xCB => {
-            cpu.e = cpu.e & (1 << 1);
+            cpu.e = cpu.e | (1 << 1);
             cpu.pc += 1;
             cpu.cycles += 2;
         }
         0xCC => {
-            cpu.h = cpu.h & (1 << 1);
+            cpu.h = cpu.h | (1 << 1);
             cpu.pc += 1;
             cpu.cycles += 2;
         }
         0xCD => {
-            cpu.l = cpu.l & (1 << 1);
+            cpu.l = cpu.l | (1 << 1);
             cpu.pc += 1;
             cpu.cycles += 2;
         }
@@ -2779,43 +2779,43 @@ pub fn op_cb(cpu: &mut Cpu, mmu: &mut Mmu) {
             let address = cpu.get_hl();
             let value = mmu.read_byte(address);
 
-            mmu.write_byte(address, value & (1 << 1));
+            mmu.write_byte(address, value | (1 << 1));
 
             cpu.pc += 1;
             cpu.cycles += 4;
         }
         0xCF => {
-            cpu.a = cpu.a & (1 << 1);
+            cpu.a = cpu.a | (1 << 1);
             cpu.pc += 1;
             cpu.cycles += 2;
         }
         0xD0 => {
-            cpu.b = cpu.b & (1 << 2);
+            cpu.b = cpu.b | (1 << 2);
             cpu.pc += 1;
             cpu.cycles += 2;
         }
         0xD1 => {
-            cpu.c = cpu.c & (1 << 2);
+            cpu.c = cpu.c | (1 << 2);
             cpu.pc += 1;
             cpu.cycles += 2;
         }
         0xD2 => {
-            cpu.d = cpu.d & (1 << 2);
+            cpu.d = cpu.d | (1 << 2);
             cpu.pc += 1;
             cpu.cycles += 2;
         }
         0xD3 => {
-            cpu.e = cpu.e & (1 << 2);
+            cpu.e = cpu.e | (1 << 2);
             cpu.pc += 1;
             cpu.cycles += 2;
         }
         0xD4 => {
-            cpu.h = cpu.h & (1 << 2);
+            cpu.h = cpu.h | (1 << 2);
             cpu.pc += 1;
             cpu.cycles += 2;
         }
         0xD5 => {
-            cpu.l = cpu.l & (1 << 2);
+            cpu.l = cpu.l | (1 << 2);
             cpu.pc += 1;
             cpu.cycles += 2;
         }
@@ -2823,43 +2823,43 @@ pub fn op_cb(cpu: &mut Cpu, mmu: &mut Mmu) {
             let address = cpu.get_hl();
             let value = mmu.read_byte(address);
 
-            mmu.write_byte(address, value & (1 << 2));
+            mmu.write_byte(address, value | (1 << 2));
 
             cpu.pc += 1;
             cpu.cycles += 4;
         }
         0xD7 => {
-            cpu.a = cpu.a & (1 << 2);
+            cpu.a = cpu.a | (1 << 2);
             cpu.pc += 1;
             cpu.cycles += 2;
         }
         0xD8 => {
-            cpu.b = cpu.b & (1 << 3);
+            cpu.b = cpu.b | (1 << 3);
             cpu.pc += 1;
             cpu.cycles += 2;
         }
         0xD9 => {
-            cpu.c = cpu.c & (1 << 3);
+            cpu.c = cpu.c | (1 << 3);
             cpu.pc += 1;
             cpu.cycles += 2;
         }
         0xDA => {
-            cpu.d = cpu.d & (1 << 3);
+            cpu.d = cpu.d | (1 << 3);
             cpu.pc += 1;
             cpu.cycles += 2;
         }
         0xDB => {
-            cpu.e = cpu.e & (1 << 3);
+            cpu.e = cpu.e | (1 << 3);
             cpu.pc += 1;
             cpu.cycles += 2;
         }
         0xDC => {
-            cpu.h = cpu.h & (1 << 3);
+            cpu.h = cpu.h | (1 << 3);
             cpu.pc += 1;
             cpu.cycles += 2;
         }
         0xDD => {
-            cpu.l = cpu.l & (1 << 3);
+            cpu.l = cpu.l | (1 << 3);
             cpu.pc += 1;
             cpu.cycles += 2;
         }
@@ -2867,43 +2867,43 @@ pub fn op_cb(cpu: &mut Cpu, mmu: &mut Mmu) {
             let address = cpu.get_hl();
             let value = mmu.read_byte(address);
 
-            mmu.write_byte(address, value & (1 << 3));
+            mmu.write_byte(address, value | (1 << 3));
 
             cpu.pc += 1;
             cpu.cycles += 4;
         }
         0xDF => {
-            cpu.a = cpu.a & (1 << 3);
+            cpu.a = cpu.a | (1 << 3);
             cpu.pc += 1;
             cpu.cycles += 2;
         }
         0xE0 => {
-            cpu.b = cpu.b & (1 << 4);
+            cpu.b = cpu.b | (1 << 4);
             cpu.pc += 1;
             cpu.cycles += 2;
         }
         0xE1 => {
-            cpu.c = cpu.c & (1 << 4);
+            cpu.c = cpu.c | (1 << 4);
             cpu.pc += 1;
             cpu.cycles += 2;
         }
         0xE2 => {
-            cpu.d = cpu.d & (1 << 4);
+            cpu.d = cpu.d | (1 << 4);
             cpu.pc += 1;
             cpu.cycles += 2;
         }
         0xE3 => {
-            cpu.e = cpu.e & (1 << 4);
+            cpu.e = cpu.e | (1 << 4);
             cpu.pc += 1;
             cpu.cycles += 2;
         }
         0xE4 => {
-            cpu.h = cpu.h & (1 << 4);
+            cpu.h = cpu.h | (1 << 4);
             cpu.pc += 1;
             cpu.cycles += 2;
         }
         0xE5 => {
-            cpu.l = cpu.l & (1 << 4);
+            cpu.l = cpu.l | (1 << 4);
             cpu.pc += 1;
             cpu.cycles += 2;
         }
@@ -2911,43 +2911,43 @@ pub fn op_cb(cpu: &mut Cpu, mmu: &mut Mmu) {
             let address = cpu.get_hl();
             let value = mmu.read_byte(address);
 
-            mmu.write_byte(address, value & (1 << 4));
+            mmu.write_byte(address, value | (1 << 4));
 
             cpu.pc += 1;
             cpu.cycles += 4;
         }
         0xE7 => {
-            cpu.a = cpu.a & (1 << 4);
+            cpu.a = cpu.a | (1 << 4);
             cpu.pc += 1;
             cpu.cycles += 2;
         }
         0xE8 => {
-            cpu.b = cpu.b & (1 << 5);
+            cpu.b = cpu.b | (1 << 5);
             cpu.pc += 1;
             cpu.cycles += 2;
         }
         0xE9 => {
-            cpu.c = cpu.c & (1 << 5);
+            cpu.c = cpu.c | (1 << 5);
             cpu.pc += 1;
             cpu.cycles += 2;
         }
         0xEA => {
-            cpu.d = cpu.d & (1 << 5);
+            cpu.d = cpu.d | (1 << 5);
             cpu.pc += 1;
             cpu.cycles += 2;
         }
         0xEB => {
-            cpu.e = cpu.e & (1 << 5);
+            cpu.e = cpu.e | (1 << 5);
             cpu.pc += 1;
             cpu.cycles += 2;
         }
         0xEC => {
-            cpu.h = cpu.h & (1 << 5);
+            cpu.h = cpu.h | (1 << 5);
             cpu.pc += 1;
             cpu.cycles += 2;
         }
         0xED => {
-            cpu.l = cpu.l & (1 << 5);
+            cpu.l = cpu.l | (1 << 5);
             cpu.pc += 1;
             cpu.cycles += 2;
         }
@@ -2955,43 +2955,43 @@ pub fn op_cb(cpu: &mut Cpu, mmu: &mut Mmu) {
             let address = cpu.get_hl();
             let value = mmu.read_byte(address);
 
-            mmu.write_byte(address, value & (1 << 5));
+            mmu.write_byte(address, value | (1 << 5));
 
             cpu.pc += 1;
             cpu.cycles += 4;
         }
         0xEF => {
-            cpu.a = cpu.a & (1 << 5);
+            cpu.a = cpu.a | (1 << 5);
             cpu.pc += 1;
             cpu.cycles += 2;
         }
         0xF0 => {
-            cpu.b = cpu.b & (1 << 6);
+            cpu.b = cpu.b | (1 << 6);
             cpu.pc += 1;
             cpu.cycles += 2;
         }
         0xF1 => {
-            cpu.c = cpu.c & (1 << 6);
+            cpu.c = cpu.c | (1 << 6);
             cpu.pc += 1;
             cpu.cycles += 2;
         }
         0xF2 => {
-            cpu.d = cpu.d & (1 << 6);
+            cpu.d = cpu.d | (1 << 6);
             cpu.pc += 1;
             cpu.cycles += 2;
         }
         0xF3 => {
-            cpu.e = cpu.e & (1 << 6);
+            cpu.e = cpu.e | (1 << 6);
             cpu.pc += 1;
             cpu.cycles += 2;
         }
         0xF4 => {
-            cpu.h = cpu.h & (1 << 6);
+            cpu.h = cpu.h | (1 << 6);
             cpu.pc += 1;
             cpu.cycles += 2;
         }
         0xF5 => {
-            cpu.l = cpu.l & (1 << 6);
+            cpu.l = cpu.l | (1 << 6);
             cpu.pc += 1;
             cpu.cycles += 2;
         }
@@ -2999,43 +2999,43 @@ pub fn op_cb(cpu: &mut Cpu, mmu: &mut Mmu) {
             let address = cpu.get_hl();
             let value = mmu.read_byte(address);
 
-            mmu.write_byte(address, value & (1 << 6));
+            mmu.write_byte(address, value | (1 << 6));
 
             cpu.pc += 1;
             cpu.cycles += 4;
         }
         0xF7 => {
-            cpu.a = cpu.a & (1 << 6);
+            cpu.a = cpu.a | (1 << 6);
             cpu.pc += 1;
             cpu.cycles += 2;
         }
         0xF8 => {
-            cpu.b = cpu.b & (1 << 7);
+            cpu.b = cpu.b | (1 << 7);
             cpu.pc += 1;
             cpu.cycles += 2;
         }
         0xF9 => {
-            cpu.c = cpu.c & (1 << 7);
+            cpu.c = cpu.c | (1 << 7);
             cpu.pc += 1;
             cpu.cycles += 2;
         }
         0xFA => {
-            cpu.d = cpu.d & (1 << 7);
+            cpu.d = cpu.d | (1 << 7);
             cpu.pc += 1;
             cpu.cycles += 2;
         }
         0xFB => {
-            cpu.e = cpu.e & (1 << 7);
+            cpu.e = cpu.e | (1 << 7);
             cpu.pc += 1;
             cpu.cycles += 2;
         }
         0xFC => {
-            cpu.h = cpu.h & (1 << 7);
+            cpu.h = cpu.h | (1 << 7);
             cpu.pc += 1;
             cpu.cycles += 2;
         }
         0xFD => {
-            cpu.l = cpu.l & (1 << 7);
+            cpu.l = cpu.l | (1 << 7);
             cpu.pc += 1;
             cpu.cycles += 2;
         }
@@ -3043,13 +3043,13 @@ pub fn op_cb(cpu: &mut Cpu, mmu: &mut Mmu) {
             let address = cpu.get_hl();
             let value = mmu.read_byte(address);
 
-            mmu.write_byte(address, value & (1 << 7));
+            mmu.write_byte(address, value | (1 << 7));
 
             cpu.pc += 1;
             cpu.cycles += 4;
         }
         0xFF => {
-            cpu.a = cpu.a & (1 << 7);
+            cpu.a = cpu.a | (1 << 7);
             cpu.pc += 1;
             cpu.cycles += 2;
         }

@@ -272,7 +272,7 @@ impl Cpu {
         let value = arg.wrapping_sub(1);
 
         self.set_f_zero(value == 0);
-        self.set_f_half_carry((arg & 0x0F) == 0);
+        self.set_f_half_carry(((arg & 0xF) as i16) - 1 < 0);
         self.set_f_negative(true);
 
         return value;
