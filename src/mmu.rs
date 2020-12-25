@@ -2,14 +2,15 @@ use crate::cartridge::{Cartridge, CartridgeType};
 use crate::ppu::Ppu;
 use crate::dma::{Dma, execute_odma};
 use crate::timer::Timer;
+use crate::joypad::Joypad;
 use std::cell::RefCell;
 use std::rc::Rc;
 use wasm_bindgen::prelude::*;
 
-
 #[allow(unused)]
 pub struct Mmu {
     zram: [u8; 0x7F],
+    sram: [u8; 0x30], // sound
     wram: [u8; 0x8000],
     wram_bank: usize,
     switch_speed: bool,
@@ -20,6 +21,7 @@ pub struct Mmu {
     pub cartridge: Option<Cartridge>,
     pub dma: Rc<RefCell<Dma>>,
     pub timer: Timer,
+    pub joypad: Joypad,
 }
 
 #[derive(PartialEq)]
@@ -33,6 +35,7 @@ impl Mmu {
     pub fn new() -> Self {
         return Mmu {
             cartridge: Option::None,
+            sram: [0; 0x30],
             wram: [0; 0x8000],
             wram_bank: 1,
             zram: [0; 0x7F],
@@ -44,6 +47,7 @@ impl Mmu {
             ppu: Ppu::new(),
             dma: Rc::new(RefCell::new(Dma::new())),
             timer: Timer::new(),
+            joypad: Joypad::new()
         };
     }
 
@@ -51,15 +55,15 @@ impl Mmu {
         match address {
             0x0000 ..= 0x7FFF => { match &self.cartridge { Some(c) => c.read_byte(address), None => 0 } },
             0x8000 ..= 0x9FFF => { self.ppu.read_byte(address) },
-            0xA000 ..= 0xBFFF => { 0 },
+            0xA000 ..= 0xBFFF => { match &self.cartridge { Some(c) => c.read_byte(address), None => 0 } },
             0xC000 ..= 0xCFFF | (0xE000 ..= 0xEFFF) => { self.wram[address as usize & 0x0FFF] },
             0xD000 ..= 0xDFFF | (0xF000 ..= 0xFDFF) => { self.wram[(self.wram_bank * 0x1000) | address as usize & 0x0FFF] },
             0xFE00 ..= 0xFE9F => { self.ppu.read_byte(address) },
-            0xFF00 ..= 0xFF00 => { 0 }, // keyboard
-            0xFF01 ..= 0xFF02 => { 0 }, // serial transfer
+            0xFF00 ..= 0xFF00 => { self.joypad.read_byte(address) },
+            0xFF01 ..= 0xFF02 => { 0xFF }, // serial transfer
             0xFF04 ..= 0xFF07 => { self.timer.read_byte(address) },
             0xFF0F => { self.interrupt_flag },
-            0xFF10 ..= 0xFF3F => { 0 }, // sound
+            0xFF10 ..= 0xFF3F => { self.sram[address as usize - 0xFF10] },
             0xFF40 ..= 0xFF4F => { self.ppu.read_byte(address) },
             0xFF4D => (if self.speed == Speed::FAST { 0x80 } else { 0 }) | (if self.switch_speed { 1 } else { 0 }),
             0xFF51 ..= 0xFF55 => { self.dma.borrow_mut().read_byte(address) },
@@ -75,14 +79,14 @@ impl Mmu {
         match address {
             0x0000 ..= 0x7FFF => { match &mut self.cartridge { Some(c) => c.write_byte(address, value), None => () } },
             0x8000 ..= 0x9FFF => { self.ppu.write_byte(address, value) },
-            0xA000 ..= 0xBFFF => {},
+            0xA000 ..= 0xBFFF => { match &mut self.cartridge { Some(c) => c.write_byte(address, value), None => () } },
             0xC000 ..= 0xCFFF | (0xE000 ..= 0xEFFF) => { self.wram[address as usize & 0x0FFF] = value },
             0xD000 ..= 0xDFFF | (0xF000 ..= 0xFDFF) => { self.wram[(self.wram_bank * 0x1000) | (address as usize & 0x0FFF)] = value },
             0xFE00 ..= 0xFE9F => { self.ppu.write_byte(address, value) },
-            0xFF00 => {},            // keyboard
-            0xFF01 ..= 0xFF02 => {}, // serial transfer
+            0xFF00 => { self.joypad.write_byte(address, value)},
+            0xFF01 ..= 0xFF02 => { }, // serial transfer
             0xFF04 ..= 0xFF07 => { self.timer.write_byte(address, value) },
-            0xFF10 ..= 0xFF3F => {}, // sound
+            0xFF10 ..= 0xFF3F => { self.sram[address as usize - 0xFF10] = value },
             0xFF40 ..= 0xFF4F => { self.ppu.write_byte(address, value) },
             0xFF46 => { execute_odma(self, value) },
             0xFF4D => { if value & 0x1 == 0x1 { self.switch_speed = true; } },

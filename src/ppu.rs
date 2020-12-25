@@ -64,7 +64,7 @@ pub struct Ppu {
     window_display_enable: bool,
     bg_tile_data_select: u16,
     bg_tile_map_select: u16,
-    sprite_size: u32,
+    sprite_size: i32,
     sprite_enable: bool,
     bg_display_enable: bool,
 
@@ -230,7 +230,7 @@ impl Ppu {
                     // Check interrupt here
                     self.update_interrupt_for_lyc();
 
-                    if self.ly == 143 {
+                    if self.ly >= 143 {
                         self.set_mode(GpuMode::VBlank);
                         self.interrupt = INTERRUPT_V_BLANK_MASK;
 
@@ -294,34 +294,55 @@ impl Ppu {
     fn render_bg_line(&mut self) {
         let draw = self.gameboy_type == GameboyType::COLOR || self.bg_display_enable;
 
-        let window_y_coord =
-            if !self.window_display_enable || (self.gameboy_type != GameboyType::CLASSIC && !self.bg_display_enable) { -1 }
-            else { self.ly as i32 - self.window_y_coord as i32 };
+        let display_y = self.ly;
 
-        if window_y_coord < 0 && draw == false {
+        let bg_y = (display_y.wrapping_add(self.scroll_y_coord)) as usize;
+        let mut window_y = display_y as i32 - self.window_y_coord as i32;
+
+        if !self.window_display_enable || (self.gameboy_type == GameboyType::CLASSIC && !self.lcd_display_enable) {
+            window_y = -1;
+        }
+
+        if window_y < 0 && draw == false {
             return;
         }
 
-        let window_tile_y= (window_y_coord as u16 >> 3) & 31;
-
-        let bg_y = self.scroll_y_coord.wrapping_add(self.ly);
-        let bg_tile_y = (bg_y as u16 >> 3) & 31;
-
         for x in 0 .. SCREEN_W {
-            let window_x_coord = ((self.window_x_coord as i32) - 7) + (x as i32);
-            let bg_tile_x = self.scroll_x_coord as u32 + x as u32;
+            let window_x = - ((self.window_x_coord as i32) - 7) + (x as i32);
+            let bg_x = x.wrapping_add(self.scroll_x_coord as usize) as usize;
 
-            let (tile_map_base, tile_y, tile_x, pixel_y, pixel_x) = if window_y_coord >= 0 && window_x_coord >= 0 {
-                (self.window_tile_map_select, window_tile_y, (window_x_coord as u16 >> 3), window_tile_y as u16 & 0x07, window_x_coord as u8 & 0x07)
+            let mut tile_x= 0;
+            let mut tile_y= 0;
+
+            let mut pixel_x= 0;
+            let mut pixel_y= 0;
+
+            let mut tile_map_base_address= 0;
+
+            if window_y >= 0 && window_x >= 0 {
+                tile_map_base_address = self.window_tile_map_select;
+                tile_x = window_x as u16 / 8;
+                tile_y = window_y as u16 / 8;
+                pixel_x = window_y as u16 % 8;
+                pixel_y = window_x as u16 % 8;
             } else if draw {
-                (self.bg_tile_map_select, bg_tile_y, (bg_tile_x as u16 >> 3) & 31, bg_y as u16 & 0x07, bg_tile_x as u8 & 0x07)
+                tile_map_base_address = self.bg_tile_map_select;
+                tile_x = (bg_x / 8) as u16;
+                tile_y = (bg_y / 8) as u16;
+                pixel_x = (bg_x % 8) as u16;
+                pixel_y = (bg_y % 8) as u16;
             } else {
                 continue;
-            };
+            }
 
-            let tile_map_address: u16 = tile_map_base + tile_y * 32 + tile_x;
+            // It is organized as 32 rows of 32 bytes each.
+            // Each byte contains a number of a tile to be displayed.
+
+            let tile_map_index = (tile_y * 32) + tile_x;
+            let tile_map_address = tile_map_base_address + tile_map_index;
+
             let attributes: TileEntry = self.get_bg_tile_attributes(tile_map_address);
-            let tile: TileData = self.get_bg_tile_at_y(tile_map_address, attributes.y_flip, pixel_y, attributes.vram_bank);
+            let tile: TileData = self.get_bg_tile_at_y(tile_map_address, attributes.y_flip, pixel_y as u16, attributes.vram_bank);
 
             let bit_mask = match attributes.x_flip {
                 true => pixel_x,
@@ -336,13 +357,13 @@ impl Ppu {
                 let g = self.cbg_bg_palette[attributes.palette_number][palette_index][1];
                 let b = self.cbg_bg_palette[attributes.palette_number][palette_index][2];
 
-                self.set_rgb_at(x, self.ly as usize, r, g, b);
+                self.set_rgb_at(x as usize, self.ly as usize, r, g, b);
             } else {
                 let r = self.pal_bg_palette[palette_index];
                 let g = self.pal_bg_palette[palette_index];
                 let b = self.pal_bg_palette[palette_index];
 
-                self.set_rgb_at(x, self.ly as usize, r, g, b);
+                self.set_rgb_at(x as usize, self.ly as usize, r, g, b);
             }
         }
 
@@ -369,7 +390,7 @@ impl Ppu {
         // Bit 7    BG-to-OAM Priority         (0=Use OAM priority bit, 1=BG Priority)
 
         let palette_number = tile_map & 0x07;
-        let vram_bank = if tile_map & 0x8 != 0 {1} else {0};
+        let vram_bank = if tile_map & 0x8 > 0 {1} else {0};
         let x_flip = tile_map & 0x20 != 0;
         let y_flip = tile_map & 0x40 != 0;
         let has_priority = tile_map & 0x80 != 0;
@@ -384,27 +405,39 @@ impl Ppu {
     }
 
     fn get_bg_tile_at_y(&mut self, tile_map_address: u16, y_flip: bool, pixel_y: u16, bank: u8) -> TileData {
-        // An area of VRAM known as Background Tile Map contains the numbers of tiles to be displayed.
+        // An area of VRAM known as Background Tile Map contains the tile id to be displayed.
+        // Each byte in the memory region is a tile identification number of what needs to be drawn.
+        // This identification number is used to lookup the tile data in video ram so we know how to draw it.
         // It is organized as 32 rows of 32 bytes each. Each byte contains a number of a tile to be displayed.
         // Tile patterns are taken from the Tile Data Table located either at $8000-8FFF or $8800-97FF.
+        // http://www.codeslinger.co.uk/pages/projects/gameboy/graphics.html
 
-        let tile_number = self.read_byte_from_vram(0, tile_map_address);
+        let tile_pattern_index = self.read_byte_from_vram(bank, tile_map_address) as u16;
 
         // In the first case, patterns are numbered with unsigned numbers from 0 to 255 (i.e. pattern #0 lies at address $8000).
         // In the second case, patterns have signed numbers from -128 to 127 (i.e. pattern #0 lies at address $9000).
 
-        let tile_offset =
-            if self.bg_tile_data_select == 0x8000 { tile_number as u16}
-            else {(tile_number as i8 as i16 + 128) as u16};
+        // Each Tile occupies 16 bytes, where each 2 bytes represent a line:
 
-        let tile_pattern_base_address = self.bg_tile_data_select + tile_offset * 16;
+        let tile_pattern_base_address =
+            if self.bg_tile_data_select == 0x8000 {
+                let offset = tile_pattern_index * 16;
+                let address = self.bg_tile_data_select + offset;
+                address
+            }
+            else {
+                let offset = ((tile_pattern_index as i8) as i16 + 128) * 16;
+                let address = (self.bg_tile_data_select as i16) + offset;
+                address as u16
+            };
 
         // A sprite is 8x8 and each line is made up of 2 bytes
-
-        let tile_pattern_address = match y_flip {
-            false => tile_pattern_base_address + (pixel_y * 2),
-            true => tile_pattern_base_address + (14 - (pixel_y * 2)),
+        let tile_pattern_offset = match y_flip {
+            false => (pixel_y * 2),
+            true => (14 - (pixel_y * 2)),
         };
+
+        let tile_pattern_address = tile_pattern_base_address + tile_pattern_offset;
 
         let tile_1 = self.read_byte_from_vram(bank, tile_pattern_address);
         let tile_2 = self.read_byte_from_vram(bank, tile_pattern_address + 1);
@@ -420,40 +453,44 @@ impl Ppu {
             return;
         }
 
-        let line = self.ly as i32;
+        let display_y = self.ly as i32;
         let sprite_size = self.sprite_size as i32;
 
         // https://gbdev.io/pandocs/#fifo-pixel-fetcher
         // http://imrannazar.com/GameBoy-Emulation-in-JavaScript:-Sprites
-        for index in 39 .. 0u16 {
+        for index in 0 .. 40 {
             let sprite_oam: SpriteOam = self.get_sprite_attributes(index);
 
-            let y_start = sprite_oam.y_cord;
-            let y_end = sprite_oam.y_cord + sprite_size;
+            // is y out of bounds
+            if display_y < sprite_oam.y_cord || display_y >= sprite_oam.y_cord + sprite_size { continue }
 
-            if line < y_start || line >= y_end { continue }
+            // is x out of bounds
             if sprite_oam.x_cord < (-7) || sprite_oam.x_cord >= SCREEN_W as i32 { continue }
 
-            let sprite_tile = self.get_sprite_tile_at_y(&sprite_oam, self.ly);
+            let sprite_tile = self.get_sprite_tile_at_y(&sprite_oam, display_y);
 
-            for x in 0 .. 8 {
+            for x in 0 .. 8i32 {
                 if sprite_oam.x_cord + x < 0 || sprite_oam.x_cord + x >= SCREEN_W as i32 {
                     continue;
                 }
 
-                let bit_mask = 1 << (if sprite_oam.x_flip {x} else {7 - x} as u32);
-                let palette_index = (if sprite_tile.tile_1 & bit_mask != 0 {1} else {0}) |
+                let bit_mask = 1 << (if sprite_oam.x_flip { x } else { 7 - x } as u32);
+                let palette_index =
+                    (if sprite_tile.tile_1 & bit_mask != 0 {1} else {0}) |
                     (if sprite_tile.tile_2 & bit_mask != 0 {2} else {0});
-                if palette_index == 0 { continue }
+
+                if palette_index == 0 {
+                    continue
+                }
 
                 if self.gameboy_type == GameboyType::COLOR {
-                    let palette = self.cbg_bg_palette[sprite_oam.palette_number as usize][palette_index];
+                    let palette = self.cbg_obj[sprite_oam.palette_number as usize][palette_index];
 
                     let r = palette[0];
                     let g = palette[1];
                     let b = palette[2];
 
-                    self.set_rgb_at(x as usize, line as usize, r, g, b);
+                    self.set_rgb_at(x as usize, display_y as usize, r, g, b);
                 } else {
                     let palette = if sprite_oam.pal_palette_index == 1 { self.pal_obj_palette_1 } else { self.pal_obj_palette_0 };
 
@@ -461,7 +498,7 @@ impl Ppu {
                     let g = palette[palette_index];
                     let b = palette[palette_index];
 
-                    self.set_rgb_at(x as usize, line as usize, r, g, b);
+                    self.set_rgb_at(x as usize, display_y as usize, r, g, b);
                 }
 
             }
@@ -469,34 +506,26 @@ impl Ppu {
         }
     }
 
-    fn get_sprite_tile_at_y(&self, oam: &SpriteOam, y: u8) -> TileData {
+    fn get_sprite_tile_at_y(&self, oam: &SpriteOam, y: i32) -> TileData {
         // Specifies the sprites Tile Number (00-FF). This (unsigned) value selects a tile from memory at 8000h-8FFFh.
         // In CGB Mode this could be either in VRAM Bank 0 or 1, depending on Bit 3 of the following byte.
 
-        let offset: u16 = if oam.y_flip {
-            self.sprite_size - 1 - (y - oam.y_cord as u8) as u32
+        let tile_x: u16 = if oam.y_flip {
+            (self.sprite_size - 1 - (y - oam.y_cord)) as u16
         } else {
-            (y - oam.y_cord as u8) as u32
+            (y - oam.y_cord) as u16
         } as u16;
 
-        let tile_address = 0x8000u16 + oam.tile_number as u16 * 16 + offset * 2;
+        let tile_y: u16 = oam.tile_number;
 
-        if self.gameboy_type == GameboyType::CLASSIC {
-            let tile_1 = self.read_byte_from_vram(0, tile_address);
-            let tile_2 = self.read_byte_from_vram(0, tile_address + 1);
+        let tile_address = 0x8000u16 + (tile_y * 16) + (tile_x * 2);
 
-            return TileData {
-                tile_1,
-                tile_2,
-            }
-        } else {
-            let tile_1 = self.read_byte_from_vram(oam.vram_bank, tile_address);
-            let tile_2 = self.read_byte_from_vram(oam.vram_bank, tile_address + 1);
+        let tile_1 = self.read_byte_from_vram(oam.vram_bank, tile_address);
+        let tile_2 = self.read_byte_from_vram(oam.vram_bank, tile_address + 1);
 
-            return TileData {
-                tile_1,
-                tile_2,
-            }
+        return TileData {
+            tile_1,
+            tile_2,
         }
     }
 
@@ -508,17 +537,17 @@ impl Ppu {
         // Sprite attributes reside in the Sprite Attribute Table (OAM - Object Attribute Memory) at $FE00-FE9F.
         // Each of the 40 entries consists of four bytes.
 
-        let address = 0xFE00 + index * 4;
+        let address = 0xFE00 + (index * 4);
 
-        let y_cord = self.read_byte(address + 0) as u16 as i32 - 16;
-        let x_cord = self.read_byte(address + 1) as u16 as i32 - 8;
+        let y_cord = self.read_byte(address + 0) as i32 - 16;
+        let x_cord = self.read_byte(address + 1) as i32 - 8;
 
         // Specifies the sprites Tile Number (00-FF). This (unsigned) value selects a tile from memory at 8000h-8FFFh.
         // In CGB Mode this could be either in VRAM Bank 0 or 1, depending on Bit 3 of the following byte.
         // In 8x16 mode, the lower bit of the tile number is ignored. Ie. the upper 8x8 tile is "NN AND FEh",
         // and the lower 8x8 tile is "NN OR 01h".
 
-        let tile_num = (self.read_byte(address + 2) & (if self.sprite_size == 16 {0xFE} else {0xFF})) as u16;
+        let tile_number = (self.read_byte(address + 2) & (if self.sprite_size == 16 {0xFE} else {0xFF})) as u16;
         let flags = self.read_byte(address + 3) as usize;
 
         //   Bit2-0 Palette number  **CGB Mode Only**     (OBP0-7)
@@ -539,7 +568,7 @@ impl Ppu {
         return SpriteOam{
             y_cord,
             x_cord,
-            tile_number: tile_num,
+            tile_number,
             x_flip,
             y_flip,
             has_priority,
@@ -589,10 +618,6 @@ impl Ppu {
         }
 
         self.update_interrupt_for_mode();
-    }
-
-    pub fn set_gameboy_type(&mut self, model: GameboyType) {
-        self.gameboy_type = model;
     }
 
     fn update_interrupt_for_mode(&mut self) {
@@ -699,7 +724,7 @@ impl Ppu {
                 self.lcd_display_enable = value & 0x80 == 0x80;
                 self.window_tile_map_select = if value & 0x40 == 0x40 { 0x9C00 } else { 0x9800 };
                 self.window_display_enable = value & 0x20 == 0x20;
-                self.bg_tile_data_select = if value & 0x10 == 0x10 { 0x8000 } else { 0x8800 };
+                self.bg_tile_data_select = if value & 0x10 == 0x10 { 0x8800 } else { 0x8000 };
                 self.bg_tile_map_select = if value & 0x08 == 0x08 { 0x9C00 } else { 0x9800 };
                 self.sprite_size = if value & 0x04 == 0x04 { 16 } else { 8 };
                 self.sprite_enable = value & 0x02 == 0x02;
@@ -727,7 +752,10 @@ impl Ppu {
             0xFF49 => { self.pal_obj_palette_1_data = value; self.update_pal_palettes(); },
             0xFF4A => self.window_y_coord = value,
             0xFF4B => self.window_x_coord = value,
+            0xFF4C => {}, // i dunno
+            0xFF4D => {}, // i dunno
             0xFF4F => self.vram_bank = (value & 0x01) as usize,
+            0xFF4E => {}, // i dunno
             0xFF68 => { self.cbg_bg_palette_index = value & 0x3F; self.cbg_bg_palette_increment = value & 0x80 == 0x80; },
             0xFF69 => {
                 self.update_palette(PaletteType::BACKGROUND, value);
@@ -790,4 +818,9 @@ impl Ppu {
             palette[BLUE] *= 8;
         }
     }
+
+    pub fn set_gameboy_type(&mut self, model: GameboyType) {
+        self.gameboy_type = model;
+    }
+
 }

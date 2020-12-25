@@ -20,9 +20,9 @@ pub struct Cpu {
     pub disable_interrupt_counter: u8, // Schedules interrupt handling to be enabled after the next machine cycle
     pub enable_interrupt_counter: u8,  // Schedules interrupt handling to be enabled after the next machine cycle
 
-    pub cycles: usize,
+    pub cycles: u32,
+    pub ticks: u32,
     pub opcode: u16,
-    pub ticks: usize,
 }
 
 #[allow(unused)]
@@ -262,7 +262,7 @@ impl Cpu {
         let value = arg.wrapping_add(1);
 
         self.set_f_zero(value == 0);
-        self.set_f_half_carry(!(value & 0x0F) == 0x00);
+        self.set_f_half_carry((arg & 0x0F) + 1 > 0x0F);
         self.set_f_negative(false);
 
         return value;
@@ -272,7 +272,7 @@ impl Cpu {
         let value = arg.wrapping_sub(1);
 
         self.set_f_zero(value == 0);
-        self.set_f_half_carry(!(value & 0x0F) == 0x0F);
+        self.set_f_half_carry((arg & 0x0F) == 0);
         self.set_f_negative(true);
 
         return value;
@@ -280,7 +280,7 @@ impl Cpu {
 
     pub fn apply_rotate_left_with_flags(&mut self, arg: u8, apply_with_carry: bool) -> u8 {
         let carry: u8 = if arg & 0x80 == 0x80 {1} else {0};
-        let bit = if apply_with_carry { if self.get_f_carry() {0x01} else {0} } else { if carry == 1 {0x01} else {0} };
+        let bit = if apply_with_carry { if self.get_f_carry() {0x01} else {0} } else { carry };
         let result: u8 = (arg << 1) | bit;
 
         self.set_f_half_carry(false);
@@ -292,8 +292,8 @@ impl Cpu {
     }
 
     pub fn apply_rotate_right_with_flags(&mut self, arg: u8, apply_with_carry: bool) -> u8 {
-        let carry: u8 = arg & 0x1;
-        let bit = if apply_with_carry { if self.get_f_carry() {0x80} else {0} } else { if carry == 1 {0x80} else {0} };
+        let carry: u8 = if arg & 0x1 == 0x1 {0x80} else {0};
+        let bit = if apply_with_carry { if self.get_f_carry() {0x80} else {0} } else { carry };
         let result = (arg >> 1) | bit;
 
         self.set_f_half_carry(false);
@@ -323,7 +323,7 @@ impl Cpu {
         self.set_f_zero(result == 0);
         self.set_f_half_carry((a & 0x0F) < (b & 0x0F) + carry);
         self.set_f_negative(true);
-        self.set_f_carry((a as u16) < (b as u16) + (carry as u16));
+        self.set_f_carry((a as i16 - b as i16 - carry as i16) < 0);
 
         return result;
     }
@@ -338,15 +338,15 @@ impl Cpu {
         return result;
     }
 
-    pub fn apply_add_i16_with_flags(&mut self, a:  i32, b: i32) -> u16 {
-        let result: i32 = a.wrapping_add(b);
+    pub fn apply_add_i16_with_flags(&mut self, a:  i16, b: i16) -> u16 {
+        let result: u16 = a.wrapping_add(b) as u16;
 
         self.set_f_negative(false);
         self.set_f_zero(false);
         self.set_f_half_carry((a & 0x000F) + (b & 0x000F) > 0x000F);
         self.set_f_carry((a & 0x00FF) + (b & 0x00FF) > 0x00FF);
 
-        return result as u16;
+        return result;
     }
 
     pub fn apply_and_u8_with_flags(&mut self, a: u8, b: u8) -> u8 {

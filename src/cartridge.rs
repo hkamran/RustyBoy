@@ -82,6 +82,16 @@ pub struct MBC1 {
     ram_bank: usize,
 }
 
+pub struct MBC5 {
+    rom: Vec<u8>,
+    rom_bank: usize,
+
+    ram: Vec<u8>,
+    ram_on: bool,
+    ram_mode: bool,
+    ram_bank: usize,
+}
+
 #[allow(dead_code)]
 pub struct MBC2 {
     data: [u8; 0x8000],
@@ -116,8 +126,10 @@ impl Cartridge for MBC0 {
         return;
     }
 
-    fn get_rom(&self) -> &Vec<u8> { &self.rom }
-
+    fn get_gameboy_type(&self) -> GameboyType {
+        let mode_byte = self.rom[0x143];
+        return if mode_byte == 0xc0 { GameboyType::COLOR } else { GameboyType::CLASSIC };
+    }
 }
 
 impl Cartridge for MBC1 {
@@ -125,7 +137,7 @@ impl Cartridge for MBC1 {
     fn new(content: &[u8]) -> Self {
         MBC1 {
             rom: content.try_into().expect("yabe"),
-            rom_bank: 0,
+            rom_bank: 1,
             ram: vec![],
             ram_on: false,
             ram_mode: false,
@@ -145,7 +157,7 @@ impl Cartridge for MBC1 {
                 self.ram[(ram_bank * 0x2000) | ((addr & 0x1FFF) as usize)]
             }
             _ => {
-                let index = if addr < 4000 { addr as usize }
+                let index = if addr < 0x4000 { addr as usize }
                 else  { self.rom_bank  * 0x4000 | ((addr as usize) & 0x3FFF) };
 
                 return *self.rom.get(index).unwrap_or(&0);
@@ -177,7 +189,73 @@ impl Cartridge for MBC1 {
         self.rom[addr as usize] = value;
     }
 
-    fn get_rom(&self) -> &Vec<u8> { &self.rom }
+    fn get_gameboy_type(&self) -> GameboyType {
+        let mode_byte = self.rom[0x143];
+        return if mode_byte == 0xc0 { GameboyType::COLOR } else { GameboyType::CLASSIC };
+    }
+}
+
+impl Cartridge for MBC5 {
+
+    fn new(content: &[u8]) -> Self {
+        MBC5 {
+            rom: content.try_into().expect("yabe"),
+            rom_bank: 1,
+            ram: ::std::iter::repeat(0u8).take(0x1E).collect(),
+            ram_bank: 0,
+            ram_on: false,
+            ram_mode: false,
+        }
+    }
+
+    fn rom_dump(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{:x?}", self.rom)
+    }
+
+    fn read_byte(&self, addr: u16) -> u8 {
+        match addr {
+            0xA000 ..= 0xBFFF => {
+                if !self.ram_on { return 0 }
+                let ram_bank = self.ram_bank;
+                self.ram[(ram_bank * 0x2000) | ((addr & 0x1FFF) as usize)]
+            }
+            _ => {
+                let index = if addr < 0x4000 { addr as usize }
+                else  { self.rom_bank  * 0x4000 | ((addr as usize) & 0x3FFF) };
+
+                return *self.rom.get(index).unwrap_or(&0);
+            }
+        }
+    }
+
+    fn write_byte(&mut self, addr: u16, value: u8) {
+        match addr {
+            0x0000 ..= 0x1FFF => { self.ram_on = value == 0x0A; },
+            0x2000 ..= 0x2FFF => self.rom_bank = (self.rom_bank & 0x100) | (value as usize),
+            0x3000 ..= 0x3FFF => self.rom_bank = (self.rom_bank & 0x0FF) | (((value & 0x1) as usize) << 8),
+            0x4000 ..= 0x5FFF => self.ram_bank = (value & 0x0F) as usize,
+            0x6000 ..= 0x7FFF => {}
+            0xA000 ..= 0xBFFF => {
+                if self.ram_on == false { return }
+                self.ram[self.ram_bank * 0x2000 | ((addr as usize) & 0x1FFF)] = value;
+            }
+            _ => panic!("error"),
+        }
+        self.rom[addr as usize] = value;
+    }
+
+    fn get_gameboy_type(&self) -> GameboyType {
+        let mode_byte = self.rom[0x143];
+        return if mode_byte == 0xc0 { GameboyType::COLOR } else { GameboyType::CLASSIC };
+    }
+}
+
+const HEADER_INDEX_FOR_CARTRIDGE_TYPE: usize = 0x0147;
+
+pub fn load_from_file_address(file_path: &str) -> Box<dyn Cartridge> {
+    let path = Path::new(file_path);
+    let content : Vec<u8> = fs::read(path).expect("yabe");
+    return load_from_bytes(content);
 }
 //https://github.com/rustwasm/wasm-bindgen/issues/1052
 //https://stackoverflow.com/questions/52796222/how-to-pass-an-array-of-objects-to-webassembly-and-convert-it-to-a-vector-of-str
@@ -198,6 +276,9 @@ pub fn load_from_bytes(content: Vec<u8>) -> Box<dyn Cartridge> {
         panic!("not implemented");
     } else if 0x0F <= cartridge_type && cartridge_type <= 0x13 {
         panic!("not implemented");
+    } else if 0x19 <= cartridge_type && cartridge_type <= 0x1E {
+        let cartridge = MBC5::new(&content[..]);
+        return Box::new(cartridge);
     } else {
         panic!("no cartridge type exists");
     }

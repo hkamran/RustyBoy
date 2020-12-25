@@ -8,6 +8,7 @@ mod operations;
 mod dma;
 mod timer;
 mod logger;
+mod joypad;
 
 extern crate serde_json;
 extern crate wasm_bindgen;
