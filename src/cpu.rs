@@ -92,7 +92,7 @@ impl Cpu {
         }
 
         self.opcode = mmu.read_byte(pc) as u8 as u16;
-        // log(self.to_string());
+        //log(self.to_string());
         execute_operation(self.opcode as u8, self, mmu);
 
         self.ticks += 1;
@@ -262,7 +262,7 @@ impl Cpu {
         let value = arg.wrapping_add(1);
 
         self.set_f_zero(value == 0);
-        self.set_f_half_carry(!(value & 0x0F) == 0x00);
+        self.set_f_half_carry((arg & 0x0F) + 1 > 0x0F);
         self.set_f_negative(false);
 
         return value;
@@ -272,7 +272,7 @@ impl Cpu {
         let value = arg.wrapping_sub(1);
 
         self.set_f_zero(value == 0);
-        self.set_f_half_carry(!(value & 0x0F) == 0x0F);
+        self.set_f_half_carry((arg & 0x0F) == 0);
         self.set_f_negative(true);
 
         return value;
@@ -280,7 +280,7 @@ impl Cpu {
 
     pub fn apply_rotate_left_with_flags(&mut self, arg: u8, apply_with_carry: bool) -> u8 {
         let carry: u8 = if arg & 0x80 == 0x80 {1} else {0};
-        let bit = if apply_with_carry { if self.get_f_carry() {0x01} else {0} } else { if carry == 1 {0x01} else {0} };
+        let bit = if apply_with_carry { if self.get_f_carry() {0x01} else {0} } else { carry };
         let result: u8 = (arg << 1) | bit;
 
         self.set_f_half_carry(false);
@@ -292,8 +292,8 @@ impl Cpu {
     }
 
     pub fn apply_rotate_right_with_flags(&mut self, arg: u8, apply_with_carry: bool) -> u8 {
-        let carry: u8 = arg & 0x1;
-        let bit = if apply_with_carry { if self.get_f_carry() {0x80} else {0} } else { if carry == 1 {0x80} else {0} };
+        let carry: u8 = if arg & 0x1 == 0x1 {0x80} else {0};
+        let bit = if apply_with_carry { if self.get_f_carry() {0x80} else {0} } else { carry };
         let result = (arg >> 1) | bit;
 
         self.set_f_half_carry(false);

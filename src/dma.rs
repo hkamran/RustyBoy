@@ -52,9 +52,9 @@ impl Dma {
 
     pub fn write_byte(&mut self, address: u16, value: u8) {
         match address {
-            0xFF51 => self.dma[0] = value,
+            0xFF51 => self.dma[0] = value & 0x0F,
             0xFF52 => self.dma[1] = value & 0xF0,
-            0xFF53 => self.dma[2] = value & 0x1F,
+            0xFF53 => self.dma[2] = value & 0x0F,
             0xFF54 => self.dma[3] = value & 0xF0,
             0xFF55 => {
                 if self.dma_status == DMAType::HDMA {
