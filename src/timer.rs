@@ -7,7 +7,7 @@ pub struct Timer {
     enabled: bool,
     divider_counter: u32,
     timer_counter: u32,
-    pub interrupt: u8,
+    pub interrupt_flags: u8,
 }
 
 // https://www.coranac.com/tonc/text/timers.htm#sec-intro
@@ -22,7 +22,7 @@ impl Timer {
             enabled: true,
             divider_counter: 0,
             timer_counter: 0,
-            interrupt: 0,
+            interrupt_flags: 0,
         }
     }
 
@@ -34,7 +34,7 @@ impl Timer {
         self.enabled = true;
         self.divider_counter = 0;
         self.timer_counter = 0;
-        self.interrupt = 0;
+        self.interrupt_flags = 0;
     }
 
     pub fn read_byte(&self, address: u16) -> u8 {
@@ -86,7 +86,7 @@ impl Timer {
                 self.tima = self.tima.wrapping_add(1);
                 if self.tima == 0 {
                     self.tima = self.tma;
-                    self.interrupt |= 0x04;
+                    self.interrupt_flags |= 0x04;
                 }
                 self.timer_counter -= self.tac;
             }

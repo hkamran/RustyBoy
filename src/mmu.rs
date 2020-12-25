@@ -15,7 +15,7 @@ pub struct Mmu {
     switch_speed: bool,
     pub speed: Speed,
     pub interrupt_enable: u8,
-    pub interrupt_flag: u8,
+    pub interrupt_flags: u8,
     pub ppu: Ppu,
     pub cartridge: Option<Box<dyn Cartridge>>,
     pub dma: Rc<RefCell<Dma>>,
@@ -40,7 +40,7 @@ impl Mmu {
             zram: [0; 0x7F],
             speed: Speed::SLOW,
             switch_speed: false,
-            interrupt_flag: 0,
+            interrupt_flags: 0,
             interrupt_enable: 0,
 
             ppu: Ppu::new(),
@@ -73,7 +73,7 @@ impl Mmu {
             0xFF00 ..= 0xFF00 => { self.joypad.read_byte(address) },
             0xFF01 ..= 0xFF02 => { 0xFF }, // serial transfer
             0xFF04 ..= 0xFF07 => { self.timer.read_byte(address) },
-            0xFF0F => { self.interrupt_flag },
+            0xFF0F => { self.interrupt_flags },
             0xFF10 ..= 0xFF3F => { self.sram[address as usize - 0xFF10] },
             0xFF40 ..= 0xFF4F => { self.ppu.read_byte(address) },
             0xFF4D => (if self.speed == Speed::FAST { 0x80 } else { 0 }) | (if self.switch_speed { 1 } else { 0 }),
@@ -81,7 +81,7 @@ impl Mmu {
             0xFF68 ..= 0xFF6B => { self.ppu.read_byte(address) },
             0xFF70 ..= 0xFF70 => { self.wram_bank as u8 },
             0xFF80 ..= 0xFFFE => { self.zram[(address - 0xFF80) as usize] },
-            0xFFFF ..= 0xFFFF => { self.interrupt_enable },
+            0xFFFF => { self.interrupt_enable },
             _ => 0,
         }
     }
@@ -103,10 +103,10 @@ impl Mmu {
             0xFF4D => { if value & 0x1 == 0x1 { self.switch_speed = true; } },
             0xFF51 ..= 0xFF55 => { self.dma.borrow_mut().write_byte(address, value)},
             0xFF68 ..= 0xFF6B => { self.ppu.write_byte(address, value)},
-            0xFF0F => { self.interrupt_flag = value },
+            0xFF0F => { self.interrupt_flags = value },
             0xFF70 ..= 0xFF70 => { self.wram_bank = match value & 0x7 { 0 => 1, n => n as usize }; },
             0xFF80 ..= 0xFFFE => { self.zram[(address - 0xFF80) as usize] = value; },
-            0xFFFF ..= 0xFFFF => { self.interrupt_enable = value },
+            0xFFFF => { self.interrupt_enable = value },
             _ => {},
         };
     }
@@ -150,11 +150,11 @@ impl Mmu {
 
         // Gather interrupts
 
-        self.interrupt_flag |= self.timer.interrupt;
-        self.timer.interrupt = 0;
+        self.interrupt_flags |= self.timer.interrupt_flags;
+        self.timer.interrupt_flags = 0;
 
-        self.interrupt_flag |= self.ppu.interrupt;
-        self.ppu.interrupt = 0;
+        self.interrupt_flags |= self.ppu.interrupt_flags;
+        self.ppu.interrupt_flags = 0;
     }
 
     pub fn reset(&mut self) {

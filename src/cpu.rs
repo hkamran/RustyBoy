@@ -122,25 +122,31 @@ impl Cpu {
         }
 
         // http://bgb.bircd.org/pandocs.htm#interrupts
-        let interrupt_type = mmu.interrupt_enable & mmu.interrupt_flag;
-        if interrupt_type == 0 { return false }
+        let interrupt_mask = mmu.interrupt_enable & mmu.interrupt_flags;
+        if interrupt_mask == 0 { return false }
 
         self.halted = false;
         if self.interrupt_master_enable == false { return false; };
         self.interrupt_master_enable = false;
 
         // http://bgb.bircd.org/pandocs.htm#interrupts
-        let bit = interrupt_type.trailing_zeros();
-        if bit >= 5 { panic!("Invalid interrupt code") }
+        // Bit 0: V-Blank  Interrupt Enable  (INT 40h)  (1=Enable)
+        // Bit 1: LCD STAT Interrupt Enable  (INT 48h)  (1=Enable)
+        // Bit 2: Timer    Interrupt Enable  (INT 50h)  (1=Enable)
+        // Bit 3: Serial   Interrupt Enable  (INT 58h)  (1=Enable)
+        // Bit 4: Joypad   Interrupt Enable  (INT 60h)  (1=Enable)
+
+        let interrupt_type = interrupt_mask.trailing_zeros();
+        if interrupt_type >= 5 { panic!("Invalid interrupt code") }
 
         // clear flag
-        mmu.interrupt_flag &= !(1 << bit);
+        mmu.interrupt_flags &= !(1 << interrupt_type);
 
         let pc = self.pc;
         self.push_word(mmu, pc);
 
         // go to the vector
-        self.pc = 0x0040 | ((bit as u16) << 3);
+        self.pc = 0x0040 | ((interrupt_type as u16) << 3);
         self.cycles += 4;
 
         return true;

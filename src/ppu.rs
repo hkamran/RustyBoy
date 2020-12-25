@@ -109,7 +109,7 @@ pub struct Ppu {
     frame: [u8; SCREEN_W * SCREEN_H * 3],
 
     // https://gbdev.io/pandocs/#ff0f-if-interrupt-flag-r-w
-    pub interrupt: u8,
+    pub interrupt_flags: u8,
 
     pub h_blank: bool,
     pub v_blank: bool,
@@ -170,7 +170,7 @@ impl Ppu {
 
             scanline_priority: [PriorityType::None; SCREEN_W],
             frame: [0; SCREEN_W * SCREEN_H * 3],
-            interrupt: 0,
+            interrupt_flags: 0,
 
             h_blank: false,
             v_blank: false,
@@ -185,7 +185,7 @@ impl Ppu {
     }
 
     pub fn reset(&mut self) {
-        self.interrupt = 0;
+        self.interrupt_flags = 0;
         self.h_blank = false;
         self.v_blank = false;
         self.clock = 0;
@@ -236,7 +236,7 @@ impl Ppu {
 
                     if self.ly >= 143 {
                         self.set_mode(GpuMode::VBlank);
-                        self.interrupt = INTERRUPT_V_BLANK_MASK;
+                        self.interrupt_flags |= INTERRUPT_V_BLANK_MASK;
 
                         self.render_frame();
                     } else {
@@ -512,7 +512,7 @@ impl Ppu {
                     // If bit 0 of register LCDC ($ff40) is 0 then sprites will always appear above the background & window regardless of the settings of sprite attribute flags & tile attribute memory.
 
                     let has_priority = sprite_oam.has_priority || (!sprite_oam.has_priority && priority == PriorityType::BgColor0);
-                    if !self.lcd_display_enable {
+                    if self.lcd_display_enable {
                         // render
                     } else if priority == PriorityType::BgPriority {
                         continue;
@@ -530,6 +530,10 @@ impl Ppu {
 
                     self.set_rgb_at(sprite_x_cord as usize, sprite_y_cord as usize, r, g, b);
                 } else {
+                    if !sprite_oam.has_priority && priority != PriorityType::BgColor0 {
+                        continue;
+                    }
+
                     let palette = if sprite_oam.pal_palette_index == 1 { self.pal_obj_palette_1 } else { self.pal_obj_palette_0 };
 
                     let r = palette[palette_index];
@@ -662,20 +666,20 @@ impl Ppu {
 
     fn update_interrupt_for_mode(&mut self) {
         if self.mode == GpuMode::Read && self.mode_2_interrupt {
-            self.interrupt |= INTERRUPT_TIMER_MASK;
+            self.interrupt_flags |= INTERRUPT_TIMER_MASK;
         }
         if self.mode == GpuMode::HBlank && self.mode_0_interrupt {
-            self.interrupt |= INTERRUPT_TIMER_MASK;
+            self.interrupt_flags |= INTERRUPT_TIMER_MASK;
         }
         if self.mode == GpuMode::VBlank && self.mode_1_interrupt {
-            self.interrupt |= INTERRUPT_TIMER_MASK;
+            self.interrupt_flags |= INTERRUPT_TIMER_MASK;
         }
     }
 
     fn update_interrupt_for_lyc(&mut self) {
         if self.lyc_interrupt_enable {
             if self.ly == self.lyc {
-                self.interrupt |= INTERRUPT_TIMER_MASK;
+                self.interrupt_flags |= INTERRUPT_TIMER_MASK;
             }
         }
     }
