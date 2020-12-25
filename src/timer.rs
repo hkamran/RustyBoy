@@ -1,4 +1,6 @@
+use wasm_bindgen::prelude::*;
 
+#[wasm_bindgen]
 pub struct Timer {
     div:  u8,
     tima: u8,

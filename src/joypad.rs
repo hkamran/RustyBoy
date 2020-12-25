@@ -1,3 +1,5 @@
+use wasm_bindgen::prelude::*;
+#[wasm_bindgen]
 pub struct Joypad {
     row0: u8,
     row1: u8,

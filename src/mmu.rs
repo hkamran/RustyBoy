@@ -7,6 +7,7 @@ use std::cell::RefCell;
 use std::rc::Rc;
 use wasm_bindgen::prelude::*;
 
+#[wasm_bindgen]
 #[allow(unused)]
 pub struct Mmu {
     zram: [u8; 0x7F],
@@ -24,6 +25,7 @@ pub struct Mmu {
     pub joypad: Joypad,
 }
 
+#[wasm_bindgen]
 #[derive(PartialEq)]
 pub enum Speed {
     FAST, SLOW
