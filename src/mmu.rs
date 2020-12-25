@@ -1,4 +1,4 @@
-use crate::cartridge::{Cartridge, CartridgeType};
+use crate::cartridge::{Cartridge, CartridgeType, HEADER_INDEX_FOR_CARTRIDGE_TYPE};
 use crate::ppu::Ppu;
 use crate::dma::{Dma, execute_odma};
 use crate::timer::Timer;
@@ -185,16 +185,20 @@ impl Mmu {
         self.write_byte(0xFF4B, 0);
     }
 
+    //https://github.com/rustwasm/wasm-bindgen/issues/1052
+    //https://stackoverflow.com/questions/52796222/how-to-pass-an-array-of-objects-to-webassembly-and-convert-it-to-a-vector-of-str
     pub fn load_cartridge(&mut self, result: &JsValue) {
         let bytes: Vec<u8> = result.into_serde().unwrap();
-        self.cartridge.cartridge_type = match bytes[0x0147] {
-            0x00 => CartridgeType::MBC0,
-            0x01..=0x03 => CartridgeType::MBC1,
-            0x05..=0x06 => CartridgeType::MBC2,
-            0x0F..=0x13 => CartridgeType::MBC3,
-            _ => { panic!("no cartridge type exists");}
-        };
+        let cartridge_type = bytes[HEADER_INDEX_FOR_CARTRIDGE_TYPE];
+        let mut cartridge = Cartridge::new(bytes);
+        match cartridge_type {
+            0x0 => { cartridge.cartridge_type = Some(CartridgeType::MBC0) },
+            0x01..=0x03 => { cartridge.cartridge_type = Some(CartridgeType::MBC1) },
+            //0x05..=0x06 => { cartridge.cartridge_type = Some(CartridgeType::MBC2) },
+            //0x0F..=0x13 => { cartridge.cartridge_type = Some(CartridgeType::MBC3) },
+            0x1E => { cartridge.cartridge_type = Some(CartridgeType::MBC5) },
+            _ => panic!("cartridge type not implemented")
+        }
+        self.cartridge = Some(cartridge);
     }
-
-
 }
