@@ -118,7 +118,7 @@ pub struct Ppu {
     mode: GpuMode,
     clock: u32,
     ly: u8,
-    wly: u8,
+    wly: u32,
     model: GameboyType,
 
     screen: Screen
@@ -507,17 +507,17 @@ impl Ppu {
 
             let sprite_tile = self.get_sprite_tile_at_y(&sprite_oam, display_y);
 
-            for x in 0 .. 8i32 {
+            for display_x in 0 .. 8i32 {
                 is_rendered = true;
 
-                let sprite_x_cord = sprite_oam.x_cord + x;
+                let sprite_x_cord = sprite_oam.x_cord + display_x;
                 let sprite_y_cord = display_y;
 
                 if sprite_x_cord < 0 || sprite_x_cord >= SCREEN_W as i32 {
                     continue;
                 }
 
-                let bit_mask = 1 << (if sprite_oam.x_flip { x } else { 7 - x } as u32);
+                let bit_mask = 1 << (if sprite_oam.x_flip { display_x } else { 7 - display_x } as u32);
                 let palette_index =
                     (if sprite_tile.tile_1 & bit_mask != 0 {1} else {0}) |
                     (if sprite_tile.tile_2 & bit_mask != 0 {2} else {0});
@@ -527,26 +527,11 @@ impl Ppu {
                 }
 
                 let priority = self.scanline_priority[sprite_x_cord as usize];
+                if !self.should_sprite_render(priority, sprite_oam.has_priority) {
+                    continue;
+                }
 
                 if self.model == GameboyType::COLOR {
-                    // Priority
-                    // Bit 7 of the sprite attribute flags determines that a sprite will appear above the background & window if it is 0
-                    // below them both (visible only through colo(u)r 0 of background & window) if it is 1.
-                    // When bit 7 of bank 1 of tile attribute memory ($9800-$9fff) is set to 1 it will force the background and/or window to have priority over the sprite attribute flags and to appear over sprites no matter what the setting of the sprite attribute flags.
-                    // If bit 0 of register LCDC ($ff40) is 0 then sprites will always appear above the background & window regardless of the settings of sprite attribute flags & tile attribute memory.
-
-                    if self.obj_master_priority {
-                        // render
-                    } else if !self.lcd_display_enable {
-                        // render
-                    } else if priority == PriorityType::BgPriority {
-                        continue;
-                    } else if sprite_oam.has_priority || priority == PriorityType::BgColor0 {
-                        // render
-                    } else {
-                        continue;
-                    }
-
                     let palette = self.cbg_obj[sprite_oam.palette_number as usize][palette_index];
 
                     let r = palette[0];
@@ -555,10 +540,6 @@ impl Ppu {
 
                     self.set_rgb_at(sprite_x_cord as usize, sprite_y_cord as usize, r, g, b);
                 } else {
-                    if !sprite_oam.has_priority && priority != PriorityType::BgColor0 {
-                        continue;
-                    }
-
                     let palette = if sprite_oam.pal_palette_index == 1 { self.pal_obj_palette_1 } else { self.pal_obj_palette_0 };
 
                     let r = palette[palette_index];
@@ -571,6 +552,35 @@ impl Ppu {
             }
             if is_rendered {
                 sprite_counter += 1;
+            }
+        }
+    }
+
+    fn should_sprite_render(&mut self, bg_priority_type: PriorityType, sprite_priority: bool) -> bool {
+        return if self.model == GameboyType::COLOR {
+            // Bit 7 of the sprite attribute flags determines that a sprite will appear above the background & window if it is 0
+            // below them both (visible only through colo(u)r 0 of background & window) if it is 1.
+            // When bit 7 of bank 1 of tile attribute memory ($9800-$9fff) is set to 1 it will force the background
+            // and/or window to have priority over the sprite attribute flags and to appear over sprites no matter what the setting of the sprite attribute flags.
+            // If bit 0 of register LCDC ($ff40) is 0 then sprites will always appear above the background & window
+            // regardless of the settings of sprite attribute flags & tile attribute memory.
+
+            if self.obj_master_priority {
+                true
+            } else if !self.lcd_display_enable {
+                true
+            } else if bg_priority_type == PriorityType::BgPriority {
+                false
+            } else if sprite_priority || bg_priority_type == PriorityType::BgColor0 {
+                true
+            } else {
+                false
+            }
+        } else {
+            if !sprite_priority && bg_priority_type != PriorityType::BgColor0 {
+                false
+            } else {
+                true
             }
         }
     }
@@ -645,13 +655,7 @@ impl Ppu {
     }
 
     fn read_byte_from_vram(&self, bank: u8, address: u16) -> u8 {
-        return if bank == 0 {
-            if address < 0x8000 || address >= 0xA000 { panic!("error"); }
-            self.vram[address as usize & 0x1FFF]
-        } else {
-            if address < 0x8000 || address >= 0xA000 { panic!("error"); }
-            self.vram[0x2000 + (address as usize & 0x1FFF)]
-        }
+        return self.vram[(bank as usize) * 0x2000 + (address as usize & 0x1FFF)]
     }
 
     fn set_rgb_at(&mut self, x: usize, y: usize, red: u8, green: u8, blue: u8) {
