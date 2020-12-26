@@ -91,7 +91,7 @@ pub fn execute_operation(opcode: u8, cpu: &mut Cpu, mmu: &mut Mmu) -> () {
             cpu.cycles += 2;
         }
         0x0F => {
-            cpu.a = cpu.apply_rotate_right_with_flags(cpu.a, false);
+            cpu.a = cpu.apply_rotate_right_with_flags(cpu.a, true);
             cpu.set_f_zero(false);
 
             cpu.pc += 1;
@@ -140,7 +140,7 @@ pub fn execute_operation(opcode: u8, cpu: &mut Cpu, mmu: &mut Mmu) -> () {
             cpu.cycles += 2;
         }
         0x17 => {
-            cpu.a = cpu.apply_rotate_left_with_flags(cpu.a, true);
+            cpu.a = cpu.apply_rotate_left_with_flags(cpu.a, false);
             cpu.set_f_zero(false);
 
             cpu.pc += 1;
@@ -1687,12 +1687,12 @@ pub fn op_cb(cpu: &mut Cpu, mmu: &mut Mmu) {
             cpu.cycles += 2;
         }
         0x08 => {
-            cpu.a = cpu.apply_rotate_right_with_flags(cpu.a, true);
+            cpu.b = cpu.apply_rotate_right_with_flags(cpu.b, true);
             cpu.pc += 1;
             cpu.cycles += 2;
         }
         0x09 => {
-            cpu.b = cpu.apply_rotate_right_with_flags(cpu.b, true);
+            cpu.c = cpu.apply_rotate_right_with_flags(cpu.c, true);
             cpu.pc += 1;
             cpu.cycles += 2;
         }
