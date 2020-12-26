@@ -161,12 +161,6 @@ impl Mmu {
     }
 
     pub fn reset(&mut self, model: GameboyType) {
-        let mut dma = self.dma.clone();
-
-        self.timer.reset(model);
-        self.ppu.reset(model);
-        self.dma.borrow_mut().reset(model);
-
         self.write_byte(0xFF05, 0);
         self.write_byte(0xFF06, 0);
         self.write_byte(0xFF07, 0);

@@ -20,7 +20,7 @@ use crate::console::{Console};
 
 fn main() {
     let mut console: Console = Console::new();
-    let cart_path = "./roms/cpu_instrs.gb";
+    let cart_path = "./roms/promo_demo.gbc";
 
     console.load(cart_path);
     console.reset();

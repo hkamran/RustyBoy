@@ -30,6 +30,9 @@ impl Console {
         let model = self.mmu.model;
         self.cpu.reset(model.clone());
         self.mmu.reset(model.clone());
+        self.mmu.timer.reset(model.clone());
+        self.mmu.ppu.reset(model.clone());
+        self.mmu.dma.borrow_mut().reset(model);
     }
 
     pub fn execute_ticks(&mut self, ticks: u32) -> () {
