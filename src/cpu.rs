@@ -293,7 +293,7 @@ impl Cpu {
 
     pub fn apply_rotate_left_with_flags(&mut self, arg: u8, apply_with_carry: bool) -> u8 {
         let carry: u8 = if arg & 0x80 == 0x80 {1} else {0};
-        let bit = if apply_with_carry { if self.get_f_carry() {0x01} else {0} } else { carry };
+        let bit = if apply_with_carry { carry } else { if self.get_f_carry() {0x01} else {0} };
         let result: u8 = (arg << 1) | bit;
 
         self.set_f_half_carry(false);
@@ -306,7 +306,7 @@ impl Cpu {
 
     pub fn apply_rotate_right_with_flags(&mut self, arg: u8, apply_with_carry: bool) -> u8 {
         let carry: u8 = if arg & 0x1 == 0x1 {0x80} else {0};
-        let bit = if apply_with_carry { if self.get_f_carry() {0x80} else {0} } else { carry };
+        let bit = if apply_with_carry { carry } else { if self.get_f_carry() {0x80} else {0} };
         let result = (arg >> 1) | bit;
 
         self.set_f_half_carry(false);
