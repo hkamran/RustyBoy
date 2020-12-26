@@ -81,7 +81,7 @@ impl Mmu {
             0xFF4D => (if self.speed == Speed::FAST { 0x80 } else { 0 }) | (if self.switch_speed { 1 } else { 0 }),
             0xFF40 ..= 0xFF4F => { self.ppu.read_byte(address) },
             0xFF51 ..= 0xFF55 => { self.dma.borrow_mut().read_byte(address) },
-            0xFF68 ..= 0xFF6B => { self.ppu.read_byte(address) },
+            0xFF68 ..= 0xFF6C => { self.ppu.read_byte(address) },
             0xFF70 ..= 0xFF70 => { self.wram_bank as u8 },
             0xFF80 ..= 0xFFFE => { self.hram[address as usize & 0x007F] },
             0xFFFF => { self.interrupt_enable },

@@ -110,6 +110,7 @@ pub struct Ppu {
 
     // https://gbdev.io/pandocs/#ff0f-if-interrupt-flag-r-w
     pub interrupt_flags: u8,
+    obj_priority: bool,
 
     pub h_blank: bool,
     pub v_blank: bool,
@@ -117,7 +118,7 @@ pub struct Ppu {
     mode: GpuMode,
     clock: u32,
     ly: u8,
-    gameboy_type: GameboyType,
+    model: GameboyType,
 
     screen: Screen
 }
@@ -171,6 +172,7 @@ impl Ppu {
             scanline_priority: [PriorityType::None; SCREEN_W],
             frame: [0; SCREEN_W * SCREEN_H * 3],
             interrupt_flags: 0,
+            obj_priority: false,
 
             h_blank: false,
             v_blank: false,
@@ -178,7 +180,7 @@ impl Ppu {
             clock: 0,
             mode: GpuMode::VBlank,
             ly: 0,
-            gameboy_type: GameboyType::CLASSIC,
+            model: GameboyType::CLASSIC,
 
             screen: Screen::new()
         };
@@ -190,8 +192,12 @@ impl Ppu {
         self.v_blank = false;
         self.clock = 0;
         self.mode = GpuMode::Read;
-        self.gameboy_type = model;
+        self.model = model;
         self.ly = 0;
+
+        if model == GameboyType::COLOR {
+            self.obj_priority = true;
+        }
     }
 
     pub fn execute_ticks(&mut self, ticks: u32) -> () {
@@ -298,17 +304,18 @@ impl Ppu {
     }
 
     fn render_bg_line(&mut self) {
-        let draw_window = self.window_display_enable && self.gameboy_type == GameboyType::COLOR;
-        let draw_background = self.gameboy_type == GameboyType::COLOR || self.bg_display_enable;
+        let draw_window = self.window_display_enable && self.model == GameboyType::COLOR;
+        let draw_background = self.model == GameboyType::COLOR || self.bg_display_enable;
 
-        let display_y = self.ly;
-
-        for x in 0 .. SCREEN_W {;
+        let display_y = self.ly as usize;
+        for display_x in 0 .. SCREEN_W {;
             let window_y = display_y as i32 - self.window_y_coord as i32;
-            let window_x = - ((self.window_x_coord as i32) - 7) + (x as i32);
+            let window_x = - ((self.window_x_coord as i32) - 7) + (display_x as i32);
 
-            let bg_y = (display_y.wrapping_add(self.scroll_y_coord)) as usize;
-            let bg_x = x.wrapping_add(self.scroll_x_coord as usize) as usize;
+            // Values in range from 0-255 may be used for X/Y each, the video controller automatically
+            // wraps back to the upper (left) position in BG map when drawing exceeds the lower (right) border of the BG map area.
+            let bg_y = (display_y as u8).wrapping_add(self.scroll_y_coord) as usize;
+            let bg_x = (display_x as u8).wrapping_add(self.scroll_x_coord) as usize;
 
             let mut tile_x= 0;
             let mut tile_y= 0;
@@ -323,8 +330,8 @@ impl Ppu {
                 tile_map_base_address = self.window_tile_map_select;
                 tile_x = (window_x / 8) as u16;
                 tile_y = (window_y / 8) as u16;
-                pixel_x = (window_y % 8) as u16;
-                pixel_y = (window_x % 8) as u16;
+                pixel_x = (window_x % 8) as u16;
+                pixel_y = (window_y % 8) as u16;
             } else if draw_background {
                 tile_map_base_address = self.bg_tile_map_select;
                 tile_x = (bg_x / 8) as u16;
@@ -352,30 +359,30 @@ impl Ppu {
             let palette_index = if tile.tile_1 & (1 << bit_mask) != 0 { 1 } else { 0 }
                 | if tile.tile_2 & (1 << bit_mask) != 0 { 2 } else { 0 };
 
-            self.scanline_priority[x] =
+            self.scanline_priority[display_x] =
                 if palette_index == 0 { PriorityType::BgColor0 }
                 else if attributes.has_priority { PriorityType::BgPriority }
                 else { PriorityType::None };
 
-            if self.gameboy_type == GameboyType::COLOR {
+            if self.model == GameboyType::COLOR {
                 let r = self.cbg_bg_palette[attributes.palette_number][palette_index][0];
                 let g = self.cbg_bg_palette[attributes.palette_number][palette_index][1];
                 let b = self.cbg_bg_palette[attributes.palette_number][palette_index][2];
 
-                self.set_rgb_at(x as usize, self.ly as usize, r, g, b);
+                self.set_rgb_at(display_x as usize, self.ly as usize, r, g, b);
             } else {
                 let r = self.pal_bg_palette[palette_index];
                 let g = self.pal_bg_palette[palette_index];
                 let b = self.pal_bg_palette[palette_index];
 
-                self.set_rgb_at(x as usize, self.ly as usize, r, g, b);
+                self.set_rgb_at(display_x as usize, self.ly as usize, r, g, b);
             }
         }
 
     }
 
     fn get_bg_tile_attributes(&mut self, tile_map_address: u16) -> TileEntry {
-        if self.gameboy_type == GameboyType::CLASSIC {
+        if self.model == GameboyType::CLASSIC {
             return TileEntry{
                 palette_number : 0,
                 vram_bank: 0,
@@ -505,19 +512,18 @@ impl Ppu {
 
                 let priority = self.scanline_priority[sprite_x_cord as usize];
 
-                if self.gameboy_type == GameboyType::COLOR {
+                if self.model == GameboyType::COLOR {
                     // Priority
                     // Bit 7 of the sprite attribute flags determines that a sprite will appear above the background & window if it is 0
                     // below them both (visible only through colo(u)r 0 of background & window) if it is 1.
                     // When bit 7 of bank 1 of tile attribute memory ($9800-$9fff) is set to 1 it will force the background and/or window to have priority over the sprite attribute flags and to appear over sprites no matter what the setting of the sprite attribute flags.
                     // If bit 0 of register LCDC ($ff40) is 0 then sprites will always appear above the background & window regardless of the settings of sprite attribute flags & tile attribute memory.
 
-                    let has_priority = sprite_oam.has_priority || (!sprite_oam.has_priority && priority == PriorityType::BgColor0);
-                    if self.lcd_display_enable {
+                    if !self.lcd_display_enable {
                         // render
                     } else if priority == PriorityType::BgPriority {
                         continue;
-                    } else if has_priority {
+                    } else if sprite_oam.has_priority || priority == PriorityType::BgColor0 {
                         // render
                     } else {
                         continue;
@@ -604,7 +610,7 @@ impl Ppu {
         //          (Used for both BG and Window. BG color 0 is always behind OBJ)
 
         let palette_number: u8 = (flags & 0x07) as u8;
-        let vram_bank: u8 = if self.gameboy_type == GameboyType::CLASSIC {0} else if flags & 0x8 != 0 {1} else {0};
+        let vram_bank: u8 = if self.model == GameboyType::CLASSIC {0} else if flags & 0x8 != 0 {1} else {0};
         let pal_palette_index = if flags & 0x10 != 0 {1u8} else {0u8};
         let x_flip = flags & 0x20 != 0;
         let y_flip = flags & 0x40 != 0;
@@ -755,6 +761,7 @@ impl Ppu {
                     ((self.cbg_obj[palnum][colnum][1] & 0x18) >> 3) | (self.cbg_obj[palnum][colnum][2] << 2)
                 }
             },
+            0xFF6C => if self.obj_priority { 0x1 } else { 0x0 },
             _ => panic!("invalid"),
         }
     }
@@ -813,6 +820,7 @@ impl Ppu {
 
                 if self.cbg_obj_increment { self.cbg_obj_index = (self.cbg_obj_index + 1) & 0x3F; };
             },
+            0xFF6C => {}
             _ => panic!("invalid {}", address),
         }
     }
@@ -865,7 +873,7 @@ impl Ppu {
     }
 
     pub fn set_gameboy_type(&mut self, model: GameboyType) {
-        self.gameboy_type = model;
+        self.model = model;
     }
 
 }
