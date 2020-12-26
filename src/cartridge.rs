@@ -153,7 +153,7 @@ impl Cartridge for MBC5 {
         MBC5 {
             rom: content.try_into().expect("yabe"),
             rom_bank: 1,
-            ram: ::std::iter::repeat(0u8).take(0x1E).collect(),
+            ram: ::std::iter::repeat(0u8).take(0x1000).collect(),
             ram_bank: 0,
             ram_on: false,
             ram_mode: false,
