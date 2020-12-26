@@ -8,7 +8,7 @@ use crate::joypad::Joypad;
 
 #[allow(unused)]
 pub struct Mmu {
-    zram: [u8; 0x7F],
+    hram: [u8; 0x7F],
     sram: [u8; 0x30], // sound
     wram: [u8; 0x8000],
     wram_bank: usize,
@@ -37,7 +37,7 @@ impl Mmu {
             sram: [0; 0x30],
             wram: [0; 0x8000],
             wram_bank: 1,
-            zram: [0; 0x7F],
+            hram: [0; 0x7F],
             speed: Speed::SLOW,
             switch_speed: false,
             interrupt_flags: 0,
@@ -80,7 +80,7 @@ impl Mmu {
             0xFF51 ..= 0xFF55 => { self.dma.borrow_mut().read_byte(address) },
             0xFF68 ..= 0xFF6B => { self.ppu.read_byte(address) },
             0xFF70 ..= 0xFF70 => { self.wram_bank as u8 },
-            0xFF80 ..= 0xFFFE => { self.zram[(address - 0xFF80) as usize] },
+            0xFF80 ..= 0xFFFE => { self.hram[(address - 0xFF80) as usize] },
             0xFFFF => { self.interrupt_enable },
             _ => 0,
         }
@@ -94,7 +94,7 @@ impl Mmu {
             0xC000 ..= 0xCFFF | (0xE000 ..= 0xEFFF) => { self.wram[address as usize & 0x0FFF] = value },
             0xD000 ..= 0xDFFF | (0xF000 ..= 0xFDFF) => { self.wram[(self.wram_bank * 0x1000) | (address as usize & 0x0FFF)] = value },
             0xFE00 ..= 0xFE9F => { self.ppu.write_byte(address, value) },
-            0xFF00 => { self.joypad.write_byte(address, value)},
+            0xFF00 => {  }, // self.joypad.write_byte(address, value)
             0xFF01 ..= 0xFF02 => { }, // serial transfer
             0xFF04 ..= 0xFF07 => { self.timer.write_byte(address, value) },
             0xFF10 ..= 0xFF3F => { self.sram[address as usize - 0xFF10] = value },
@@ -105,7 +105,7 @@ impl Mmu {
             0xFF68 ..= 0xFF6B => { self.ppu.write_byte(address, value)},
             0xFF0F => { self.interrupt_flags = value },
             0xFF70 ..= 0xFF70 => { self.wram_bank = match value & 0x7 { 0 => 1, n => n as usize }; },
-            0xFF80 ..= 0xFFFE => { self.zram[(address - 0xFF80) as usize] = value; },
+            0xFF80 ..= 0xFFFE => { self.hram[(address - 0xFF80) as usize] = value; },
             0xFFFF => { self.interrupt_enable = value },
             _ => {},
         };

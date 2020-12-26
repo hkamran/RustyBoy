@@ -142,12 +142,19 @@ impl Cpu {
         // clear flag
         mmu.interrupt_flags &= !(1 << interrupt_type);
 
-        let pc = self.pc;
-        self.push_word(mmu, pc);
+        self.push_word(mmu, self.pc);
 
         // go to the vector
-        self.pc = 0x0040 | ((interrupt_type as u16) << 3);
-        self.cycles += 4;
+        self.pc = match interrupt_type {
+            0 => 0x40,
+            1 => 0x48,
+            2 => 0x50,
+            3 => 0x58,
+            4 => 0x60,
+            _ => { panic!("error") }
+        };
+
+        self.cycles += 12;
 
         return true;
     }

@@ -8,3 +8,6 @@ https://thomas.spurden.name/gameboy/
 https://robdor.com/2016/08/10/gameboy-emulator-half-carry-flag/
 http://blog.alasdairmorrison.com/gameboy-memory-map/
 https://github.com/mattcurrie/cgb-acid2
+
+
+https://nnarain.github.io/2016/09/24/GameboyEmulator-TitleScreen.html

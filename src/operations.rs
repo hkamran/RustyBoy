@@ -249,7 +249,22 @@ pub fn execute_operation(opcode: u8, cpu: &mut Cpu, mmu: &mut Mmu) -> () {
             cpu.cycles += 2;
         }
         0x27 => {
-            panic!("not implemented");
+            let mut a = cpu.a;
+            let mut adjust = if cpu.get_f_carry() { 0x60 } else { 0x00 };
+            if cpu.get_f_half_carry() { adjust |= 0x06; };
+            if !cpu.get_f_substract() {
+                if a & 0x0F > 0x09 { adjust |= 0x06; };
+                if a > 0x99 { adjust |= 0x60; };
+                a = a.wrapping_add(adjust);
+            } else {
+                a = a.wrapping_sub(adjust);
+            }
+
+            cpu.a = a;
+
+            cpu.set_f_carry(adjust >= 0x60);
+            cpu.set_f_half_carry(false);
+            cpu.set_f_zero(a == 0);
         }
         0x28 => {
             if cpu.get_f_zero() {
