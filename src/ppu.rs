@@ -110,7 +110,7 @@ pub struct Ppu {
 
     // https://gbdev.io/pandocs/#ff0f-if-interrupt-flag-r-w
     pub interrupt_flags: u8,
-    obj_priority: bool,
+    obj_master_priority: bool,
 
     pub h_blank: bool,
     pub v_blank: bool,
@@ -118,6 +118,7 @@ pub struct Ppu {
     mode: GpuMode,
     clock: u32,
     ly: u8,
+    wly: u8,
     model: GameboyType,
 
     screen: Screen
@@ -172,7 +173,7 @@ impl Ppu {
             scanline_priority: [PriorityType::None; SCREEN_W],
             frame: [0; SCREEN_W * SCREEN_H * 3],
             interrupt_flags: 0,
-            obj_priority: false,
+            obj_master_priority: false,
 
             h_blank: false,
             v_blank: false,
@@ -180,6 +181,7 @@ impl Ppu {
             clock: 0,
             mode: GpuMode::VBlank,
             ly: 0,
+            wly: 0,
             model: GameboyType::CLASSIC,
 
             screen: Screen::new()
@@ -194,10 +196,6 @@ impl Ppu {
         self.mode = GpuMode::Read;
         self.model = model;
         self.ly = 0;
-
-        if model == GameboyType::COLOR {
-            self.obj_priority = true;
-        }
     }
 
     pub fn execute_ticks(&mut self, ticks: u32) -> () {
@@ -259,6 +257,8 @@ impl Ppu {
 
                     if self.ly > 153 {
                         self.ly = 0;
+                        self.wly = 0;
+                        self.obj_master_priority = false;
                         self.set_mode(GpuMode::Read);
                     }
                 }
@@ -304,13 +304,17 @@ impl Ppu {
     }
 
     fn render_bg_line(&mut self) {
+        let mut window_has_rendered = false;
+
         let draw_window = self.window_display_enable && self.model == GameboyType::COLOR;
         let draw_background = self.model == GameboyType::COLOR || self.bg_display_enable;
 
+        if !draw_window && !draw_background { return; }
+
         let display_y = self.ly as usize;
         for display_x in 0 .. SCREEN_W {;
-            let window_y = display_y as i32 - self.window_y_coord as i32;
-            let window_x = - ((self.window_x_coord as i32) - 7) + (display_x as i32);
+            let mut window_y = if (-(self.window_y_coord as i32) + (display_y as i32)) >= 0 { self.wly as i32 } else { -1 };
+            let mut window_x = (-((self.window_x_coord as i32) - 7) + (display_x as i32));
 
             // Values in range from 0-255 may be used for X/Y each, the video controller automatically
             // wraps back to the upper (left) position in BG map when drawing exceeds the lower (right) border of the BG map area.
@@ -332,6 +336,8 @@ impl Ppu {
                 tile_y = (window_y / 8) as u16;
                 pixel_x = (window_x % 8) as u16;
                 pixel_y = (window_y % 8) as u16;
+
+                window_has_rendered = true;
             } else if draw_background {
                 tile_map_base_address = self.bg_tile_map_select;
                 tile_x = (bg_x / 8) as u16;
@@ -379,6 +385,16 @@ impl Ppu {
             }
         }
 
+        // https://sudonull.com/post/136059-Writing-a-Gameboy-Emulator-Part-2
+        // To display it, a hidden pointer to the current line of the “window” is used, which increments
+        // after the output of the next line. If the “window” is disabled or hidden due to WX / WY coordinates,
+        // then its line counter is not incremented. Thus, if the output of the "window" was disabled halfway,
+        // then when the output is turned on, the output will continue from where it left off.
+        // This is true for one screen update. At the end of the V-blank, the “window” line counter is reset to zero.
+
+        if window_has_rendered {
+            self.wly += 1;
+        }
     }
 
     fn get_bg_tile_attributes(&mut self, tile_map_address: u16) -> TileEntry {
@@ -519,7 +535,9 @@ impl Ppu {
                     // When bit 7 of bank 1 of tile attribute memory ($9800-$9fff) is set to 1 it will force the background and/or window to have priority over the sprite attribute flags and to appear over sprites no matter what the setting of the sprite attribute flags.
                     // If bit 0 of register LCDC ($ff40) is 0 then sprites will always appear above the background & window regardless of the settings of sprite attribute flags & tile attribute memory.
 
-                    if !self.lcd_display_enable {
+                    if self.obj_master_priority {
+                        // render
+                    } else if !self.lcd_display_enable {
                         // render
                     } else if priority == PriorityType::BgPriority {
                         continue;
@@ -580,11 +598,8 @@ impl Ppu {
         }
     }
 
-    fn get_sprite_attributes(&mut self, id: u16) -> SpriteOam {
+    fn get_sprite_attributes(&mut self, index: u16) -> SpriteOam {
         // GameBoy video controller can display up to 40 sprites either in 8x8 or in 8x16 pixels.
-
-        let index = id;
-
         // Sprite attributes reside in the Sprite Attribute Table (OAM - Object Attribute Memory) at $FE00-FE9F.
         // Each of the 40 entries consists of four bytes.
 
@@ -761,7 +776,7 @@ impl Ppu {
                     ((self.cbg_obj[palnum][colnum][1] & 0x18) >> 3) | (self.cbg_obj[palnum][colnum][2] << 2)
                 }
             },
-            0xFF6C => if self.obj_priority { 0x1 } else { 0x0 },
+            0xFF6C => 0x0,
             _ => panic!("invalid"),
         }
     }
@@ -772,6 +787,7 @@ impl Ppu {
             0xFE00 ..= 0xFE9F => self.voam[address as usize - 0xFE00] = value,
             0xFF40 => {
                 let last_lcd_display_enable = self.lcd_display_enable;
+                let last_bg_display_enable = self.bg_display_enable;
 
                 self.lcd_display_enable = value & 0x80 == 0x80;
                 self.window_tile_map_select = if value & 0x40 == 0x40 { 0x9C00 } else { 0x9800 };
@@ -786,6 +802,12 @@ impl Ppu {
                     self.mode = GpuMode::HBlank;
                     self.ly = 0;
                     self.clock = 0;
+                }
+
+                if self.model == GameboyType::COLOR {
+                    if last_bg_display_enable && !self.bg_display_enable {
+                        self.obj_master_priority = true;
+                    }
                 }
             },
             0xFF41 => {
