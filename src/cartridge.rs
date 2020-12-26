@@ -144,7 +144,6 @@ impl Cartridge for MBC1 {
             }
             _ => panic!("error"),
         }
-        self.rom[addr as usize] = value;
     }
 
     fn get_gameboy_type(&self) -> GameboyType {
