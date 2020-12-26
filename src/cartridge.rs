@@ -34,6 +34,22 @@ pub struct MBC1 {
     ram_bank: usize,
 }
 
+#[allow(dead_code)]
+pub struct MBC2 {
+    data: [u8; 0x8000],
+    rom_bank: [u8; 0x4000],
+    ram_bank: [u8; 0x3000],
+}
+
+pub struct MBC3 {
+    rom: Vec<u8>,
+    rom_bank: usize,
+
+    ram: Vec<u8>,
+    ram_bank: usize,
+    ram_on: bool,
+}
+
 pub struct MBC5 {
     rom: Vec<u8>,
     rom_bank: usize,
@@ -42,20 +58,6 @@ pub struct MBC5 {
     ram_on: bool,
     ram_mode: bool,
     ram_bank: usize,
-}
-
-#[allow(dead_code)]
-pub struct MBC2 {
-    data: [u8; 0x8000],
-    rom_bank: [u8; 0x4000],
-    ram_bank: [u8; 0x3000],
-}
-
-#[allow(dead_code)]
-pub struct MBC3 {
-    data: [u8; 0x8000],
-    rom_bank: [u8; 0x4000],
-    ram_bank: [u8; 0x3000],
 }
 
 impl Cartridge for MBC0 {
@@ -147,6 +149,61 @@ impl Cartridge for MBC1 {
     }
 }
 
+impl Cartridge for MBC3 {
+
+    fn new(content: &[u8]) -> Self {
+        MBC3 {
+            rom: content.try_into().expect("yabe"),
+            rom_bank: 1,
+            ram: ::std::iter::repeat(0u8).take(0x20000).collect(),
+            ram_bank: 0,
+            ram_on: false,
+        }
+    }
+
+    fn rom_dump(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{:x?}", self.rom)
+    }
+
+    fn read_byte(&self, addr: u16) -> u8 {
+        match addr {
+            0xA000 ..= 0xBFFF => {
+                if !self.ram_on { return 0 }
+                if self.ram_bank <= 3 {
+                    self.ram[self.ram_bank * 0x2000 | ((addr as usize) & 0x1FFF)]
+                } else {
+                    0 // TODO implement this
+                }
+            },
+            _ => { // Rom
+                let index = if addr < 0x4000 { addr as usize }
+                else  { self.rom_bank  * 0x4000 | ((addr as usize) & 0x3FFF) };
+
+                return *self.rom.get(index).unwrap_or(&0);
+            }
+        }
+    }
+
+    fn write_byte(&mut self, addr: u16, value: u8) {
+        match addr {
+            0x0000 ..= 0x1FFF => { self.ram_on = value == 0x0A; },
+            0x2000 ..= 0x3FFF => self.rom_bank = match value & 0x7F { 0 => 1, n => n as usize },
+            0x4000 ..= 0x5FFF => self.ram_bank = value as usize,
+            0x6000 ..= 0x7FFF => { }, // TODO impl this
+            0xA000 ..= 0xBFFF => {
+                if self.ram_on == false { return }
+                self.ram[self.ram_bank * 0x2000 | ((addr as usize) & 0x1FFF)] = value;
+            }
+            _ => panic!("error"),
+        }
+    }
+
+    fn get_gameboy_type(&self) -> GameboyType {
+        let mode_byte = self.rom[0x143];
+        return if mode_byte == 0xc0 { GameboyType::COLOR } else { GameboyType::CLASSIC };
+    }
+}
+
 impl Cartridge for MBC5 {
 
     fn new(content: &[u8]) -> Self {
@@ -170,8 +227,8 @@ impl Cartridge for MBC5 {
                 if !self.ram_on { return 0 }
                 let ram_bank = self.ram_bank;
                 self.ram[(ram_bank * 0x2000) | ((addr & 0x1FFF) as usize)]
-            }
-            _ => {
+            },
+            _ => { // Rom
                 let index = if addr < 0x4000 { addr as usize }
                 else  { self.rom_bank  * 0x4000 | ((addr as usize) & 0x3FFF) };
 
@@ -193,7 +250,6 @@ impl Cartridge for MBC5 {
             }
             _ => panic!("error"),
         }
-        self.rom[addr as usize] = value;
     }
 
     fn get_gameboy_type(&self) -> GameboyType {
@@ -222,7 +278,8 @@ pub fn load_from_bytes(content: Vec<u8>) -> Box<dyn Cartridge> {
     } else if 0x05 <= cartridge_type && cartridge_type <= 0x06 {
         panic!("not implemented");
     } else if 0x0F <= cartridge_type && cartridge_type <= 0x13 {
-        panic!("not implemented");
+        let cartridge = MBC3::new(&content[..]);
+        return Box::new(cartridge);
     } else if 0x19 <= cartridge_type && cartridge_type <= 0x1E {
         let cartridge = MBC5::new(&content[..]);
         return Box::new(cartridge);
