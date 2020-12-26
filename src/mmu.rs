@@ -75,12 +75,12 @@ impl Mmu {
             0xFF04 ..= 0xFF07 => { self.timer.read_byte(address) },
             0xFF0F => { self.interrupt_flags },
             0xFF10 ..= 0xFF3F => { self.sram[address as usize - 0xFF10] },
-            0xFF40 ..= 0xFF4F => { self.ppu.read_byte(address) },
             0xFF4D => (if self.speed == Speed::FAST { 0x80 } else { 0 }) | (if self.switch_speed { 1 } else { 0 }),
+            0xFF40 ..= 0xFF4F => { self.ppu.read_byte(address) },
             0xFF51 ..= 0xFF55 => { self.dma.borrow_mut().read_byte(address) },
             0xFF68 ..= 0xFF6B => { self.ppu.read_byte(address) },
             0xFF70 ..= 0xFF70 => { self.wram_bank as u8 },
-            0xFF80 ..= 0xFFFE => { self.hram[(address - 0xFF80) as usize] },
+            0xFF80 ..= 0xFFFE => { self.hram[address as usize & 0x007F] },
             0xFFFF => { self.interrupt_enable },
             _ => 0,
         }
@@ -97,15 +97,15 @@ impl Mmu {
             0xFF00 => {  }, // self.joypad.write_byte(address, value)
             0xFF01 ..= 0xFF02 => { }, // serial transfer
             0xFF04 ..= 0xFF07 => { self.timer.write_byte(address, value) },
+            0xFF0F => { self.interrupt_flags = value },
             0xFF10 ..= 0xFF3F => { self.sram[address as usize - 0xFF10] = value },
-            0xFF40 ..= 0xFF4F => { self.ppu.write_byte(address, value) },
             0xFF46 => { execute_odma(self, value) },
             0xFF4D => { if value & 0x1 == 0x1 { self.switch_speed = true; } },
+            0xFF40 ..= 0xFF4F => { self.ppu.write_byte(address, value) },
             0xFF51 ..= 0xFF55 => { self.dma.borrow_mut().write_byte(address, value)},
             0xFF68 ..= 0xFF6B => { self.ppu.write_byte(address, value)},
-            0xFF0F => { self.interrupt_flags = value },
             0xFF70 ..= 0xFF70 => { self.wram_bank = match value & 0x7 { 0 => 1, n => n as usize }; },
-            0xFF80 ..= 0xFFFE => { self.hram[(address - 0xFF80) as usize] = value; },
+            0xFF80 ..= 0xFFFE => { self.hram[address as usize & 0x007F] = value; },
             0xFFFF => { self.interrupt_enable = value },
             _ => {},
         };

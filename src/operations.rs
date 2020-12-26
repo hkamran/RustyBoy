@@ -6,7 +6,7 @@ pub fn execute_operation(opcode: u8, cpu: &mut Cpu, mmu: &mut Mmu) -> () {
     match opcode {
         0x00 => {
             cpu.pc += 1;
-            cpu.cycles += 2;
+            cpu.cycles += 1;
         }
         0x01 => {
             cpu.set_bc(mmu.read_word(cpu.pc + 1));
@@ -21,7 +21,7 @@ pub fn execute_operation(opcode: u8, cpu: &mut Cpu, mmu: &mut Mmu) -> () {
         0x03 => {
             cpu.set_bc(cpu.get_bc().wrapping_add(1));
             cpu.pc += 1;
-            cpu.cycles += 6;
+            cpu.cycles += 2;
         }
         0x04 => {
             cpu.b = cpu.apply_inc_u8_with_flags(cpu.b);
@@ -36,7 +36,7 @@ pub fn execute_operation(opcode: u8, cpu: &mut Cpu, mmu: &mut Mmu) -> () {
         0x06 => {
             cpu.b = mmu.read_byte(cpu.pc + 1);
             cpu.pc += 2;
-            cpu.cycles += 1;
+            cpu.cycles += 2;
         }
         0x07 => {
             cpu.a = cpu.apply_rotate_left_with_flags(cpu.a, false);
@@ -214,7 +214,7 @@ pub fn execute_operation(opcode: u8, cpu: &mut Cpu, mmu: &mut Mmu) -> () {
             cpu.set_hl(value);
 
             cpu.pc += 3;
-            cpu.cycles += 3;
+            cpu.cycles += 2;
         }
         0x22 => {
             mmu.write_byte(cpu.get_hl(), cpu.a);
@@ -265,6 +265,9 @@ pub fn execute_operation(opcode: u8, cpu: &mut Cpu, mmu: &mut Mmu) -> () {
             cpu.set_f_carry(adjust >= 0x60);
             cpu.set_f_half_carry(false);
             cpu.set_f_zero(a == 0);
+
+            cpu.pc += 1;
+            cpu.cycles += 1;
         }
         0x28 => {
             if cpu.get_f_zero() {
@@ -1202,7 +1205,7 @@ pub fn execute_operation(opcode: u8, cpu: &mut Cpu, mmu: &mut Mmu) -> () {
             cpu.a = a;
 
             cpu.pc += 1;
-            cpu.cycles += 1;
+            cpu.cycles += 2;
         }
         0xBF => {
             cpu.apply_sub_u8_with_flags(cpu.a, cpu.a, false);
@@ -1215,6 +1218,7 @@ pub fn execute_operation(opcode: u8, cpu: &mut Cpu, mmu: &mut Mmu) -> () {
                 cpu.pc = cpu.pop_word(mmu);
                 cpu.cycles += 5;
             } else {
+                cpu.pc += 1;
                 cpu.cycles += 2;
             }
         }
@@ -1488,7 +1492,7 @@ pub fn execute_operation(opcode: u8, cpu: &mut Cpu, mmu: &mut Mmu) -> () {
             cpu.push_word(mmu, cpu.pc + 1);
             cpu.pc = 0x20;
 
-            cpu.cycles += 2;
+            cpu.cycles += 4;
         }
         0xE8 => {
             let value = mmu.read_byte(cpu.pc + 1) as i8 as i16;
