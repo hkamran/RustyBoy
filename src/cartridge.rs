@@ -82,7 +82,11 @@ impl Cartridge for MBC0 {
 
     fn get_gameboy_type(&self) -> GameboyType {
         let mode_byte = self.rom[0x143];
-        return if mode_byte == 0xc0 { GameboyType::COLOR } else { GameboyType::CLASSIC };
+        return if mode_byte == 0xC0 || mode_byte == 0x80 {
+            GameboyType::COLOR
+        } else {
+            GameboyType::CLASSIC
+        };
     }
 }
 
@@ -92,7 +96,7 @@ impl Cartridge for MBC1 {
         MBC1 {
             rom: content.try_into().expect("yabe"),
             rom_bank: 1,
-            ram: vec![],
+            ram: ::std::iter::repeat(0u8).take(0x20000).collect(),
             ram_on: false,
             ram_mode: false,
             ram_bank: 0
@@ -145,7 +149,11 @@ impl Cartridge for MBC1 {
 
     fn get_gameboy_type(&self) -> GameboyType {
         let mode_byte = self.rom[0x143];
-        return if mode_byte == 0xc0 { GameboyType::COLOR } else { GameboyType::CLASSIC };
+        return if mode_byte == 0xC0 || mode_byte == 0x80 {
+            GameboyType::COLOR
+        } else {
+            GameboyType::CLASSIC
+        };
     }
 }
 
@@ -200,7 +208,11 @@ impl Cartridge for MBC3 {
 
     fn get_gameboy_type(&self) -> GameboyType {
         let mode_byte = self.rom[0x143];
-        return if mode_byte == 0xc0 { GameboyType::COLOR } else { GameboyType::CLASSIC };
+        return if mode_byte == 0xC0 || mode_byte == 0x80 {
+            GameboyType::COLOR
+        } else {
+            GameboyType::CLASSIC
+        };
     }
 }
 
@@ -254,7 +266,11 @@ impl Cartridge for MBC5 {
 
     fn get_gameboy_type(&self) -> GameboyType {
         let mode_byte = self.rom[0x143];
-        return if mode_byte == 0xc0 { GameboyType::COLOR } else { GameboyType::CLASSIC };
+        return if mode_byte == 0xC0 || mode_byte == 0x80 {
+            GameboyType::COLOR
+        } else {
+            GameboyType::CLASSIC
+        };
     }
 }
 
