@@ -1,3 +1,4 @@
+use crate::console::GameboyType;
 
 pub struct Timer {
     div:  u8,
@@ -26,7 +27,7 @@ impl Timer {
         }
     }
 
-    pub fn reset(&mut self) {
+    pub fn reset(&mut self, model: GameboyType) {
         self.div = 0;
         self.tima = 0;
         self.tma = 0;

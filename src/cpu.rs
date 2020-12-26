@@ -1,6 +1,7 @@
 use crate::mmu::Mmu;
 use crate::operations::execute_operation;
 use crate::logger::log;
+use crate::console::GameboyType;
 
 #[allow(unused)]
 pub struct Cpu {
@@ -50,13 +51,13 @@ impl Cpu {
         }
     }
 
-    pub fn reset(&mut self) {
-        self.a = 0x01;
+    pub fn reset(&mut self, model: GameboyType) {
+        self.a = 0x11;
         self.b = 0x00;
         self.c = 0x13;
         self.d = 0x00;
         self.e = 0xD8;
-        self.f = 0x90;
+        self.f = 0xB0;
         self.h = 0x01;
         self.l = 0x4D;
         self.pc = 0x0100;
@@ -68,6 +69,10 @@ impl Cpu {
         self.cycles = 0;
         self.opcode = 0;
         self.ticks = 0;
+
+        if model == GameboyType::CLASSIC {
+            self.a = 0x01;
+        }
     }
 
     pub fn execute_ticks(&mut self, mmu: &mut Mmu, ticks: u32) -> u32 {

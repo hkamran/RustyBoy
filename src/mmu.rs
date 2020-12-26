@@ -5,6 +5,7 @@ use crate::timer::Timer;
 use std::cell::RefCell;
 use std::rc::Rc;
 use crate::joypad::Joypad;
+use crate::console::GameboyType;
 
 #[allow(unused)]
 pub struct Mmu {
@@ -21,6 +22,7 @@ pub struct Mmu {
     pub dma: Rc<RefCell<Dma>>,
     pub timer: Timer,
     pub joypad: Joypad,
+    pub model: GameboyType,
 }
 
 #[derive(PartialEq)]
@@ -46,7 +48,8 @@ impl Mmu {
             ppu: Ppu::new(),
             dma: Rc::new(RefCell::new(Dma::new())),
             timer: Timer::new(),
-            joypad: Joypad::new()
+            joypad: Joypad::new(),
+            model: GameboyType::CLASSIC
         };
     }
 
@@ -54,7 +57,7 @@ impl Mmu {
         self.cartridge = Some(load_from_file_address(cart_path));
         match &mut self.cartridge {
             Some(c) => {
-                self.ppu.set_gameboy_type(c.get_gameboy_type().clone())
+                self.model = c.get_gameboy_type().clone();
             },
             None => {
                 panic!("error")
@@ -157,12 +160,12 @@ impl Mmu {
         self.ppu.interrupt_flags = 0;
     }
 
-    pub fn reset(&mut self) {
+    pub fn reset(&mut self, model: GameboyType) {
         let mut dma = self.dma.clone();
 
-        self.timer.reset();
-        self.ppu.reset();
-        self.dma.borrow_mut().reset();
+        self.timer.reset(model);
+        self.ppu.reset(model);
+        self.dma.borrow_mut().reset(model);
 
         self.write_byte(0xFF05, 0);
         self.write_byte(0xFF06, 0);

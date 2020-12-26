@@ -49,7 +49,7 @@ enum PriorityType {
 
 // https://gbdev.io/pandocs/#ff41-stat-lcdc-status-r-w
 #[derive(PartialEq, Copy, Clone)]
-enum GpuMode {
+pub enum GpuMode {
     Read = 2,
     Transfer = 3,
     HBlank = 0,
@@ -184,12 +184,13 @@ impl Ppu {
         };
     }
 
-    pub fn reset(&mut self) {
+    pub fn reset(&mut self, model: GameboyType) {
         self.interrupt_flags = 0;
         self.h_blank = false;
         self.v_blank = false;
         self.clock = 0;
         self.mode = GpuMode::Read;
+        self.gameboy_type = model;
         self.ly = 0;
     }
 

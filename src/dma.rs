@@ -1,4 +1,5 @@
 use crate::mmu::Mmu;
+use crate::console::GameboyType;
 
 #[derive(PartialEq)]
 enum DMAType {
@@ -27,7 +28,7 @@ impl Dma {
         }
     }
 
-    pub fn reset(&mut self) {
+    pub fn reset(&mut self, model: GameboyType) {
         self.dma_source = 0;
         self.dma_destination = 0;
         self.dma_length = 0;

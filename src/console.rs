@@ -27,8 +27,9 @@ impl Console {
     }
 
     pub fn reset(&mut self) {
-        self.cpu.reset();
-        self.mmu.reset();
+        let model = self.mmu.model;
+        self.cpu.reset(model.clone());
+        self.mmu.reset(model.clone());
     }
 
     pub fn execute_ticks(&mut self, ticks: u32) -> () {
