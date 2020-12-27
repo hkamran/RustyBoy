@@ -1,6 +1,9 @@
 use crate::cpu::Cpu;
-use crate::mmu::{Mmu};
+use crate::mmu::Mmu;
+use web_sys::CanvasRenderingContext2d;
+use wasm_bindgen::prelude::*;
 
+#[wasm_bindgen]
 #[derive(PartialEq, Copy, Clone)]
 pub enum GameboyType {
     COLOR,
@@ -22,10 +25,6 @@ impl Console {
         }
     }
 
-    pub fn load(&mut self, cart_path: &str) {
-        self.mmu.load_cartridge(cart_path);
-    }
-
     pub fn reset(&mut self) {
         let model = self.mmu.model;
         self.cpu.reset(model.clone());
@@ -45,5 +44,4 @@ impl Console {
         let cpu_ticks = self.cpu.execute_tick(&mut self.mmu) * 4;
         self.mmu.execute_ticks(cpu_ticks);
     }
-
 }

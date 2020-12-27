@@ -1,6 +1,8 @@
-use crate::screen::Screen;
 use crate::console::GameboyType;
 use crate::logger::log;
+use crate::mmu::Mmu;
+use wasm_bindgen::prelude::*;
+use web_sys::CanvasRenderingContext2d;
 
 pub const VRAM_SIZE: usize = 0x4000;
 pub const VOAM_SIZE: usize = 0xA0;
@@ -56,7 +58,9 @@ pub enum GpuMode {
     VBlank = 1,
 }
 
+#[wasm_bindgen]
 #[allow(dead_code)]
+#[derive(Copy, Clone)]
 pub struct Ppu {
     // 0xFF40 (http://bgb.bircd.org/pandocs.htm#videodisplay)
     lcd_display_enable: bool,
@@ -124,6 +128,7 @@ pub struct Ppu {
     screen: Screen
 }
 
+#[wasm_bindgen]
 #[allow(dead_code)]
 impl Ppu {
 

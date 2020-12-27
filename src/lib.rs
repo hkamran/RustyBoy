@@ -7,23 +7,40 @@ mod io;
 mod operations;
 mod dma;
 mod timer;
-mod screen;
 mod logger;
 mod joypad;
 
-use console_error_panic_hook;
-use wasm_bindgen::prelude::*;
-use web_sys;
+extern crate serde_json;
+extern crate wasm_bindgen;
 
+#[macro_use]
+extern crate serde_derive;
+
+use console_error_panic_hook;
+use console::Console;
+use wasm_bindgen::prelude::*;
+use wasm_bindgen::JsCast;
+use web_sys::{CanvasRenderingContext2d, HtmlCanvasElement};
 
 // When the `wee_alloc` feature is enabled, this uses `wee_alloc` as the global
 // allocator.
-//
 // If you don't want to use `wee_alloc`, you can safely delete this.
 #[cfg(feature = "wee_alloc")]
 #[global_allocator]
 static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
 
+// Logging
+#[wasm_bindgen]
+extern "C" {
+    #[wasm_bindgen(js_namespace = console)]
+    fn log(s: &str);
+
+    #[wasm_bindgen(js_namespace = console, js_name = log)]
+    fn log_u32(a: u32);
+
+    #[wasm_bindgen(js_namespace = console, js_name = log)]
+    fn log_many(a: &str, b: &str);
+}
 
 // This is like the `main` function, except for JavaScript.
 #[wasm_bindgen(start)]
@@ -33,9 +50,25 @@ pub fn main_js() -> Result<(), JsValue> {
     #[cfg(debug_assertions)]
     console_error_panic_hook::set_once();
 
+    let document = web_sys::window().expect("no global window exists").document().unwrap();
+    let canvas = document.get_element_by_id("screen").expect("cannot find screen in dom");
+    let canvas: HtmlCanvasElement = canvas
+        .dyn_into::<HtmlCanvasElement>()
+        .map_err(|_| ())
+        .unwrap();
 
-    // Your code goes here!
-    web_sys::console::log_1(&JsValue::from_str("Hello world!"));
+    let context = canvas
+        .get_context("2d")
+        .unwrap()
+        .unwrap()
+        .dyn_into::<CanvasRenderingContext2d>()
+        .unwrap();
 
+    let mut console: Console = Console::new();
+    let bytes: Vec<u8>;
+    //console.mmu.cartridge = Cartridge::load(bytes);
+
+    //console.load_canvas_ctx(context);
+    //context.beginPath();
     Ok(())
 }

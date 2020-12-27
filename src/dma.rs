@@ -1,4 +1,5 @@
 use crate::mmu::Mmu;
+use wasm_bindgen::prelude::*;
 use crate::console::GameboyType;
 use crate::ppu::Ppu;
 
@@ -9,6 +10,7 @@ enum DMAType {
     HDMA,
 }
 
+#[wasm_bindgen]
 pub struct Dma {
     dma: [u8; 4],
     dma_status: DMAType,

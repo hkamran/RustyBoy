@@ -1,4 +1,4 @@
-use crate::cartridge::{Cartridge, load_from_file_address};
+use crate::cartridge::{Cartridge, CartridgeType, HEADER_INDEX_FOR_CARTRIDGE_TYPE};
 use crate::ppu::Ppu;
 use crate::dma::{Dma, execute_dma_tick, execute_odma};
 use crate::timer::Timer;
@@ -6,7 +6,9 @@ use std::cell::RefCell;
 use std::rc::Rc;
 use crate::joypad::Joypad;
 use crate::console::GameboyType;
+use wasm_bindgen::prelude::*;
 
+#[wasm_bindgen]
 #[allow(unused)]
 pub struct Mmu {
     hram: [u8; 0x7F],
@@ -18,14 +20,15 @@ pub struct Mmu {
     pub interrupt_enable: u8,
     pub interrupt_flags: u8,
     pub ppu: Ppu,
-    pub cartridge: Option<Box<dyn Cartridge>>,
+    pub cartridge: Option<Cartridge>,
     pub dma: Dma,
     pub timer: Timer,
     pub joypad: Joypad,
     pub model: GameboyType,
 }
 
-#[derive(PartialEq)]
+#[wasm_bindgen]
+#[derive(PartialEq, Copy, Clone)]
 pub enum Speed {
     FAST, SLOW
 }
@@ -118,7 +121,7 @@ impl Mmu {
         let low = (self.read_byte(address) as u16);
         let high  = (self.read_byte(address + 1) as u16);
 
-        return (high << 8) | low;
+        return ((high as u32) << 16) as u16 | low;
     }
 
     pub fn write_word(&mut self, address: u16, value: u16) {
@@ -192,4 +195,20 @@ impl Mmu {
         self.write_byte(0xFF4B, 0);
     }
 
+    //https://github.com/rustwasm/wasm-bindgen/issues/1052
+    //https://stackoverflow.com/questions/52796222/how-to-pass-an-array-of-objects-to-webassembly-and-convert-it-to-a-vector-of-str
+    pub fn load_cartridge(&mut self, result: &JsValue) {
+        let bytes: Vec<u8> = result.into_serde().unwrap();
+        let cartridge_type = bytes[HEADER_INDEX_FOR_CARTRIDGE_TYPE];
+        let mut cartridge = Cartridge::new(bytes);
+        match cartridge_type {
+            0x0 => { cartridge.cartridge_type = Some(CartridgeType::MBC0) },
+            0x01..=0x03 => { cartridge.cartridge_type = Some(CartridgeType::MBC1) },
+            //0x05..=0x06 => { cartridge.cartridge_type = Some(CartridgeType::MBC2) },
+            //0x0F..=0x13 => { cartridge.cartridge_type = Some(CartridgeType::MBC3) },
+            0x1E => { cartridge.cartridge_type = Some(CartridgeType::MBC5) },
+            _ => panic!("cartridge type not implemented")
+        }
+        self.cartridge = Some(cartridge);
+    }
 }

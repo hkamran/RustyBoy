@@ -1,5 +1,8 @@
+use wasm_bindgen::prelude::*;
 use crate::console::GameboyType;
 
+#[wasm_bindgen]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct Timer {
     div:  u8,
     tima: u8,

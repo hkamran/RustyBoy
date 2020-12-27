@@ -1,3 +1,6 @@
+use wasm_bindgen::prelude::*;
+#[wasm_bindgen]
+#[derive(PartialEq, Copy, Clone)]
 pub struct Joypad {
     row0: u8,
     row1: u8,
