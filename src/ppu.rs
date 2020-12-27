@@ -57,6 +57,7 @@ enum GpuMode {
 
 #[wasm_bindgen]
 #[allow(dead_code)]
+#[derive(Copy, Clone)]
 pub struct Ppu {
     // 0xFF40 (http://bgb.bircd.org/pandocs.htm#videodisplay)
     lcd_display_enable: bool,
@@ -119,7 +120,6 @@ pub struct Ppu {
     ly: u8,
     gameboy_type: GameboyType,
 
-    screen: Option<CanvasRenderingContext2d>
 
 }
 
@@ -181,13 +181,7 @@ impl Ppu {
             mode: GpuMode::VBlank,
             ly: 0,
             gameboy_type: GameboyType::CLASSIC,
-
-            screen: None
         };
-    }
-
-    pub fn load_canvas_ctx(&mut self, context: CanvasRenderingContext2d) {
-        self.screen = Some(context);
     }
 
     pub fn execute_ticks(&mut self, ticks: u32) -> () {

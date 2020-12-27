@@ -20,13 +20,13 @@ pub struct Mmu {
     pub interrupt_flag: u8,
     pub ppu: Ppu,
     pub cartridge: Option<Cartridge>,
-    pub dma: Rc<RefCell<Dma>>,
+    //pub dma: Rc<RefCell<Dma>>,
     pub timer: Timer,
     pub joypad: Joypad,
 }
 
 #[wasm_bindgen]
-#[derive(PartialEq)]
+#[derive(PartialEq, Copy, Clone)]
 pub enum Speed {
     FAST, SLOW
 }
@@ -47,7 +47,7 @@ impl Mmu {
             interrupt_enable: 0,
 
             ppu: Ppu::new(),
-            dma: Rc::new(RefCell::new(Dma::new())),
+            //dma: Rc::new(RefCell::new(Dma::new())),
             timer: Timer::new(),
             joypad: Joypad::new()
         };
@@ -68,7 +68,7 @@ impl Mmu {
             0xFF10 ..= 0xFF3F => { self.sram[address as usize - 0xFF10] },
             0xFF40 ..= 0xFF4F => { self.ppu.read_byte(address) },
             0xFF4D => (if self.speed == Speed::FAST { 0x80 } else { 0 }) | (if self.switch_speed { 1 } else { 0 }),
-            0xFF51 ..= 0xFF55 => { self.dma.borrow_mut().read_byte(address) },
+            0xFF51 ..= 0xFF55 => { 0 }, //self.dma.borrow_mut().read_byte(address) },
             0xFF68 ..= 0xFF6B => { self.ppu.read_byte(address) },
             0xFF70 ..= 0xFF70 => { self.wram_bank as u8 },
             0xFF80 ..= 0xFFFE => { self.zram[(address - 0xFF80) as usize] },
@@ -92,7 +92,7 @@ impl Mmu {
             0xFF40 ..= 0xFF4F => { self.ppu.write_byte(address, value) },
             0xFF46 => { execute_odma(self, value) },
             0xFF4D => { if value & 0x1 == 0x1 { self.switch_speed = true; } },
-            0xFF51 ..= 0xFF55 => { self.dma.borrow_mut().write_byte(address, value)},
+            0xFF51 ..= 0xFF55 => { },//self.dma.borrow_mut().write_byte(address, value)},
             0xFF68 ..= 0xFF6B => { self.ppu.write_byte(address, value)},
             0xFF0F => { self.interrupt_flag = value },
             0xFF70 ..= 0xFF70 => { self.wram_bank = match value & 0x7 { 0 => 1, n => n as usize }; },
@@ -106,7 +106,7 @@ impl Mmu {
         let low = (self.read_byte(address) as u16);
         let high  = (self.read_byte(address + 1) as u16);
 
-        return (high << 16) | low;
+        return ((high as u32) << 16) as u16 | low;
     }
 
     pub fn write_word(&mut self, address: u16, value: u16) {
@@ -130,9 +130,9 @@ impl Mmu {
             Speed::FAST => 2,
         };
 
-        let mut dma = self.dma.clone();
+        //let mut dma = self.dma.clone();
 
-        let vram_ticks = dma.borrow_mut().execute_tick(self);
+        let vram_ticks = 1;// dma.borrow_mut().execute_tick(self);
         let gpu_ticks = ticks / cpu_divider + vram_ticks;
         let timer_ticks = ticks + vram_ticks * cpu_divider;
 
@@ -149,10 +149,10 @@ impl Mmu {
     }
 
     pub fn reset(&mut self) {
-        let mut dma = self.dma.clone();
+        //let mut dma = self.dma.clone();
 
         self.timer.reset();
-        self.dma.borrow_mut().reset();
+        //self.dma.borrow_mut().reset();
 
         self.write_byte(0xFF05, 0);
         self.write_byte(0xFF06, 0);

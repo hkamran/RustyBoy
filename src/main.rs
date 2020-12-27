@@ -7,7 +7,6 @@ mod io;
 mod operations;
 mod dma;
 mod timer;
-mod screen;
 mod logger;
 mod joypad;
 
@@ -18,14 +17,12 @@ use crate::console::{Console};
 
 fn main() {
     let mut console: Console = Console::new();
-    let cart_path = "./roms/cgb-acid2.gbc";
+    let cart_path = "./roms/promo_demo.gbc";
 
-    console.mmu.load_cartridge(cart_path);
-    //println!("{:?}", console.mmu.cartridge.as_ref().unwrap().read_byte(0x0147));
-    for x in 0 .. 100 {
-        log("{}", x);
-        console.tick();
-    }
+    //console.load(cart_path);
+    console.reset();
+    console.execute_ticks(45165847);
 
+    console.execute_ticks(1);
     print!("finished")
 }
