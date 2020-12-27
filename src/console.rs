@@ -32,7 +32,7 @@ impl Console {
         self.mmu.reset(model.clone());
         self.mmu.timer.reset(model.clone());
         self.mmu.ppu.reset(model.clone());
-        self.mmu.dma.borrow_mut().reset(model);
+        self.mmu.dma.reset(model);
     }
 
     pub fn execute_ticks(&mut self, ticks: u32) -> () {
