@@ -1,6 +1,6 @@
 use crate::cartridge::{Cartridge, load_from_file_address};
 use crate::ppu::Ppu;
-use crate::dma::{Dma, execute_odma};
+use crate::dma::{Dma, execute_dma_tick, execute_odma};
 use crate::timer::Timer;
 use std::cell::RefCell;
 use std::rc::Rc;
@@ -19,7 +19,7 @@ pub struct Mmu {
     pub interrupt_flags: u8,
     pub ppu: Ppu,
     pub cartridge: Option<Box<dyn Cartridge>>,
-    pub dma: Rc<RefCell<Dma>>,
+    pub dma: Dma,
     pub timer: Timer,
     pub joypad: Joypad,
     pub model: GameboyType,
@@ -46,7 +46,7 @@ impl Mmu {
             interrupt_enable: 0,
 
             ppu: Ppu::new(),
-            dma: Rc::new(RefCell::new(Dma::new())),
+            dma: Dma::new(),
             timer: Timer::new(),
             joypad: Joypad::new(),
             model: GameboyType::CLASSIC
@@ -80,7 +80,7 @@ impl Mmu {
             0xFF10 ..= 0xFF3F => { self.sram[address as usize - 0xFF10] },
             0xFF4D => (if self.speed == Speed::FAST { 0x80 } else { 0 }) | (if self.switch_speed { 1 } else { 0 }),
             0xFF40 ..= 0xFF4F => { self.ppu.read_byte(address) },
-            0xFF51 ..= 0xFF55 => { self.dma.borrow_mut().read_byte(address) },
+            0xFF51 ..= 0xFF55 => { self.dma.read_byte(address) },
             0xFF68 ..= 0xFF6C => { self.ppu.read_byte(address) },
             0xFF70 ..= 0xFF70 => { self.wram_bank as u8 },
             0xFF80 ..= 0xFFFE => { self.hram[address as usize & 0x007F] },
@@ -105,8 +105,8 @@ impl Mmu {
             0xFF46 => { execute_odma(self, value) },
             0xFF4D => { if value & 0x1 == 0x1 { self.switch_speed = true; } },
             0xFF40 ..= 0xFF4F => { self.ppu.write_byte(address, value) },
-            0xFF51 ..= 0xFF55 => { self.dma.borrow_mut().write_byte(address, value)},
-            0xFF68 ..= 0xFF6B => { self.ppu.write_byte(address, value)},
+            0xFF51 ..= 0xFF55 => { self.dma.write_byte(address, value) },
+            0xFF68 ..= 0xFF6B => { self.ppu.write_byte(address, value) },
             0xFF70 ..= 0xFF70 => { self.wram_bank = match value & 0x7 { 0 => 1, n => n as usize }; },
             0xFF80 ..= 0xFFFE => { self.hram[address as usize & 0x007F] = value; },
             0xFFFF => { self.interrupt_enable = value },
@@ -142,11 +142,9 @@ impl Mmu {
             Speed::FAST => 2,
         };
 
-        let mut dma = self.dma.clone();
-
-        let vram_ticks = dma.borrow_mut().execute_tick(self);
-        let gpu_ticks = ticks / cpu_divider + vram_ticks;
-        let timer_ticks = ticks + vram_ticks * cpu_divider;
+        let dma_ticks = execute_dma_tick(self);
+        let gpu_ticks = ticks / cpu_divider + dma_ticks;
+        let timer_ticks = ticks + dma_ticks * cpu_divider;
 
         self.timer.execute_ticks(timer_ticks);
         self.ppu.execute_ticks(gpu_ticks);

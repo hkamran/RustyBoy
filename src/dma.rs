@@ -1,5 +1,6 @@
 use crate::mmu::Mmu;
 use crate::console::GameboyType;
+use crate::ppu::Ppu;
 
 #[derive(PartialEq)]
 enum DMAType {
@@ -33,14 +34,6 @@ impl Dma {
         self.dma_destination = 0;
         self.dma_length = 0;
         self.dma_status = DMAType::NONE;
-    }
-
-    pub fn execute_tick(&mut self, mmu: &mut Mmu) -> u32 {
-        return match self.dma_status {
-            DMAType::NONE => 0,
-            DMAType::GDMA => self.execute_gdma(mmu),
-            DMAType::HDMA => self.execute_hdma(mmu),
-        };
     }
 
     pub fn read_byte(&self, address: u16) -> u8 {
@@ -78,43 +71,37 @@ impl Dma {
         };
     }
 
-    fn execute_hdma(&mut self, mmu: &mut Mmu) -> u32 {
-        if mmu.ppu.h_blank == false {
-            return 0;
-        }
-        self.execute_transfer(mmu);
-        if self.dma_length == 0x7F { self.dma_status = DMAType::NONE; }
+}
 
-        return 8;
+pub fn execute_dma_tick(mmu: &mut Mmu) -> u32 {
+    return match mmu.dma.dma_status {
+        DMAType::NONE => 0,
+        DMAType::GDMA => execute_gdma(mmu),
+        DMAType::HDMA => execute_hdma(mmu),
+    };
+}
+
+
+// H-Blank DMA
+fn execute_hdma(mmu: &mut Mmu) -> u32 {
+    if mmu.ppu.h_blank == false {
+        return 0;
+    }
+    execute_transfer(mmu);
+    if mmu.dma.dma_length == 0x7F { mmu.dma.dma_status = DMAType::NONE; }
+
+    return 8;
+}
+
+// General Purpose DMA
+fn execute_gdma(mmu: &mut Mmu) -> u32 {
+    let len = mmu.dma.dma_length as u32 + 1;
+    for _i in 0 .. len {
+        execute_transfer(mmu);
     }
 
-    fn execute_gdma(&mut self, mmu: &mut Mmu) -> u32 {
-        let len = self.dma_length as u32 + 1;
-        for _i in 0 .. len {
-            self.execute_transfer(mmu);
-        }
-
-        self.dma_status = DMAType::NONE;
-        return len * 8;
-    }
-
-    fn execute_transfer(&mut self, mmu: &mut Mmu) {
-        let mmu_src = self.dma_source;
-        for j in 0 .. 0x10 {
-            let b: u8 = mmu.read_byte(mmu_src + j);
-            mmu.ppu.write_byte(self.dma_destination + j, b);
-        }
-        self.dma_source += 0x10;
-        self.dma_destination += 0x10;
-
-        if self.dma_length == 0 {
-            self.dma_length = 0x7F;
-        }
-        else {
-            self.dma_length -= 1;
-        }
-    }
-
+    mmu.dma.dma_status = DMAType::NONE;
+    return len * 8;
 }
 
 // OAM DMA
@@ -125,3 +112,22 @@ pub fn execute_odma(mmu: &mut Mmu, value: u8) {
         mmu.write_byte(0xFE00 + i, data);
     }
 }
+
+pub fn execute_transfer(mmu: &mut Mmu) {
+    let mmu_src = mmu.dma.dma_source;
+    for j in 0 .. 0x10 {
+        let b: u8 = mmu.read_byte(mmu_src + j);
+        mmu.ppu.write_byte(mmu.dma.dma_destination + j, b);
+    }
+    mmu.dma.dma_source += 0x10;
+    mmu.dma.dma_destination += 0x10;
+
+    if mmu.dma.dma_length == 0 {
+        mmu.dma.dma_length = 0x7F;
+    }
+    else {
+        mmu.dma.dma_length -= 1;
+    }
+}
+
+
