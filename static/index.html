@@ -5,7 +5,7 @@
     <title>My Rust + Webpack project!</title>
   </head>
   <body>
-    <input id="cartridge-input" type="file" id="files" name="files[]" />
+    <input id="cartridge-input" type="file" id="files" name="files[]" onchange="onFileLoad(event)" />
     <canvas id="screen" width="100" height="100" ></canvas>
     <script src="index.js"></script>
   </body>

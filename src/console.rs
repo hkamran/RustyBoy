@@ -2,6 +2,7 @@ use crate::cpu::Cpu;
 use crate::mmu::Mmu;
 use web_sys::CanvasRenderingContext2d;
 use wasm_bindgen::prelude::*;
+use console_error_panic_hook;
 
 #[wasm_bindgen]
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -22,14 +23,16 @@ pub struct Console {
 impl Console {
 
     pub fn new() -> Self {
+        console_error_panic_hook::set_once();
+
         return Console {
             mmu: Mmu::new(),
             cpu: Cpu::new()
         }
     }
 
-    pub fn load(&mut self, bytes: Vec<u8>) {
-        self.mmu.load_cartridge(bytes);
+    pub fn load(&mut self, result: &JsValue) {
+        self.mmu.load_cartridge(result);
     }
 
     pub fn reset(&mut self) {

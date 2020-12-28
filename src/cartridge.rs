@@ -113,9 +113,11 @@ impl CartridgeType {
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct Cartridge {
     pub cartridge_type: Option<CartridgeType>,
-    rom: [u8; 0xFFFF],
+
+    #[wasm_bindgen(skip)]
+    rom: Vec<u8>,
     rom_bank: usize,
-    ram: [u8; 1],
+    ram: [u8; 0x50000],
     ram_on: bool,
     ram_mode: bool,
     ram_bank: usize,
@@ -130,9 +132,9 @@ pub struct Cartridge {
 impl Cartridge {
     pub fn new(content: Vec<u8>) -> Self {
         Self {
-            rom: content.try_into().expect("yabe"),
+            rom: content,
             rom_bank: 1,
-            ram: [0],
+            ram: [0; 0x50000],
             ram_on: false,
             ram_mode: false,
             ram_bank: 0,

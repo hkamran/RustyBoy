@@ -1,5 +1,8 @@
 ## Getting Started 
 
+1. run `wasm-pack build`
+2. move pkg to js
+
 https://rustwasm.github.io/docs/wasm-pack/tutorials/hybrid-applications-with-webpack/getting-started.html
 
 ## How to install

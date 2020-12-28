@@ -9,7 +9,7 @@ readme = "README.md"
 edition = "2018"
 
 [lib]
-crate-type = ["cdylib"]
+crate-type = ["cdylib", "rlib"]
 
 [profile.release]
 # This makes the compiled code faster and smaller, but it makes compiling slower,
@@ -59,3 +59,8 @@ wasm-bindgen-test = "0.2.45"
 futures = "0.1.27"
 js-sys = "0.3.22"
 wasm-bindgen-futures = "0.3.22"
+
+[target.wasm32-unknown-unknown]
+rustflags = [
+  "-C", "link-arg=-z stack-size=1500000",
+]
