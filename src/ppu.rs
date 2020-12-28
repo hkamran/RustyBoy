@@ -108,13 +108,11 @@ pub struct Ppu {
     vram: [u8; VRAM_SIZE],
     voam: [u8; VOAM_SIZE],
 
-    scanline_priority: [PriorityType; SCREEN_W],
-
-    frame: [u8; SCREEN_W * SCREEN_H * 3],
-
     // https://gbdev.io/pandocs/#ff0f-if-interrupt-flag-r-w
     pub interrupt_flags: u8,
     obj_master_priority: bool,
+
+    scanline_priority: [PriorityType; SCREEN_W],
 
     pub h_blank: bool,
     pub v_blank: bool,
@@ -124,8 +122,8 @@ pub struct Ppu {
     ly: u8,
     wly: u32,
     model: GameboyType,
-
-    screen: Screen
+    frame: [u8; SCREEN_W * SCREEN_H * 3],
+    buffer: [u8; SCREEN_W * SCREEN_H * 3],
 }
 
 #[wasm_bindgen]
@@ -176,7 +174,6 @@ impl Ppu {
             voam: [0; VOAM_SIZE],
 
             scanline_priority: [PriorityType::None; SCREEN_W],
-            frame: [0; SCREEN_W * SCREEN_H * 3],
             interrupt_flags: 0,
             obj_master_priority: false,
 
@@ -189,7 +186,8 @@ impl Ppu {
             wly: 0,
             model: GameboyType::CLASSIC,
 
-            screen: Screen::new()
+            frame: [0; SCREEN_W * SCREEN_H * 3],
+            buffer: [0; SCREEN_W * SCREEN_H * 3],
         };
     }
 
@@ -276,26 +274,7 @@ impl Ppu {
     }
 
     fn render_frame(&mut self) {
-        let mut buffer: Vec<u32> = vec![0; SCREEN_W * SCREEN_H];
-
-        fn from_u8_rgb(r: u8, g: u8, b: u8) -> u32 {
-            let (r, g, b) = (r as u32, g as u32, b as u32);
-            (r << 16) | (g << 8) | b
-        }
-
-        let mut index = 0;
-        for y in 0 .. SCREEN_H {
-            for x in 0 .. SCREEN_W {
-                let base = (y as usize) * SCREEN_W * 3 + x as usize * 3;
-                let r = self.frame[base + 0];
-                let g = self.frame[base + 1];
-                let b = self.frame[base + 2];
-                buffer[index] = from_u8_rgb(r, g, b);
-                index += 1;
-            }
-        }
-
-        self.screen.update(buffer);
+        self.frame = self.buffer.clone();
     }
 
     fn render_scan_line(&mut self) {
@@ -666,9 +645,9 @@ impl Ppu {
     fn set_rgb_at(&mut self, x: usize, y: usize, red: u8, green: u8, blue: u8) {
         let base = (y as usize * SCREEN_W * 3) + (x * 3);
 
-        self.frame[base + 0] = red;
-        self.frame[base + 1] = green;
-        self.frame[base + 2] = blue;
+        self.buffer[base + 0] = red;
+        self.buffer[base + 1] = green;
+        self.buffer[base + 2] = blue;
     }
 
     fn set_mode(&mut self, mode: GpuMode) {

@@ -3,7 +3,7 @@ use wasm_bindgen::prelude::*;
 use crate::console::GameboyType;
 use crate::ppu::Ppu;
 
-#[derive(PartialEq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 enum DMAType {
     NONE,
     GDMA,
@@ -11,6 +11,7 @@ enum DMAType {
 }
 
 #[wasm_bindgen]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct Dma {
     dma: [u8; 4],
     dma_status: DMAType,
