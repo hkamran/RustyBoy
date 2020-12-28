@@ -7,6 +7,8 @@ use std::rc::Rc;
 use crate::joypad::Joypad;
 use crate::console::GameboyType;
 use wasm_bindgen::prelude::*;
+use std::path::Path;
+use std::fs;
 
 #[wasm_bindgen]
 pub struct Mmu {
@@ -55,17 +57,25 @@ impl Mmu {
         };
     }
 
-    //https://github.com/rustwasm/wasm-bindgen/issues/1052
-    //https://stackoverflow.com/questions/52796222/how-to-pass-an-array-of-objects-to-webassembly-and-convert-it-to-a-vector-of-str
-    pub fn load_cartridge(&mut self, result: &JsValue) {
+    pub fn load_cartridge_from_js_value(&mut self, result: &JsValue) {
         let bytes: Vec<u8> = result.into_serde().unwrap();
+        self.load_cartridge_from_bytes(bytes);
+    }
+
+    pub fn load_from_file_address(&mut self, file_path: &str) {
+        let path = Path::new(file_path);
+        let bytes : Vec<u8> = fs::read(path).expect("yabe");
+        self.load_cartridge_from_bytes(bytes);
+    }
+
+    pub fn load_cartridge_from_bytes(&mut self, bytes: Vec<u8>) {
         let cartridge_type = bytes[HEADER_INDEX_FOR_CARTRIDGE_TYPE];
         match cartridge_type {
-            0x0 => { self.cartridge.cartridge_type = CartridgeType::MBC0 },
-            0x01..=0x03 => { self.cartridge.cartridge_type = CartridgeType::MBC1 },
+            0x00 ..= 0x00 => { self.cartridge.cartridge_type = CartridgeType::MBC0 },
+            0x01 ..= 0x03 => { self.cartridge.cartridge_type = CartridgeType::MBC1 },
             //0x05..=0x06 => { cartridge.cartridge_type = Some(CartridgeType::MBC2) },
-            //0x0F..=0x13 => { cartridge.cartridge_type = Some(CartridgeType::MBC3) },
-            0x1E => { self.cartridge.cartridge_type = CartridgeType::MBC5 },
+            0x0F ..= 0x13 => { self.cartridge.cartridge_type = CartridgeType::MBC3 },
+            0x19 ..= 0x1E => { self.cartridge.cartridge_type = CartridgeType::MBC5 },
             _ => panic!("cartridge type not implemented")
         }
         self.cartridge.set_rom(bytes);

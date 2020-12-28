@@ -31,7 +31,7 @@ impl Console {
     }
 
     pub fn load(&mut self, result: &JsValue) {
-        self.mmu.load_cartridge(result);
+        self.mmu.load_cartridge_from_js_value(result);
     }
 
     pub fn reset(&mut self) {
