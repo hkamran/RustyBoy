@@ -135,7 +135,7 @@ impl Mmu {
         let low = (self.read_byte(address) as u16);
         let high  = (self.read_byte(address + 1) as u16);
 
-        return ((high as u32) << 16) as u16 | low;
+        return high.overflowing_shl(8).0 | low;
     }
 
     pub fn write_word(&mut self, address: u16, value: u16) {
