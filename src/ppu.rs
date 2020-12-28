@@ -3,6 +3,7 @@ use crate::logger::log;
 use crate::mmu::Mmu;
 use wasm_bindgen::prelude::*;
 use web_sys::CanvasRenderingContext2d;
+use js_sys::*;
 
 pub const VRAM_SIZE: usize = 0x4000;
 pub const VOAM_SIZE: usize = 0xA0;
@@ -271,6 +272,14 @@ impl Ppu {
             }
         };
 
+    }
+
+    pub fn get_frame(&self) -> js_sys::Array {
+        let arr = js_sys::Array::new_with_length(self.frame.len() as u32);
+        for i in 0 .. self.frame.len() {
+            arr.set(i as u32, JsValue::from(self.frame[i]));
+        }
+        return arr;
     }
 
     fn render_frame(&mut self) {

@@ -3,6 +3,7 @@ use crate::mmu::Mmu;
 use web_sys::CanvasRenderingContext2d;
 use wasm_bindgen::prelude::*;
 use console_error_panic_hook;
+use js_sys;
 
 #[wasm_bindgen]
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -52,4 +53,9 @@ impl Console {
         let cpu_ticks = self.cpu.execute_tick(&mut self.mmu) * 4;
         self.mmu.execute_ticks(cpu_ticks);
     }
+
+    pub fn get_frame(&self) -> js_sys::Array {
+        return self.mmu.ppu.get_frame();
+    }
+
 }

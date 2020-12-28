@@ -12,6 +12,7 @@ mod joypad;
 
 extern crate serde_json;
 extern crate wasm_bindgen;
+extern crate js_sys;
 
 #[macro_use]
 extern crate serde_derive;
