@@ -42,7 +42,7 @@ pub struct SpriteOam {
     pal_palette_index: u8,
 }
 
-#[derive(PartialEq, Copy, Clone)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 enum PriorityType {
     None,
     BgColor0,
@@ -50,7 +50,7 @@ enum PriorityType {
 }
 
 // https://gbdev.io/pandocs/#ff41-stat-lcdc-status-r-w
-#[derive(PartialEq, Copy, Clone)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum GpuMode {
     Read = 2,
     Transfer = 3,
@@ -60,7 +60,7 @@ pub enum GpuMode {
 
 #[wasm_bindgen]
 #[allow(dead_code)]
-#[derive(Copy, Clone)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct Ppu {
     // 0xFF40 (http://bgb.bircd.org/pandocs.htm#videodisplay)
     lcd_display_enable: bool,

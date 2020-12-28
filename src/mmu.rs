@@ -10,6 +10,7 @@ use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen]
 #[allow(unused)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct Mmu {
     hram: [u8; 0x7F],
     sram: [u8; 0x30], // sound
@@ -28,7 +29,7 @@ pub struct Mmu {
 }
 
 #[wasm_bindgen]
-#[derive(PartialEq, Copy, Clone)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Speed {
     FAST, SLOW
 }

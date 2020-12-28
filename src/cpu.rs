@@ -2,8 +2,11 @@ use crate::mmu::Mmu;
 use crate::operations::execute_operation;
 use crate::logger::log;
 use crate::console::GameboyType;
+use wasm_bindgen::prelude::*;
 
+#[wasm_bindgen]
 #[allow(unused)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct Cpu {
     pub a: u8,
     pub b: u8,

@@ -42,12 +42,12 @@ extern "C" {
     fn log_many(a: &str, b: &str);
 }
 
-static mut CONSOLE: Console = Console::new();
+//static mut CONSOLE: Console = Console::new();
 
 #[wasm_bindgen(start)]
-pub unsafe fn load_cartridge(value: JsValue) -> Result<(), JsValue> {
-    let bytes: Vec<u8> = value.into_serde().unwrap();
-    CONSOLE.load(bytes);
+pub fn load_cartridge() -> Result<(), JsValue> {
+    //let bytes: Vec<u8> = value.into_serde().unwrap();
+    //CONSOLE.load(bytes);
 
     Ok(())
 }

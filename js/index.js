@@ -9,3 +9,10 @@ import("../pkg/index_bg.js").catch(console.error).then(wasm => {
     e => fileReader.readAsArrayBuffer(fileInputElement.files[0])
   );
 });
+
+fetch('index_bg.js')
+    .then(response => response.arrayBuffer())
+    .then(bytes => WebAssembly.instantiate(bytes, {}))
+    .then(results => {
+      alert(results.instance.exports.add_one(41));
+    });
