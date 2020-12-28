@@ -18,6 +18,7 @@ pub struct Console {
     pub mmu: Mmu,
 }
 
+#[wasm_bindgen]
 impl Console {
 
     pub fn new() -> Self {

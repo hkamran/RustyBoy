@@ -4,6 +4,7 @@ import("../pkg/index_bg.js")
         window.wasm = wasm;
 
         let gameboy = wasm.Console.new();
+        console.log("GOT IT BOYs");
         console.log(gameboy);
     });
 

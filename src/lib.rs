@@ -48,6 +48,8 @@ extern "C" {
 pub fn load_cartridge() -> Result<(), JsValue> {
     //let bytes: Vec<u8> = value.into_serde().unwrap();
     //CONSOLE.load(bytes);
+    #[cfg(debug_assertions)]
+    console_error_panic_hook::set_once();
 
     Ok(())
 }
