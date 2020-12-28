@@ -42,33 +42,12 @@ extern "C" {
     fn log_many(a: &str, b: &str);
 }
 
-// This is like the `main` function, except for JavaScript.
+static mut CONSOLE: Console = Console::new();
+
 #[wasm_bindgen(start)]
-pub fn main_js() -> Result<(), JsValue> {
-    // This provides better error messages in debug mode.
-    // It's disabled in release mode so it doesn't bloat up the file size.
-    #[cfg(debug_assertions)]
-    console_error_panic_hook::set_once();
+pub unsafe fn load_cartridge(value: JsValue) -> Result<(), JsValue> {
+    let bytes: Vec<u8> = value.into_serde().unwrap();
+    CONSOLE.load(bytes);
 
-    let document = web_sys::window().expect("no global window exists").document().unwrap();
-    let canvas = document.get_element_by_id("screen").expect("cannot find screen in dom");
-    let canvas: HtmlCanvasElement = canvas
-        .dyn_into::<HtmlCanvasElement>()
-        .map_err(|_| ())
-        .unwrap();
-
-    let context = canvas
-        .get_context("2d")
-        .unwrap()
-        .unwrap()
-        .dyn_into::<CanvasRenderingContext2d>()
-        .unwrap();
-
-    let mut console: Console = Console::new();
-    let bytes: Vec<u8>;
-    //console.mmu.cartridge = Cartridge::load(bytes);
-
-    //console.load_canvas_ctx(context);
-    //context.beginPath();
     Ok(())
 }

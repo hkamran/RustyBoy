@@ -1,8 +1,4 @@
 import("../pkg/index_bg.js").catch(console.error).then(wasm => {
-  const screen_w = 160;
-  const scree_h = 144;
-  const BG_COLOR = "#FFFFFF";
-
   var fileReader = new FileReader();
   fileReader.onloadend = e => {
     console.log(fileReader.result);

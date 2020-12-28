@@ -56,15 +56,9 @@ impl Mmu {
         };
     }
 
-
-    pub fn load_cartridge_from_path(&mut self, result: &JsValue) {
-
-    }
-
     //https://github.com/rustwasm/wasm-bindgen/issues/1052
     //https://stackoverflow.com/questions/52796222/how-to-pass-an-array-of-objects-to-webassembly-and-convert-it-to-a-vector-of-str
-    pub fn load_cartridge_from_js(&mut self, result: &JsValue) {
-        let bytes: Vec<u8> = result.into_serde().unwrap();
+    pub fn load_cartridge(&mut self, bytes: Vec<u8>) {
         let cartridge_type = bytes[HEADER_INDEX_FOR_CARTRIDGE_TYPE];
         let mut cartridge = Cartridge::new(bytes);
         match cartridge_type {

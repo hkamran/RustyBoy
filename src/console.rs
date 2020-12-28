@@ -25,6 +25,10 @@ impl Console {
         }
     }
 
+    pub fn load(&mut self, bytes: Vec<u8>) {
+        self.mmu.load_cartridge(bytes);
+    }
+
     pub fn reset(&mut self) {
         let model = self.mmu.model;
         self.cpu.reset(model.clone());
