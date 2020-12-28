@@ -1,4 +1,4 @@
-import("./rust_webpack_template.js")
+import("../pkg/index.js")
     .catch(console.error)
     .then(wasm => {
         window.wasm = wasm;

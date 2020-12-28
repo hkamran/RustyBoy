@@ -60,8 +60,6 @@ pub enum GpuMode {
 }
 
 #[wasm_bindgen]
-#[allow(dead_code)]
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct Ppu {
     // 0xFF40 (http://bgb.bircd.org/pandocs.htm#videodisplay)
     lcd_display_enable: bool,
@@ -111,12 +109,11 @@ pub struct Ppu {
 
     // https://gbdev.io/pandocs/#ff0f-if-interrupt-flag-r-w
     pub interrupt_flags: u8,
-    obj_master_priority: bool,
-
-    scanline_priority: [PriorityType; SCREEN_W],
-
     pub h_blank: bool,
     pub v_blank: bool,
+
+    scanline_priority: [PriorityType; SCREEN_W],
+    obj_master_priority: bool,
 
     mode: GpuMode,
     clock: u32,

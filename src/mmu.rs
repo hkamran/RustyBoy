@@ -20,6 +20,7 @@ pub struct Mmu {
     pub speed: Speed,
     pub interrupt_enable: u8,
     pub interrupt_flags: u8,
+    #[wasm_bindgen(skip)]
     pub ppu: Ppu,
     cartridge: Cartridge,
     pub dma: Dma,
