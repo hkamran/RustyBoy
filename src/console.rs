@@ -12,11 +12,9 @@ pub enum GameboyType {
 }
 
 #[wasm_bindgen]
-#[allow(dead_code)]
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct Console {
-    pub cpu: Cpu,
-    pub mmu: Mmu,
+    cpu: Cpu,
+    mmu: Mmu,
 }
 
 #[wasm_bindgen]

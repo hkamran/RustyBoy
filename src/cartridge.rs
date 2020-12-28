@@ -32,6 +32,7 @@ extern "C" {
 #[wasm_bindgen]
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum CartridgeType {
+    None,
     MBC0,
     MBC1,
     //MBC2,
@@ -40,81 +41,77 @@ pub enum CartridgeType {
     MBC5,
 }
 
-impl CartridgeType {
+fn read_byte(cartridge: &Cartridge, addr: u16) -> u8 {
+    match cartridge.cartridge_type {
+        CartridgeType::None => 0,
+        CartridgeType::MBC0 => { cartridge.rom[addr as usize] },
+        CartridgeType::MBC1 | CartridgeType::MBC5 => {
+            match addr {
+                0xA000 ..= 0xBFFF => {
+                    if !cartridge.ram_on { return 0 }
+                    let ram_bank = if cartridge.ram_mode { cartridge.ram_bank } else { 0 };
+                    cartridge.ram[(ram_bank * 0x2000) | ((addr & 0x1FFF) as usize)]
+                }
+                _ => {
+                    let index = if addr < 0x4000 { addr as usize }
+                    else  { cartridge.rom_bank  * 0x4000 | ((addr as usize) & 0x3FFF) };
 
-    fn read_byte(&self, cartridge: &Cartridge, addr: u16) -> u8 {
-        match self {
-            CartridgeType::MBC0 => { cartridge.rom[addr as usize] },
-            CartridgeType::MBC1 | CartridgeType::MBC5 => {
-                match addr {
-                    0xA000 ..= 0xBFFF => {
-                        if !cartridge.ram_on { return 0 }
-                        let ram_bank = if cartridge.ram_mode { cartridge.ram_bank } else { 0 };
-                        cartridge.ram[(ram_bank * 0x2000) | ((addr & 0x1FFF) as usize)]
-                    }
-                    _ => {
-                        let index = if addr < 0x4000 { addr as usize }
-                        else  { cartridge.rom_bank  * 0x4000 | ((addr as usize) & 0x3FFF) };
-
-                        return *cartridge.rom.get(index).unwrap_or(&0);
-                    }
+                    return *cartridge.rom.get(index).unwrap_or(&0);
                 }
             }
         }
     }
+}
 
-    fn write_byte(&mut self, cartridge: &mut Cartridge, addr: u16, value: u8) {
-        match self {
-            CartridgeType::MBC0 => {},
-            CartridgeType::MBC1 => {
-                match addr {
-                    0x0000 ..= 0x1FFF => { cartridge.ram_on = value == 0x0A; },
-                    0x2000 ..= 0x3FFF => {
-                        cartridge.rom_bank = (cartridge.rom_bank & 0x60) | match (value as usize) & 0x1F { 0 => 1, n => n }
-                    },
-                    0x4000 ..= 0x5FFF => {
-                        if !cartridge.ram_mode {
-                            cartridge.rom_bank = cartridge.rom_bank & 0x1F | (((value as usize) & 0x03) << 5)
-                        } else {
-                            cartridge.rom_bank = (value as usize) & 0x03;
-                        }
-                    },
-                    0x6000 ..= 0x7FFF => { cartridge.ram_mode = (value & 0x01) == 0x01; },
-                    0xA000 ..= 0xBFFF => {
-                        if !cartridge.ram_on { return }
-                        let ram_bank = if cartridge.ram_mode { cartridge.ram_bank } else { 0 };
-                        cartridge.ram[(ram_bank * 0x2000) | ((addr & 0x1FFF) as usize)] = value;
+fn write_byte(cartridge: &mut Cartridge, addr: u16, value: u8) {
+    match cartridge.cartridge_type {
+        CartridgeType::None => {},
+        CartridgeType::MBC0 => {},
+        CartridgeType::MBC1 => {
+            match addr {
+                0x0000 ..= 0x1FFF => { cartridge.ram_on = value == 0x0A; },
+                0x2000 ..= 0x3FFF => {
+                    cartridge.rom_bank = (cartridge.rom_bank & 0x60) | match (value as usize) & 0x1F { 0 => 1, n => n }
+                },
+                0x4000 ..= 0x5FFF => {
+                    if !cartridge.ram_mode {
+                        cartridge.rom_bank = cartridge.rom_bank & 0x1F | (((value as usize) & 0x03) << 5)
+                    } else {
+                        cartridge.rom_bank = (value as usize) & 0x03;
                     }
-                    _ => panic!("error"),
+                },
+                0x6000 ..= 0x7FFF => { cartridge.ram_mode = (value & 0x01) == 0x01; },
+                0xA000 ..= 0xBFFF => {
+                    if !cartridge.ram_on { return }
+                    let ram_bank = if cartridge.ram_mode { cartridge.ram_bank } else { 0 };
+                    cartridge.ram[(ram_bank * 0x2000) | ((addr & 0x1FFF) as usize)] = value;
                 }
-                cartridge.rom[addr as usize] = value;
-            },
-            CartridgeType::MBC5 => {
-                match addr {
-                    0x0000 ..= 0x1FFF => { cartridge.ram_on = value == 0x0A; },
-                    0x2000 ..= 0x2FFF => cartridge.rom_bank = (cartridge.rom_bank & 0x100) | (value as usize),
-                    0x3000 ..= 0x3FFF => cartridge.rom_bank = (cartridge.rom_bank & 0x0FF) | (((value & 0x1) as usize) << 8),
-                    0x4000 ..= 0x5FFF => cartridge.ram_bank = (value & 0x0F) as usize,
-                    0x6000 ..= 0x7FFF => {}
-                    0xA000 ..= 0xBFFF => {
-                        if cartridge.ram_on == false { return }
-                        cartridge.ram[cartridge.ram_bank * 0x2000 | ((addr as usize) & 0x1FFF)] = value;
-                    }
-                    _ => panic!("error"),
-                }
-                cartridge.rom[addr as usize] = value;
+                _ => panic!("error"),
             }
+            cartridge.rom[addr as usize] = value;
+        },
+        CartridgeType::MBC5 => {
+            match addr {
+                0x0000 ..= 0x1FFF => { cartridge.ram_on = value == 0x0A; },
+                0x2000 ..= 0x2FFF => cartridge.rom_bank = (cartridge.rom_bank & 0x100) | (value as usize),
+                0x3000 ..= 0x3FFF => cartridge.rom_bank = (cartridge.rom_bank & 0x0FF) | (((value & 0x1) as usize) << 8),
+                0x4000 ..= 0x5FFF => cartridge.ram_bank = (value & 0x0F) as usize,
+                0x6000 ..= 0x7FFF => {}
+                0xA000 ..= 0xBFFF => {
+                    if cartridge.ram_on == false { return }
+                    cartridge.ram[cartridge.ram_bank * 0x2000 | ((addr as usize) & 0x1FFF)] = value;
+                }
+                _ => panic!("error"),
+            }
+            cartridge.rom[addr as usize] = value;
         }
     }
 }
 
 
 #[wasm_bindgen]
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct Cartridge {
-    pub cartridge_type: Option<CartridgeType>,
-
-    #[wasm_bindgen(skip)]
+    pub cartridge_type: CartridgeType,
     rom: Vec<u8>,
     rom_bank: usize,
     ram: [u8; 0x50000],
@@ -123,23 +120,23 @@ pub struct Cartridge {
     ram_bank: usize,
 }
 
-//impl fmt::Debug for Cartridge {
-//    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-//        self.rom_dump(f)
-//    }
-//}
 
 impl Cartridge {
-    pub fn new(content: Vec<u8>) -> Self {
+
+    pub fn new() -> Self {
         Self {
-            rom: content,
+            rom: vec![0; 1],
             rom_bank: 1,
             ram: [0; 0x50000],
             ram_on: false,
             ram_mode: false,
             ram_bank: 0,
-            cartridge_type: Option::None
+            cartridge_type: CartridgeType::None
         }
+    }
+
+    pub fn set_rom(&mut self, rom: Vec<u8>) {
+        self.rom = rom;
     }
 
     pub fn rom_dump(&self, f: &mut fmt::Formatter) -> fmt::Result {
@@ -147,11 +144,11 @@ impl Cartridge {
     }
 
     pub fn read_byte(&self, addr: u16) -> u8 {
-        self.cartridge_type.unwrap().read_byte(self, addr)
+        read_byte(self, addr)
     }
 
     pub fn write_byte(&mut self, addr: u16, value: u8) {
-        self.cartridge_type.unwrap().write_byte(self, addr, value);
+        write_byte(self, addr, value);
     }
 
     pub fn get_gameboy_type(&self) -> GameboyType {

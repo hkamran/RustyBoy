@@ -9,8 +9,6 @@ use crate::console::GameboyType;
 use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen]
-#[allow(unused)]
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct Mmu {
     hram: [u8; 0x7F],
     sram: [u8; 0x30], // sound
@@ -21,7 +19,7 @@ pub struct Mmu {
     pub interrupt_enable: u8,
     pub interrupt_flags: u8,
     pub ppu: Ppu,
-    pub cartridge: Option<Cartridge>,
+    cartridge: Cartridge,
     pub dma: Dma,
     pub timer: Timer,
     pub joypad: Joypad,
@@ -39,7 +37,6 @@ impl Mmu {
 
     pub fn new() -> Self {
         return Mmu {
-            cartridge: Option::None,
             sram: [0; 0x30],
             wram: [0; 0x8000],
             wram_bank: 1,
@@ -49,6 +46,7 @@ impl Mmu {
             interrupt_flags: 0,
             interrupt_enable: 0,
 
+            cartridge: Cartridge::new(),
             ppu: Ppu::new(),
             dma: Dma::new(),
             timer: Timer::new(),
@@ -62,32 +60,23 @@ impl Mmu {
     pub fn load_cartridge(&mut self, result: &JsValue) {
         let bytes: Vec<u8> = result.into_serde().unwrap();
         let cartridge_type = bytes[HEADER_INDEX_FOR_CARTRIDGE_TYPE];
-        let mut cartridge = Cartridge::new(bytes);
         match cartridge_type {
-            0x0 => { cartridge.cartridge_type = Some(CartridgeType::MBC0) },
-            0x01..=0x03 => { cartridge.cartridge_type = Some(CartridgeType::MBC1) },
+            0x0 => { self.cartridge.cartridge_type = CartridgeType::MBC0 },
+            0x01..=0x03 => { self.cartridge.cartridge_type = CartridgeType::MBC1 },
             //0x05..=0x06 => { cartridge.cartridge_type = Some(CartridgeType::MBC2) },
             //0x0F..=0x13 => { cartridge.cartridge_type = Some(CartridgeType::MBC3) },
-            0x1E => { cartridge.cartridge_type = Some(CartridgeType::MBC5) },
+            0x1E => { self.cartridge.cartridge_type = CartridgeType::MBC5 },
             _ => panic!("cartridge type not implemented")
         }
-        self.cartridge = Some(cartridge);
-
-        match &mut self.cartridge {
-            Some(c) => {
-                self.model = c.get_gameboy_type().clone();
-            },
-            None => {
-                panic!("error")
-            }
-        };
+        self.cartridge.set_rom(bytes);
+        self.model = self.cartridge.get_gameboy_type().clone();
     }
 
     pub fn read_byte(&self, address: u16) -> u8 {
         match address {
-            0x0000 ..= 0x7FFF => { match &self.cartridge { Some(c) => c.read_byte(address), None => 0 } },
+            0x0000 ..= 0x7FFF => { self.cartridge.read_byte(address) },
             0x8000 ..= 0x9FFF => { self.ppu.read_byte(address) },
-            0xA000 ..= 0xBFFF => { match &self.cartridge { Some(c) => c.read_byte(address), None => 0 } },
+            0xA000 ..= 0xBFFF => { self.cartridge.read_byte(address) },
             0xC000 ..= 0xCFFF | (0xE000 ..= 0xEFFF) => { self.wram[address as usize & 0x0FFF] },
             0xD000 ..= 0xDFFF | (0xF000 ..= 0xFDFF) => { self.wram[(self.wram_bank * 0x1000) | address as usize & 0x0FFF] },
             0xFE00 ..= 0xFE9F => { self.ppu.read_byte(address) },
@@ -109,9 +98,9 @@ impl Mmu {
 
     pub fn write_byte(&mut self, address: u16, value: u8) {
         match address {
-            0x0000 ..= 0x7FFF => { match &mut self.cartridge { Some(c) => c.write_byte(address, value), None => () } },
+            0x0000 ..= 0x7FFF => { self.cartridge.write_byte(address, value) },
             0x8000 ..= 0x9FFF => { self.ppu.write_byte(address, value) },
-            0xA000 ..= 0xBFFF => { match &mut self.cartridge { Some(c) => c.write_byte(address, value), None => () } },
+            0xA000 ..= 0xBFFF => { self.cartridge.write_byte(address, value) },
             0xC000 ..= 0xCFFF | (0xE000 ..= 0xEFFF) => { self.wram[address as usize & 0x0FFF] = value },
             0xD000 ..= 0xDFFF | (0xF000 ..= 0xFDFF) => { self.wram[(self.wram_bank * 0x1000) | (address as usize & 0x0FFF)] = value },
             0xFE00 ..= 0xFE9F => { self.ppu.write_byte(address, value) },
