@@ -2,12 +2,23 @@
 <html>
   <head>
     <meta charset="UTF-8">
-    <title>My Rust + Webpack project!</title>
+    <title>RustyBoy</title>
     <link href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@544&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Roboto+Condensed&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.13.0/css/all.min.css">
     <style rel="stylesheet" href="main.css">
       body {
-        background: #313131;
+        background: #d2d2d2;
+        font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+        font-size: 20px;
+      }
+
+      a {
+        color: #9a969a;
+      }
+
+      a:hover, a:focus {
+        color: #525252;
       }
 
       .app {
@@ -29,7 +40,7 @@
         padding-left: 110px;
         padding-right: 110px;
         width: 78mm;
-        border-radius: 1.5% 1.5% 100% 100% / 1.5% 1.5% 10% 10%;
+        border-radius: 100% 100% 100% 100% / 2% 2% 10% 10%;
         display: flex;
         flex-direction: column;
         align-items: center;
@@ -141,6 +152,38 @@
       .gb-logo {
         margin-top: 18px;
       }
+
+      .menu-button {
+        display: flex;
+        box-shadow: -2px 1px rgba(60, 60, 60, 0.65), inset -2px 1px rgba(255, 255, 255, 0.5);
+        border-radius: 40px;
+        padding: 2px;
+        border: 1px solid rgba(92, 92, 92, 0.27);
+        margin-left: 5px;
+        height: 40px;
+        width: 40px;
+        margin-top: 28px;
+        transform: rotate(-45deg);
+        align-items: center;
+        justify-content: center;
+        background-color: #c3c3c3;
+      }
+
+      .footer {
+        margin: 0 auto;
+        margin-top: 0px;
+        margin-top: 0px;
+        margin-top: 0px;
+        margin-top: 45px;
+      }
+
+      .box {
+        border-radius: 20px;
+        color: #5f5f5f;
+        font-size: 12px;
+        padding: 7px;
+        background: #dadada;
+      }
     </style>
   </head>
   <body>
@@ -170,6 +213,7 @@
           </div>
         </div>
       </div>
+      <div class="box footer"><a href="https://github.com/hkamran/RustyBoy"><i class="fab fa-github" style="font-size: 24pt"></i></a></div>
     </div>
     <script src="index.js" type="application/javascript"></script>
 
