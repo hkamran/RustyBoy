@@ -120,8 +120,8 @@ pub struct Ppu {
     ly: u8,
     wly: u32,
     model: GameboyType,
-    frame: [u8; SCREEN_W * SCREEN_H * 3],
-    buffer: [u8; SCREEN_W * SCREEN_H * 3],
+    frame: [u8; SCREEN_W * SCREEN_H * 4],
+    buffer: [u8; SCREEN_W * SCREEN_H * 4],
 }
 
 #[wasm_bindgen]
@@ -184,8 +184,8 @@ impl Ppu {
             wly: 0,
             model: GameboyType::CLASSIC,
 
-            frame: [0; SCREEN_W * SCREEN_H * 3],
-            buffer: [0; SCREEN_W * SCREEN_H * 3],
+            frame: [0; SCREEN_W * SCREEN_H * 4],
+            buffer: [0; SCREEN_W * SCREEN_H * 4],
         };
     }
 
@@ -649,11 +649,12 @@ impl Ppu {
     }
 
     fn set_rgb_at(&mut self, x: usize, y: usize, red: u8, green: u8, blue: u8) {
-        let base = (y as usize * SCREEN_W * 3) + (x * 3);
+        let base = (y as usize * SCREEN_W * 4) + (x * 4);
 
         self.buffer[base + 0] = red;
         self.buffer[base + 1] = green;
         self.buffer[base + 2] = blue;
+        self.buffer[base + 3] = 255;
     }
 
     fn set_mode(&mut self, mode: GpuMode) {

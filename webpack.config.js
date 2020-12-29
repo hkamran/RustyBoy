@@ -16,6 +16,18 @@ module.exports = {
   devServer: {
     contentBase: dist,
   },
+  module: {
+    rules: [
+      {
+        test: /\.(glsl|vs|fs|vert|frag)$/,
+        exclude: /node_modules/,
+        use: [
+          'raw-loader',
+          'glslify-loader'
+        ]
+      }
+    ],
+  },
   plugins: [
     new CopyPlugin([
       path.resolve(__dirname, "static")
