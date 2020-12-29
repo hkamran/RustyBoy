@@ -25,7 +25,11 @@ module.exports = {
           'raw-loader',
           'glslify-loader'
         ]
-      }
+      },
+      {
+        test: /\.css$/i,
+        use: ["style-loader", "css-loader"],
+      },
     ],
   },
   plugins: [
