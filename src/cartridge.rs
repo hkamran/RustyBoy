@@ -59,7 +59,7 @@ impl Cartridge {
         Self {
             rom: vec![0; 1],
             rom_bank: 1,
-            ram: vec![0; 0x5000],
+            ram: vec![0; 0x20000],
             ram_on: false,
             ram_mode: false,
             ram_bank: 0,

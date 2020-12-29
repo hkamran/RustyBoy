@@ -17,6 +17,7 @@ window.onFileLoad = (event) => {
                 gameboy.load(jsValue);
                 gameboy.reset();
                 console.log("Loaded!");
+                window.runRustyBoy();
         };
         fileReader.readAsArrayBuffer(input);
 }
