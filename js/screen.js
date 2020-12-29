@@ -2,8 +2,8 @@ import { WebGlUtil } from "./web_gl";
 import vsGLSL from "./shaders/screen_vertex_shader.glsl";
 import fsGLSL from "./shaders/screen_fragment_shader.glsl";
 
-const WIDTH = 160;
-const HEIGHT = 144;
+export const WIDTH = 160;
+export const HEIGHT = 144;
 
 export class Screen {
 

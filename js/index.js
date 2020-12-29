@@ -1,3 +1,5 @@
+import {HEIGHT, Screen, WIDTH} from './screen';
+
 import("../pkg/index.js")
     .catch(console.error)
     .then(wasm => {
@@ -19,38 +21,47 @@ window.onFileLoad = (event) => {
         fileReader.readAsArrayBuffer(input);
 }
 
-const SCREEN_W = 160;
-const SCREEN_H = 144;
-
-let screen = document.getElementById('screen');
-screen.width = SCREEN_W;
-screen.height = SCREEN_H;
-let canvas = screen.getContext('2d');
-
+let canvas = document.getElementById('screen');
 window.runningFlag = true;
+
+// Web-gl Rendering
+window.screen = new Screen(canvas);
 window.runRustyBoy = () => {
         setTimeout(function() {
                 if (runningFlag) requestAnimationFrame(window.runRustyBoy);
-                window.gameboy.execute_ticks(200000);
+                window.gameboy.execute_ticks(27756);
                 let frame = window.gameboy.get_frame();
-                let buffer = canvas.getImageData(0, 0, SCREEN_W, SCREEN_H);
-
-                let index = 0;
-                for (let i = 0; i < frame.length; i += 3) {
-                        let r = frame[i + 0];
-                        let g = frame[i + 1];
-                        let b = frame[i + 2];
-
-                        buffer.data[index + 0] = r;
-                        buffer.data[index + 1] = g;
-                        buffer.data[index + 2] = b;
-                        buffer.data[index + 3] = 255;
-
-                        index += 4;
-                }
-                canvas.putImageData(buffer, 0, 0);
+                let buffer = screen.createBuffer();
+                buffer.data.set(frame);
+                screen.render(buffer);
         }, 1000 / 60);
 }
 
+// Canvas Rendering
+// window.context = canvas.getContext('2d');
+// window.runRustyBoy = () => {
+//         setTimeout(function() {
+//                 if (runningFlag) requestAnimationFrame(window.runRustyBoy);
+//                 window.gameboy.execute_ticks(200000);
+//                 let frame = window.gameboy.get_frame();
+//                 let buffer = context.getImageData(0, 0, WIDTH, HEIGHT);
+//
+//                 let index = 0;
+//                 for (let i = 0; i < frame.length; i += 4) {
+//                         let r = frame[i + 0];
+//                         let g = frame[i + 1];
+//                         let b = frame[i + 2];
+//                         let a = frame[i + 3];
+//
+//                         buffer.data[index + 0] = r;
+//                         buffer.data[index + 1] = g;
+//                         buffer.data[index + 2] = b;
+//                         buffer.data[index + 3] = a;
+//
+//                         index += 4;
+//                 }
+//                 context.putImageData(buffer, 0, 0);
+//         }, 1000 / 60)
+// }
 
 
