@@ -4,6 +4,8 @@ A Gameboy/Gameboy color emulator made in Rust, cross compiled to WASM. Also uses
 
 ## Screenshots
 
+![](./static/screenshots.png "Screenhot")
+
 ## Requirements
 
 * rustc 1.48.0
