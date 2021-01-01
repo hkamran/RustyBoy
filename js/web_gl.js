@@ -70,10 +70,10 @@ export class WebGlUtil {
         return attributeLocations;
     }
 
-    static clear(gl, canvas) {
-        gl.viewport(0, 0, canvas.width, canvas.height);
-        gl.clearColor(107, 123, 110, 0);
-        gl.clear(gl.COLOR_BUFFER_BIT);
+    static clear(gl, r, g, b) {
+        gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
+        gl.clearColor(r, g, b, 0);
+        gl.clear( gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT );
     }
 
     static createProgram(gl,

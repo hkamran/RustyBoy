@@ -1,55 +1,36 @@
-## Getting Started 
+# RustyBoy
 
-1. run `wasm-pack build`
-2. move pkg to js
+A Gameboy/Gameboy color emulator made in Rust, cross compiled to WASM. Also uses with WebGL for rendering.
 
-https://rustwasm.github.io/docs/wasm-pack/tutorials/hybrid-applications-with-webpack/getting-started.html
+## Screenshots
 
-## How to install
+![](./static/screenshots.png "Screenhot")
 
-```sh
-npm install
-```
+## Demo
+<a href="http://hkamran.info/projects/rustyboy/">Demo Page</a>
 
-## How to run in debug mode
+## Requirements
 
-```sh
-# Builds the project and opens it in a new browser tab. Auto-reloads when the project changes.
-npm start
-```
+* rustc 1.48.0
+* cargo 1.48.0
+* npm 6.14.9
+* node 14.15.3
 
-## How to build in release mode
+## Build 
 
 ```sh
-# Builds the project and places it into the `dist` folder.
-npm run build
+1. npm install
+2. npm start
 ```
 
-## How to run unit tests
+## Retrospective
 
-```sh
-# Runs tests in Firefox
-npm test -- --firefox
+* Rust is hard :sweat_drops:
+* WASM/RUST cross compiling is so cool. :sparkles:
 
-# Runs tests in Chrome
-npm test -- --chrome
+## Special Thanks
 
-# Runs tests in Safari
-npm test -- --safari
-```
-
-## What does each file do?
-
-* `Cargo.toml` contains the standard Rust metadata. You put your Rust dependencies in here. You must change this file with your details (name, description, version, authors, categories)
-
-* `package.json` contains the standard npm metadata. You put your JavaScript dependencies in here. You must change this file with your details (author, name, version)
-
-* `webpack.config.js` contains the Webpack configuration. You shouldn't need to change this, unless you have very special needs.
-
-* The `js` folder contains your JavaScript code (`index.js` is used to hook everything into Webpack, you don't need to change it).
-
-* The `src` folder contains your Rust code.
-
-* The `static` folder contains any files that you want copied as-is into the final build. It contains an `index.html` file which loads the `index.js` file.
-
-* The `tests` folder contains your Rust unit tests.
+* Blaarg for the CPU tests.
+* Imran Nazar for gameboy emulation documentation and test roms.
+* mattcurrie for the PPU tests.
+* tepples for the input entropy tests.
