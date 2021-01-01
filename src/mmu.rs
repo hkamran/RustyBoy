@@ -1,5 +1,7 @@
 use crate::cartridge::{Cartridge, CartridgeType, HEADER_INDEX_FOR_CARTRIDGE_TYPE};
 use crate::ppu::Ppu;
+use crate::psg::Psg;
+//use crate::sound::SoundController;
 use crate::dma::{Dma, execute_dma_tick, execute_odma};
 use crate::timer::Timer;
 use std::cell::RefCell;

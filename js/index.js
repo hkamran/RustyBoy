@@ -1,4 +1,5 @@
 import {HEIGHT, Screen, WIDTH} from './screen';
+import * as Tone from 'tone';
 
 import("../pkg/index.js")
     .catch(console.error)
@@ -27,6 +28,7 @@ window.runningFlag = true;
 
 // Web-gl Rendering
 window.screen = new Screen(canvas);
+window.synth = new Tone.Synth().toDestination();
 window.runRustyBoy = () => {
         setTimeout(function() {
                 if (runningFlag) requestAnimationFrame(window.runRustyBoy);
@@ -34,6 +36,7 @@ window.runRustyBoy = () => {
                 let frame = window.gameboy.get_frame();
                 let buffer = screen.createBuffer();
                 buffer.data.set(frame);
+                window.synth.triggerAttackRelease("C4", "8n");
                 screen.render(buffer);
         }, 1000 / 60);
 }
@@ -64,5 +67,4 @@ window.runRustyBoy = () => {
 //                 context.putImageData(buffer, 0, 0);
 //         }, 1000 / 60)
 // }
-
 
