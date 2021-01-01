@@ -61,7 +61,8 @@ export class Screen {
             brightness: gl.getUniformLocation(program, `u_brightness`)
         }
 
-        WebGlUtil.clear(gl, canvas);
+        // 107, 123, 110
+        WebGlUtil.clear(gl, 0.4196, 0.482, 0.431);
     }
 
     createBuffer() {

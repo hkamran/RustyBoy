@@ -9,6 +9,10 @@ import("../pkg/index.js")
         window.gameboy = gameboy;
     });
 
+window.clickLoadRom = () => {
+        document.getElementById("cartridge-input").click();
+}
+
 window.onFileLoad = (event) => {
         const input = event.target.files[0];
         const fileReader = new FileReader();

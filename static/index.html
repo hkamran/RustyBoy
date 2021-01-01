@@ -8,17 +8,17 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.13.0/css/all.min.css">
     <style rel="stylesheet" href="main.css">
       body {
-        background: #d2d2d2;
+        background: #ffd700;
         font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
         font-size: 20px;
       }
 
       a {
-        color: #9a969a;
+        color: #3e3e3e;
       }
 
       a:hover, a:focus {
-        color: #525252;
+        color: #5b5b5b;
       }
 
       .app {
@@ -32,14 +32,14 @@
 
       .menu {
         margin: 30px;
+        margin-right: 80px;
       }
 
       #gameboy {
         padding-top: 45px;
-        padding-bottom: 50px;
+        padding-bottom: 10px;
         padding-left: 110px;
         padding-right: 110px;
-        width: 78mm;
         border-radius: 100% 100% 100% 100% / 2% 2% 10% 10%;
         display: flex;
         flex-direction: column;
@@ -47,11 +47,8 @@
         justify-content: space-around;
         font-family: 'Roboto Condensed', sans-serif;
         font-size: 10px;
-
-        background: rgb(255, 225, 63);
-        box-shadow: inset 0 -1px 3px 2px #c18700, inset 0 -42px 20px 0px #ffd700, 2px 2px 20px 2px rgba(0,0,0,0.40);
+        box-shadow: inset 0 0px 20px 20px #ffd700, inset 0 150px 20px 20px #ffd700;
         background: linear-gradient(90deg, rgb(255, 230, 94) 12%, rgb(255, 215, 0) 13%, rgb(255, 215, 0) 87%, rgb(228, 186, 44) 88%);
-        filter: progid:DXImageTransform.Microsoft.gradient(startColorstr="#ffe13f", endColorstr="#ffcd23", GradientType=1);
       }
 
       .gb-screen-area {
@@ -65,14 +62,15 @@
         padding: 30px 63px 20px 63px;
         position: relative;
         border: 4px inset #FFD700;
+        box-shadow: inset 0 0 10px #000000;
       }
 
       .gb-screen {
-        box-shadow: 4px 3px 0px 0px rgba(0,0,0,0.31) inset;
-        background-color: #6b7b6e;
+        background-color: #000;
         border-radius: 1px;
-        border: 3px inset #4c4c4c;
+        border: 2px inset #626262;
         display: flex;
+        padding: 2px;
       }
 
       #screen {
@@ -150,7 +148,47 @@
       }
 
       .gb-logo {
+        margin: auto;
         margin-top: 18px;
+        padding-bottom: 30px;
+        display: flex;
+        align-content: center;
+        flex-direction: column;
+      }
+
+      .menu {
+        display: flex;
+        width: 100%;
+        align-items: end;
+        justify-content: flex-end;
+      }
+
+      .green {
+        background-color: #47b549;
+      }
+
+      .green:hover {
+        background-color: #67cf69;
+      }
+
+      .blue {
+        background-color: #008893;
+      }
+
+      .blue:hover {
+        background-color: #18b0bc;
+      }
+
+      .red {
+        background-color: #eb1a1d;
+      }
+
+      .red:hover {
+        background-color: #f5464a;
+      }
+
+      .yellow {
+        background-color: #fece15;
       }
 
       .menu-button {
@@ -166,7 +204,18 @@
         transform: rotate(-45deg);
         align-items: center;
         justify-content: center;
-        background-color: #c3c3c3;
+        cursor: pointer;
+      }
+
+
+      .menu-button div {
+        font-size: 18px;
+        background: none;
+        border: none;
+        transform: rotate(45deg);
+        padding: 0;
+        margin: 2px 3px 0px 0px;
+        color: #0000008d;
       }
 
       .footer {
@@ -178,20 +227,21 @@
       }
 
       .box {
-        border-radius: 20px;
-        color: #5f5f5f;
+        color: #242424;
         font-size: 12px;
         padding: 7px;
-        background: #dadada;
       }
     </style>
   </head>
   <body>
     <div class="app">
-      <div class="menu">
-        <input id="cartridge-input" type="file" id="files" name="files[]" onchange="onFileLoad(event)" />
-      </div>
       <div id="gameboy">
+        <div class="menu">
+          <input id="cartridge-input" type="file" id="files" name="files[]" onchange="onFileLoad(event)" style="display: none"/>
+          <a class="menu-button red" data-tip="Load Game" currentitem="false" onclick="clickLoadRom()"><div><i class="fas fa-download"></i></div></a>
+          <a class="menu-button blue" data-tip="Load Game" currentitem="false"><div><i class="fas fa-cog"></i></div></a>
+          <a class="menu-button green" data-tip="Load Game" currentitem="false"><div><i class="fas fa-wrench"></i></div></a>
+        </div>
         <div class="gb-screen-area">
           <div class="gb-power">
             <div class="gb-power-indicator">
@@ -203,7 +253,7 @@
             <p>POWER</p>
           </div>
           <div class="gb-screen">
-            <canvas id="screen" width=320 height="288"></canvas>
+            <canvas id="screen" width=640 height="576"></canvas>
           </div>
           <div class="gb-logo">
             <svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" x="0" y="0" viewBox="0 0 114 14" xml:space="preserve">
@@ -213,7 +263,7 @@
           </div>
         </div>
       </div>
-      <div class="box footer"><a href="https://github.com/hkamran/RustyBoy"><i class="fab fa-github" style="font-size: 24pt"></i></a></div>
+      <div class="box footer"><a href="https://github.com/hkamran/RustyBoy"><i class="fab fa-github" style="font-size: 42pt"></i></a></div>
     </div>
     <script src="index.js" type="application/javascript"></script>
 
