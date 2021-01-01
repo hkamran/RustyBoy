@@ -16,8 +16,13 @@ window.clickLoadRom = () => {
         document.getElementById("cartridge-input").click();
 }
 
-window.onFileLoad = (event) => {
+window.onFileLoad = (url) => {
         const input = event.target.files[0];
+        window.loadRom(input);
+
+}
+
+window.loadRom = (url) => {
         const fileReader = new FileReader();
         fileReader.onloadend = e => {
                 const jsValue = Array.from(new Uint8Array(fileReader.result));
@@ -26,7 +31,7 @@ window.onFileLoad = (event) => {
                 console.log("Loaded!");
                 window.runRustyBoy();
         };
-        fileReader.readAsArrayBuffer(input);
+        fileReader.readAsArrayBuffer(url);
 }
 
 let canvas = document.getElementById('screen');
