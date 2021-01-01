@@ -6,6 +6,9 @@ A Gameboy/Gameboy color emulator made in Rust, cross compiled to WASM. Also uses
 
 ![](./static/screenshots.png "Screenhot")
 
+## Demo
+<a href="http://hkamran.info/projects/rustyboy/">Demo Page</a>
+
 ## Requirements
 
 * rustc 1.48.0
