@@ -1,4 +1,7 @@
 import {HEIGHT, Screen, WIDTH} from './screen';
+import tippy from 'tippy.js';
+
+tippy('[data-tippy-content]');
 
 import("../pkg/index.js")
     .catch(console.error)

@@ -3,8 +3,6 @@
   <head>
     <meta charset="UTF-8">
     <title>RustyBoy</title>
-    <link href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@544&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Roboto+Condensed&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.13.0/css/all.min.css">
     <style rel="stylesheet" href="main.css">
       body {
@@ -231,6 +229,132 @@
         font-size: 12px;
         padding: 7px;
       }
+
+      .menu-aux-button-wrapper {
+        display: flex;
+        flex-direction: row;
+        background: linear-gradient(to bottom left, #848484, rgba(255, 255, 255, 0.8));
+        border-radius: 15px;
+        transform: rotate(-40deg);
+        height: 19px;
+        width: 40px;
+        padding: 2px;
+        box-shadow: -1px 2px 5px 0px rgba(0,0,0,0.64);
+      }
+
+      .extra-button div {
+        font-size: 12px;
+        background: none;
+        border: none;
+        transform: rotate(45deg);
+        padding: 0;
+        margin-left: 8px;
+        margin-top: 5px;
+        color: #5a5a5a;
+      }
+
+      .extra-button {
+        background: #a5a5a5;
+        padding-left: 5px;
+        padding-right: 5px;
+        color: #a8aaaa;
+        font-size: 12px;
+        width: 100%;
+        height: 19px;
+        box-shadow: -1px 1px rgba(0, 0, 0, 0), inset -1px 2px rgba(255, 255, 255, 0.34);
+        border: 1px solid #545454;
+        border-radius: 14px;
+        box-sizing: border-box;
+      }
+
+      .tippy-box[data-animation=fade][data-state=hidden] {
+        opacity: 0
+      }
+
+      [data-tippy-root] {
+        max-width: calc(100vw - 10px)
+      }
+
+      .tippy-box {
+        position: relative;
+        background-color: #333;
+        color: #fff;
+        border-radius: 4px;
+        font-size: 14px;
+        line-height: 1.4;
+        outline: 0;
+        transition-property: transform, visibility, opacity
+      }
+
+      .tippy-box[data-placement^=top]>.tippy-arrow {
+        bottom: 0
+      }
+
+      .tippy-box[data-placement^=top]>.tippy-arrow:before {
+        bottom: -7px;
+        left: 0;
+        border-width: 8px 8px 0;
+        border-top-color: initial;
+        transform-origin: center top
+      }
+
+      .tippy-box[data-placement^=bottom]>.tippy-arrow {
+        top: 0
+      }
+
+      .tippy-box[data-placement^=bottom]>.tippy-arrow:before {
+        top: -7px;
+        left: 0;
+        border-width: 0 8px 8px;
+        border-bottom-color: initial;
+        transform-origin: center bottom
+      }
+
+      .tippy-box[data-placement^=left]>.tippy-arrow {
+        right: 0
+      }
+
+      .tippy-box[data-placement^=left]>.tippy-arrow:before {
+        border-width: 8px 0 8px 8px;
+        border-left-color: initial;
+        right: -7px;
+        transform-origin: center left
+      }
+
+      .tippy-box[data-placement^=right]>.tippy-arrow {
+        left: 0
+      }
+
+      .tippy-box[data-placement^=right]>.tippy-arrow:before {
+        left: -7px;
+        border-width: 8px 8px 8px 0;
+        border-right-color: initial;
+        transform-origin: center right
+      }
+
+      .tippy-box[data-inertia][data-state=visible] {
+        transition-timing-function: cubic-bezier(.54, 1.5, .38, 1.11)
+      }
+
+      .tippy-arrow {
+        width: 16px;
+        height: 16px;
+        color: #333
+      }
+
+      .tippy-arrow:before {
+        content: "";
+        position: absolute;
+        border-color: transparent;
+        border-style: solid
+      }
+
+      .tippy-content {
+        position: relative;
+        padding: 5px 9px;
+        z-index: 1
+      }
+
     </style>
   </head>
   <body>
@@ -238,9 +362,9 @@
       <div id="gameboy">
         <div class="menu">
           <input id="cartridge-input" type="file" id="files" name="files[]" onchange="onFileLoad(event)" style="display: none"/>
-          <a class="menu-button red" data-tip="Load Game" currentitem="false" onclick="clickLoadRom()"><div><i class="fas fa-download"></i></div></a>
-          <a class="menu-button blue" data-tip="Load Game" currentitem="false"><div><i class="fas fa-cog"></i></div></a>
-          <a class="menu-button green" data-tip="Load Game" currentitem="false"><div><i class="fas fa-wrench"></i></div></a>
+          <a class="menu-button red" data-tippy-content="Load Game" onclick="clickLoadRom()"><div><i class="fas fa-download"></i></div></a>
+          <a class="menu-button blue" data-tippy-content="Controls"><div><i class="fa fa-gamepad"></i></div></a>
+          <a class="menu-button green" data-tippy-content="Settings"><div><i class="fas fa-wrench"></i></div></a>
         </div>
         <div class="gb-screen-area">
           <div class="gb-power">
@@ -256,23 +380,11 @@
             <canvas id="screen" width=640 height="576"></canvas>
           </div>
           <div class="gb-logo">
-            <svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" x="0" y="0" viewBox="0 0 114 14" xml:space="preserve" style="height: 75px">
-              <style>.st1{fill:#cac9c9}</style>
-              <path d="M113.2 11.3l-3.3-3.6c1.6-1.2 3.1-2.7 2.6-4.8-.6-2.5-4.2-2.3-6.1-1.9-.5.1-.9.6-.9 1.1.2 3.2.7 6.5-.1 9.7-.4 1.4 1.9 2.1 2.2.6.3-1.1.4-2.2.5-3.2 1.2 1.2 2.3 2.5 3.5 3.8.9 1.1 2.6-.6 1.6-1.7zm-3-7.2c-.4.9-1.3 1.5-2.1 2.1 0-1-.1-2-.2-3 1.1-.1 2.7-.1 2.3.9z" fill="#008893"/>
-              <path class="st1" d="M11.1 3.3l.4-2.7H7.7S1.3.7.8 7.4c0 0-.6 5.3 5.1 5.8 0 0 4.9.6 5.1-6.2H6.2L6 9.3h2s-.5 1.3-1.9 1.3-2.5-1.5-2.4-3c.1-1.6.6-3.9 3.8-4.3h3.6z"/>
-              <path class="st1" d="M31.8 1h-2.6l-2.8 5.4L25.1 1h-2.6l-3 9.5-1.9-9.4h-2.7L9.6 12.7h3L14 9.4h2.4l.8 3.3h4.6L23.5 6l1.4 6.6h1.5l3-6.7.3 6.8h2.7L31.8 1zM14.7 6.9l.8-2.1.6 2.2-1.4-.1zM32.7 12.7L34.2.8h6.7l-.4 2.8h-4.2l-.2 1.7h3.6L39.3 8h-3.5l-.3 1.8h4.2l-.5 2.9zM52.2 4.1c.3-3-2.7-3.3-2.7-3.3h-4.6L43 12.7h5.6c2.4-.3 3.1-1.7 3.3-3.5.2-1.8-1.1-2.5-1.1-2.5s1.1-.5 1.4-2.6zm-4.1 6.3h-2.3l.4-2.4h2.1s1.1.3 1 1.2c.1 1-1.2 1.2-1.2 1.2zm.1-4.7h-1.6l.4-2.2h1.5s1 .2 1 .9c.1 1-1.3 1.3-1.3 1.3z"/>
-              <path class="st1" d="M57.9.9c-5.3.6-5.8 6.1-5.8 6.1s-.6 5.5 4.6 5.8c6-.1 5.7-6.6 5.7-6.6S62.9.9 57.9.9zm-1 9.5s-2.5 0-2.3-3.4c.2-3.4 3-3.6 3-3.6s1.9-.1 2.3 3c-.1 4.2-3 4-3 4z"/>
-              <path class="st1" d="M61.5.9L64 6.7l-.8 6.1H66l.6-5.8L70.8.9h-2.9l-2.4 3.7L64.4.9z"/>
-              <path class="st1" d="M68.7 9.1c1.3 0 2.3 1 2.3 2.3 0 1.3-1 2.3-2.3 2.3-1.3 0-2.3-1-2.3-2.3-.1-1.3 1-2.3 2.3-2.3zm0 .3c-1 0-1.9.9-1.9 2s.8 2 1.9 2c1 0 1.9-.9 1.9-2s-.9-2-1.9-2zm-.5 3.3h-.4v-2.6c.2 0 .4-.1.7-.1.4 0 .7.1.8.2.2.1.2.3.2.5 0 .3-.2.5-.5.6.2 0 .4.2.4.6.1.4.1.6.2.6h-.4c-.1-.1-.1-.3-.2-.7-.1-.3-.2-.5-.6-.5h-.3v1.4zm0-1.4h.3c.3 0 .6-.1.6-.4 0-.2-.2-.5-.6-.5h-.3v.9z"/>
-              <path d="M82.9 2.2C82.5.1 80.3 0 78.6.6c-2.3.8-3.4 2.5-4.2 4.7-.8 2.1-.5 4.6 1.3 6.2 1.7 1.5 4.2 1.5 6.2 1 1.5-.3.9-2.7-.6-2.3-2.5.6-5.3-.3-4.8-3.3.2-1.1.8-2.7 1.8-3.4.4-.2 2.2-1.1 2.3-.6.2 1.5 2.5.9 2.3-.7z" fill="#ec1c24"/>
-              <path d="M83.9 3.4l-.2.2c-1.9 1-2.5 3.5-1.6 5.5 1.2 2.8 4.3 3.4 6.7 1.9 4.8-3-.6-11.8-4.9-7.6zM87.6 9c-3 2.2-5.1-2.8-2.5-3.5.4-.1.7-.4.8-.7 1.7-.8 3.4 3 1.7 4.2z" fill="#7e4e94"/>
-              <path d="M101.7 2.1c-.5-.1-.9 0-1.2.3-.1 0-.2 0-.4.1-2.3.7-3.9 2.6-3.8 5.1 0 2.1 1.4 4.1 3.5 4.7 2.6.7 5.2-1.4 5.9-3.8.8-3-1.3-5.8-4-6.4zm1.4 5.6c-.3 1.2-1.7 2.3-3 1.9-.9-.2-1.3-1.4-1.4-2.2-.1-1.3.7-2.2 2-2.6.2-.1.4-.2.5-.3 1.4.6 2.3 1.8 1.9 3.2z" fill="#ffd600"/>
-              <path d="M95.9 8.8c-.8.2-1.7.4-2.5.5 0-3-.1-6-1.6-8.7-.7-1.3-2.7-.1-2 1.2 1.5 2.7 1.3 6 1.3 9.1 0 .7.7 1.4 1.5 1.1 1.3-.4 2.6-.6 4-.9 1.4-.4.8-2.6-.7-2.3z" fill="#47b549"/>
-            </svg>
+            <img src="logo.svg">
           </div>
         </div>
       </div>
-      <div class="box footer"><a href="https://github.com/hkamran/RustyBoy"><i class="fab fa-github" style="font-size: 42pt"></i></a></div>
+      <div class="box footer" data-tippy-content="Source code!"><a href="https://github.com/hkamran/RustyBoy"><i class="fab fa-github" style="font-size: 42pt"></i></a></div>
     </div>
     <script src="index.js" type="application/javascript"></script>
 
