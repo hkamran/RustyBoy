@@ -8,11 +8,8 @@ static VOLUME_LEVELS: usize = 0xF;
 //http://www.codeslinger.co.uk/pages/projects/mastersystem/sound.html
 #[wasm_bindgen]
 pub struct Psg {
-    ch0: [u8; 0x5], //channel 0: Tone and sweep
-    ch1: [u8; 0x5],// channel 1: Tone
-    ch2: [u8; 0x5],// channel 2: Wave
-    ch3: [u8; 0x5],// channel 3: Noise
-    // Control/ status
+    // Each channel has 5 registers
+    channel: [[u8; 5]; 4],
     nr50: u8,
     nr51: u8,
     nr52: u8,
@@ -23,10 +20,12 @@ pub struct Psg {
 impl Psg {
     pub fn new() -> Self {
         return Psg {
-            ch0: [0xF; 0x5],
-            ch1: [0x0; 0x5],
-            ch2: [0x0; 0x5],
-            ch3: [0x0; 0x5],
+            channel: [
+                [0x0F; 5], // channel 0: Tone and Sweep
+                [0x00; 5], // channel 1: Tone
+                [0x00; 5], // channel 2: Wave
+                [0x00; 5], // channel 3: Noise
+            ],
             nr50: 0x00,
             nr51: 0x00,
             nr52: 0x00,
@@ -43,38 +42,50 @@ impl Psg {
         }
     }
 
-   pub fn output() -> u16 {
+    pub fn get_volume(&self) -> u8 {
+        0
+    }
+
+    pub fn output(&self) -> u16 {
         //calculate volume
         0
-   }
+    }
 
-   pub fn write_byte(&mut self, address: u16, value: u8) {
-       let reg_index: usize = (address & 0x000F % 0x5) as usize;
-       match address {
-           0xFF10..=0xFF14 => { self.ch0[reg_index] = value },
-           0xFF10..=0xFF14 => { self.ch1[reg_index] = value },
-           0xFF10..=0xFF14 => { self.ch2[reg_index] = value },
-           0xFF10..=0xFF14 => { self.ch3[reg_index] = value },
-           0xFF24 => { self.nr50 = value },
-           0xFF25 => { self.nr51 = value },
-           0xFF26 => { self.nr52 = value },
-           0xFF30..=0xFF3F => { self.wave_table[ (address & 0x000F) as usize] = value },
-           _ => {},
-       }
-   }
+    // https://gbdev.gg8.se/wiki/articles/Gameboy_sound_hardware#Trigger_Event
+    pub fn trigger(&self, index: usize) {
+        let channel = self.channel[index];
 
-   pub fn read_byte(&self, address: u16) -> u8 {
-       let reg_index :usize = (address & 0x000F % 0x5) as usize;
-       match address {
-           0xFF10..=0xFF14 => { self.ch0[reg_index] },
-           0xFF10..=0xFF14 => { self.ch1[reg_index] },
-           0xFF10..=0xFF14 => { self.ch2[reg_index] },
-           0xFF10..=0xFF14 => { self.ch3[reg_index] },
-           0xFF24 => { self.nr50 },
-           0xFF25 => { self.nr51 },
-           0xFF26 => { self.nr52 },
-           0xFF30..=0xFF3F => { self.wave_table[(address & 0x000F) as usize] },
-           _ => { 0 },
-       }
-   }
+        // do nothing if trigger is not enabled
+        if ! (channel[4] & 0x40) == 0x40 { return }
+    }
+
+    pub fn write_byte(&mut self, address: u16, value: u8) {
+        let reg_i: usize = (address & 0x000F % 0x5) as usize;
+        match address {
+            0xFF10..=0xFF14 => { self.channel[0][reg_i] = value; if ( reg_i == 0x4 ) {self.trigger(0)}},
+            0xFF15..=0xFF19 => { self.channel[1][reg_i] = value; if ( reg_i == 0x4 ) {self.trigger(1)}},
+            0xFF1A..=0xFF1E => { self.channel[2][reg_i] = value; if ( reg_i == 0x4 ) {self.trigger(2)}},
+            0xFF1F..=0xFF23 => { self.channel[3][reg_i] = value; if ( reg_i == 0x4 ) {self.trigger(3)}},
+            0xFF24 => { self.nr50 = value },
+            0xFF25 => { self.nr51 = value },
+            0xFF26 => { self.nr52 = value },
+            0xFF30..=0xFF3F => { self.wave_table[ (address & 0x000F) as usize] = value },
+            _ => {},
+        }
+    }
+
+    pub fn read_byte(&self, address: u16) -> u8 {
+        let reg_i: usize = (address & 0x000F % 0x5) as usize;
+        match address {
+            0xFF10..=0xFF14 => { self.channel[0][reg_i] },
+            0xFF15..=0xFF19 => { self.channel[1][reg_i] },
+            0xFF1A..=0xFF1E => { self.channel[2][reg_i] },
+            0xFF1F..=0xFF23 => { self.channel[3][reg_i] },
+            0xFF24 => { self.nr50 },
+            0xFF25 => { self.nr51 },
+            0xFF26 => { self.nr52 },
+            0xFF30..=0xFF3F => { self.wave_table[(address & 0x000F) as usize] },
+            _ => { 0 },
+        }
+    }
 }
