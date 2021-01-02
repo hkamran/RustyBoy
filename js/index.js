@@ -15,8 +15,12 @@ import("../pkg/index.js")
         window.gameboy = gameboy;
         window.Button = window.wasm.Button;
 
-        initializeKeyboard();
-        initializeSound();
+        try {
+                initializeKeyboard();
+                initializeSound();
+        } catch (e) {
+                console.error(e);
+        }
     });
 
 window.clickLoadRom = () => {

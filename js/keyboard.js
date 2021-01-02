@@ -1,7 +1,7 @@
 
 export function initializeKeyboard() {
     window.document.onkeydown = onKeyDown.bind(this);
-    window.document.onkeyup = onKeyDown.bind(this);
+    window.document.onkeyup = onKeyUp.bind(this);
 }
 
 
@@ -28,13 +28,13 @@ function onKeyDown(event) {
     } else if (code === key_mapping.RIGHT) {
         window.gameboy.press_button(window.Button.RIGHT);
     } else if (code === key_mapping.START) {
-        console.log("pressing start");
         window.gameboy.press_button(window.Button.START);
     } else if (code === key_mapping.SELECT) {
         window.gameboy.press_button(window.Button.SELECT);
     } else if (code === key_mapping.A) {
         window.gameboy.press_button(window.Button.A);
     } else if (code === key_mapping.B) {
+        console.log("pressing b");
         window.gameboy.press_button(window.Button.B);
     }
 }
@@ -57,6 +57,7 @@ function onKeyUp(event) {
     } else if (code === key_mapping.A) {
         window.gameboy.release_button(window.Button.A);
     } else if (code === key_mapping.B) {
+        console.log("unpressing b");
         window.gameboy.release_button(window.Button.B);
     }
 }
