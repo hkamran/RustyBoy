@@ -14,13 +14,13 @@ use std::fs;
 #[wasm_bindgen]
 pub struct Mmu {
     hram: [u8; 0x7F],
-    sram: [u8; 0x30], // sound
     wram: [u8; 0x8000],
     wram_bank: usize,
     switch_speed: bool,
     pub speed: Speed,
     pub interrupt_enable: u8,
     pub interrupt_flags: u8,
+    psg: Psg,
     #[wasm_bindgen(skip)]
     pub ppu: Ppu,
     cartridge: Cartridge,
@@ -41,7 +41,7 @@ impl Mmu {
 
     pub fn new() -> Self {
         return Mmu {
-            sram: [0; 0x30],
+            psg: Psg::new(),
             wram: [0; 0x8000],
             wram_bank: 1,
             hram: [0; 0x7F],
@@ -96,7 +96,7 @@ impl Mmu {
             0xFF01 ..= 0xFF02 => { 0xFF }, // serial transfer
             0xFF04 ..= 0xFF07 => { self.timer.read_byte(address) },
             0xFF0F => { self.interrupt_flags },
-            0xFF10 ..= 0xFF3F => { self.sram[address as usize - 0xFF10] },
+            0xFF10 ..= 0xFF3F => { self.psg.read_byte(address) },
             0xFF4D => (if self.speed == Speed::FAST { 0x80 } else { 0 }) | (if self.switch_speed { 1 } else { 0 }),
             0xFF40 ..= 0xFF4F => { self.ppu.read_byte(address) },
             0xFF51 ..= 0xFF55 => { self.dma.read_byte(address) },
@@ -120,7 +120,7 @@ impl Mmu {
             0xFF01 ..= 0xFF02 => { }, // serial transfer
             0xFF04 ..= 0xFF07 => { self.timer.write_byte(address, value) },
             0xFF0F => { self.interrupt_flags = value },
-            0xFF10 ..= 0xFF3F => { self.sram[address as usize - 0xFF10] = value },
+            0xFF10 ..= 0xFF3F => { self.psg.write_byte(address, value) },
             0xFF46 => { execute_odma(self, value) },
             0xFF4D => { if value & 0x1 == 0x1 { self.switch_speed = true; } },
             0xFF40 ..= 0xFF4F => { self.ppu.write_byte(address, value) },
