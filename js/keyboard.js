@@ -6,17 +6,13 @@ export function initializeKeyboard() {
 
 
 export const key_mapping = {
-    R: "T",
-    L: "G",
-    X: "Y",
-    A: "H",
     RIGHT: "D",
     LEFT: "A",
     DOWN: "S",
     UP: "W",
     START: "B",
     SELECT: "N",
-    Y: "U",
+    A: "H",
     B: "J",
 }
 
