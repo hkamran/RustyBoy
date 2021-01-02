@@ -32,7 +32,6 @@ window.loadRom = (url) => {
                 window.runRustyBoy();
         };
         fileReader.readAsArrayBuffer(input);
-        setupSound();
 }
 
 let canvas = document.getElementById('screen');
@@ -40,7 +39,6 @@ window.runningFlag = true;
 
 // Web-gl Rendering
 window.screen = new Screen(canvas);
-window.synth = new Tone.Synth().toDestination();
 window.runRustyBoy = () => {
         setTimeout(function() {
                 if (runningFlag) requestAnimationFrame(window.runRustyBoy);
@@ -99,16 +97,23 @@ window.setupSound = () => {
   }
 }
 
+window.setupSound();
 window.playTone = () => {
   let osc = audioCtx.createOscillator();
   osc.connect(window.masterGainNode);
   let type = 'sine';
-  osc.frequency.value = '20.0';
+  osc.frequency.value = '99.0';
   osc.start();
   return osc;
-
 }
 
 window.volume = (val) => {
   masterGainNode.gain.setValueAtTime(val, audioCtx.currentTime);
 }
+
+const playButton = document.getElementById("aud");
+playButton.addEventListener('click', function(){
+  if (this.dataset.playing == 'false') {
+    window.playTone();
+  }
+}, false);
