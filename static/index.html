@@ -534,9 +534,8 @@
               .then(response => response.arrayBuffer())
               .then(buffer => {
                 const jsValue = Array.from(new Uint8Array(buffer));
-                gameboy.load(jsValue);
-                gameboy.reset();
-                console.log("Loaded!");
+                window.gameboy.load(jsValue);
+                window.gameboy.reset();
                 window.runRustyBoy();
               });
     </script>
