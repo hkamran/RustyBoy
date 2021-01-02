@@ -355,6 +355,88 @@
         z-index: 1
       }
 
+      /* The Modal (background) */
+      .modal {
+        display: none; /* Hidden by default */
+        position: fixed; /* Stay in place */
+        z-index: 1; /* Sit on top */
+        padding-top: 100px; /* Location of the box */
+        left: 0;
+        top: 0;
+        width: 100%; /* Full width */
+        height: 100%; /* Full height */
+        overflow: auto; /* Enable scroll if needed */
+        background-color: rgb(0,0,0); /* Fallback color */
+        background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+      }
+
+      /* Modal Content */
+      .modal-content {
+        inset: 350px auto auto 50%;
+        border: 1px solid rgb(222, 222, 222);
+        background: rgb(255, 255, 255) none repeat scroll 0% 0%;
+        overflow: auto;
+        border-radius: 4px;
+        margin: auto;
+        padding: 20px;
+        width: fit-content;
+      }
+
+      /* The Close Button */
+      .close {
+        color: #aaaaaa;
+        float: right;
+        font-size: 28px;
+        font-weight: bold;
+      }
+
+      .close:hover,
+      .close:focus {
+        color: #000;
+        text-decoration: none;
+        cursor: pointer;
+      }
+
+      .modal-content table, th, td {
+        font-size: 14px;
+        text-align: left;
+        padding: 12px;
+        border-collapse: collapse;
+        flex-grow: 1;
+      }
+
+      .modal-content tbody tr:nth-child(2n+1) {
+        background-color: #eaeaea;
+      }
+
+      .modal-content tr {
+        padding-left: 100px;
+      }
+
+      .modal-content table {
+        color: #373737;
+      }
+
+      .modal-content th {
+        padding-left: 15px;
+        padding-top: 15px;
+        padding-bottom: 15px;
+        text-transform: uppercase;
+        background: #d5d5d5;
+        color: #373737;
+      }
+
+      .model-title {
+        color: #ffffff;
+        font-family: 'Roboto Condensed', sans-serif;
+        font-style: italic;
+        text-transform: uppercase;
+        font-weight: bold;
+        letter-spacing: 0rem;
+        background: #6e539c;
+        padding: 5px 10px;
+      }
+
     </style>
   </head>
   <body>
@@ -363,8 +445,8 @@
         <div class="menu">
           <input id="cartridge-input" type="file" id="files" name="files[]" onchange="onFileLoad(event)" style="display: none"/>
           <a class="menu-button red" data-tippy-content="Load Game" onclick="clickLoadRom()"><div><i class="fas fa-download"></i></div></a>
-          <a class="menu-button blue" data-tippy-content="Controls"><div><i class="fa fa-gamepad"></i></div></a>
-          <a class="menu-button green" data-tippy-content="Settings"><div><i class="fas fa-wrench"></i></div></a>
+          <a class="menu-button blue" data-tippy-content="Controls" onclick="openControllerModal()"><div><i class="fa fa-gamepad"></i></div></a>
+          <a class="menu-button green" data-tippy-content="Volume"><div><i class="fa fa-volume-up"></i></div></a>
         </div>
         <div class="gb-screen-area">
           <div class="gb-power">
@@ -388,6 +470,66 @@
         </button>
       </div>
       <div class="box footer" data-tippy-content="Source code!"><a href="https://github.com/hkamran/RustyBoy"><i class="fab fa-github" style="font-size: 42pt"></i></a></div>
+
+      <div id="controllerModal" class="modal">
+
+        <!-- Modal content -->
+        <div class="modal-content">
+          <div style="display: flex; flex-direction: column;">
+            <div style="display: flex; flex-direction: row;">
+              <div class="model-title">Controls</div>
+              <div style="flex-grow: 1; width: 70px;"></div>
+              <span class="close" onclick="closeControllerModal()"><i class="fas fa-times"></i></span>
+            </div>
+            <hr>
+            <div style="display: flex; flex-direction: row;">
+              <table style="border: 1px solid rgb(159, 159, 159);">
+                <thead>
+                <tr>
+                  <th>Button</th>
+                  <th>Key</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr>
+                  <td>Up</td>
+                  <td>W</td>
+                </tr>
+                <tr>
+                  <td>Down</td>
+                  <td>S</td>
+                </tr>
+                <tr>
+                  <td>Left</td>
+                  <td>A</td>
+                </tr>
+                <tr>
+                  <td>Right</td>
+                  <td>D</td>
+                </tr>
+                <tr>
+                  <td>Start</td>
+                  <td>B</td>
+                </tr>
+                <tr>
+                  <td>Select</td>
+                  <td>N</td>
+                </tr>
+                <tr>
+                  <td>A</td>
+                  <td>H</td>
+                </tr>
+                <tr>
+                  <td>B</td>
+                  <td>J</td>
+                </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+      </div>
     </div>
     <script src="index.js" type="application/javascript"></script>
     <script>
@@ -400,6 +542,25 @@
                 console.log("Loaded!");
                 window.runRustyBoy();
               });
+    </script>
+    <script>
+      // Get the modal
+      let modal = document.getElementById("controllerModal");
+
+      function openControllerModal() {
+        modal.style.display = "block";
+      }
+
+      function closeControllerModal() {
+        modal.style.display = "none";
+      }
+
+      // When the user clicks anywhere outside of the modal, close it
+      window.onclick = function(event) {
+        if (event.target == modal) {
+          modal.style.display = "none";
+        }
+      }
     </script>
   </body>
 </html>

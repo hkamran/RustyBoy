@@ -1,5 +1,8 @@
-import {HEIGHT, Screen, WIDTH} from './screen';
+import {Screen} from './screen';
+import {initializeKeyboard} from "./keyboard";
+
 import tippy from 'tippy.js';
+import {initializeSound} from "./sound";
 
 tippy('[data-tippy-content]');
 
@@ -11,25 +14,22 @@ import("../pkg/index.js")
         let gameboy = wasm.Console.new();
         window.gameboy = gameboy;
         window.Button = window.wasm.Button;
+
+        initializeKeyboard();
+        initializeSound();
     });
 
 window.clickLoadRom = () => {
         document.getElementById("cartridge-input").click();
 }
 
-window.onFileLoad = (url) => {
+window.onFileLoad = (event) => {
         const input = event.target.files[0];
-        window.loadRom(input);
-
-}
-
-window.loadRom = (url) => {
         const fileReader = new FileReader();
         fileReader.onloadend = e => {
                 const jsValue = Array.from(new Uint8Array(fileReader.result));
                 gameboy.load(jsValue);
                 gameboy.reset();
-                console.log("Loaded!");
                 window.runRustyBoy();
         };
         fileReader.readAsArrayBuffer(input);
@@ -47,7 +47,6 @@ window.runRustyBoy = () => {
                 let frame = window.gameboy.get_frame();
                 let buffer = screen.createBuffer();
                 buffer.data.set(frame);
-                window.synth.triggerAttackRelease("C4", "8n");
                 screen.render(buffer);
         }, 1000 / 60);
 }
