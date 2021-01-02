@@ -115,7 +115,7 @@ impl Mmu {
             0xC000 ..= 0xCFFF | (0xE000 ..= 0xEFFF) => { self.wram[address as usize & 0x0FFF] = value },
             0xD000 ..= 0xDFFF | (0xF000 ..= 0xFDFF) => { self.wram[(self.wram_bank * 0x1000) | (address as usize & 0x0FFF)] = value },
             0xFE00 ..= 0xFE9F => { self.ppu.write_byte(address, value) },
-            0xFF00 => {  }, // self.joypad.write_byte(address, value)
+            0xFF00 => { self.joypad.write_byte(address, value) },
             0xFF01 ..= 0xFF02 => { }, // serial transfer
             0xFF04 ..= 0xFF07 => { self.timer.write_byte(address, value) },
             0xFF0F => { self.interrupt_flags = value },

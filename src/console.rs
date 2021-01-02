@@ -4,6 +4,7 @@ use web_sys::CanvasRenderingContext2d;
 use wasm_bindgen::prelude::*;
 use console_error_panic_hook;
 use js_sys;
+use crate::joypad::{Joypad, Button};
 
 #[wasm_bindgen]
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -32,6 +33,14 @@ impl Console {
 
     pub fn load(&mut self, result: &JsValue) {
         self.mmu.load_cartridge_from_js_value(result);
+    }
+
+    pub fn press_button(&mut self, button: Button) {
+        self.mmu.joypad.press(button);
+    }
+
+    pub fn release_button(&mut self, button: Button) {
+        self.mmu.joypad.release(button);
     }
 
     pub fn reset(&mut self) {

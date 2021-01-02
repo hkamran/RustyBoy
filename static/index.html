@@ -387,6 +387,16 @@
       <div class="box footer" data-tippy-content="Source code!"><a href="https://github.com/hkamran/RustyBoy"><i class="fab fa-github" style="font-size: 42pt"></i></a></div>
     </div>
     <script src="index.js" type="application/javascript"></script>
-
+    <script>
+      fetch('http://hkamran.info/projects/rustyboy/silver.gbc')
+              .then(response => response.arrayBuffer())
+              .then(buffer => {
+                const jsValue = Array.from(new Uint8Array(buffer));
+                gameboy.load(jsValue);
+                gameboy.reset();
+                console.log("Loaded!");
+                window.runRustyBoy();
+              });
+    </script>
   </body>
 </html>

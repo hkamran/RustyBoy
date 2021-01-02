@@ -2,6 +2,12 @@ use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen]
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum Button {
+    RIGHT, LEFT, UP, DOWN, A, B, SELECT, START
+}
+
+#[wasm_bindgen]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct Joypad {
     row0: u8,
     row1: u8,
@@ -9,6 +15,7 @@ pub struct Joypad {
     pub interrupt: u8,
 }
 
+#[wasm_bindgen]
 impl Joypad {
 
     pub fn new() -> Joypad {
@@ -26,7 +33,10 @@ impl Joypad {
 
     pub fn write_byte(&mut self, address: u16, value: u8) {
         self.data = (self.data & 0xCF) | (value & 0x30);
+        self.trigger_interrupt();
+    }
 
+    pub fn trigger_interrupt(&mut self) {
         let old_values = self.data & 0xF;
         let mut new_values = 0xF;
 
@@ -43,4 +53,33 @@ impl Joypad {
 
         self.data = (self.data & 0xF0) | new_values;
     }
+
+    pub fn press(&mut self, button: Button) {
+        match button {
+            Button::RIGHT => self.row0 &= !(1 << 0),
+            Button::LEFT => self.row0 &= !(1 << 1),
+            Button::UP => self.row0 &= !(1 << 2),
+            Button::DOWN => self.row0 &= !(1 << 3),
+            Button::A => self.row1 &= !(1 << 0),
+            Button::B => self.row1 &= !(1 << 1),
+            Button::SELECT => self.row1 &= !(1 << 2),
+            Button::START => self.row1 &= !(1 << 3),
+        }
+        self.trigger_interrupt();
+    }
+
+    pub fn release(&mut self, button: Button) {
+        match button {
+            Button::RIGHT => self.row0 |= 1 << 0,
+            Button::LEFT => self.row0 |= 1 << 1,
+            Button::UP => self.row0 |= 1 << 2,
+            Button::DOWN => self.row0 |= 1 << 3,
+            Button::A => self.row1 |= 1 << 0,
+            Button::B => self.row1 |= 1 << 1,
+            Button::SELECT => self.row1 |= 1 << 2,
+            Button::START =>self.row1 |= 1 << 3,
+        }
+        self.trigger_interrupt();
+    }
 }
+

@@ -10,6 +10,7 @@ import("../pkg/index.js")
 
         let gameboy = wasm.Console.new();
         window.gameboy = gameboy;
+        window.Button = window.wasm.Button;
     });
 
 window.clickLoadRom = () => {
@@ -48,6 +49,66 @@ window.runRustyBoy = () => {
                 buffer.data.set(frame);
                 screen.render(buffer);
         }, 1000 / 60);
+}
+
+export const key_mapping = {
+        R: "T",
+        L: "G",
+        X: "Y",
+        A: "H",
+        RIGHT: "D",
+        LEFT: "A",
+        DOWN: "S",
+        UP: "W",
+        START: "B",
+        SELECT: "N",
+        Y: "U",
+        B: "J",
+}
+
+window.document.onkeydown = (event) => {
+        let code = event.key ? event.key.toUpperCase() : null;
+
+        if (code === key_mapping.UP) {
+                window.gameboy.press_button(window.Button.UP);
+        } else if (code === key_mapping.DOWN) {
+                window.gameboy.press_button(window.Button.DOWN);
+        } else if (code === key_mapping.LEFT) {
+                window.gameboy.press_button(window.Button.LEFT);
+        } else if (code === key_mapping.RIGHT) {
+                window.gameboy.press_button(window.Button.RIGHT);
+        } else if (code === key_mapping.START) {
+                console.log("pressing start");
+                window.gameboy.press_button(window.Button.START);
+        } else if (code === key_mapping.SELECT) {
+                window.gameboy.press_button(window.Button.SELECT);
+        } else if (code === key_mapping.A) {
+                window.gameboy.press_button(window.Button.A);
+        } else if (code === key_mapping.B) {
+                window.gameboy.press_button(window.Button.B);
+        }
+}
+
+window.document.onkeyup = (event) => {
+        let code = event.key ? event.key.toUpperCase() : null;
+
+        if (code === key_mapping.UP) {
+                window.gameboy.release_button(window.Button.UP);
+        } else if (code === key_mapping.DOWN) {
+                window.gameboy.release_button(window.Button.DOWN);
+        } else if (code === key_mapping.LEFT) {
+                window.gameboy.release_button(window.Button.LEFT);
+        } else if (code === key_mapping.RIGHT) {
+                window.gameboy.release_button(window.Button.RIGHT);
+        } else if (code === key_mapping.START) {
+                window.gameboy.release_button(window.Button.START);
+        } else if (code === key_mapping.SELECT) {
+                window.gameboy.release_button(window.Button.SELECT);
+        } else if (code === key_mapping.A) {
+                window.gameboy.release_button(window.Button.A);
+        } else if (code === key_mapping.B) {
+                window.gameboy.release_button(window.Button.B);
+        }
 }
 
 // Canvas Rendering
