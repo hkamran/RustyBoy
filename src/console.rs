@@ -58,4 +58,8 @@ impl Console {
         return self.mmu.ppu.get_frame();
     }
 
+    pub fn get_sound(&self) -> js_sys::Int8Array {
+        return js_sys::Int8Array::new_with_length(0);
+    }
+
 }
