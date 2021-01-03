@@ -5,6 +5,19 @@ static MAX_VOLUME: u16 = 8000;
 static TWO_DECI: f32 = 0.8;
 static VOLUME_LEVELS: usize = 0xF;
 
+// Logging
+#[wasm_bindgen]
+extern "C" {
+    #[wasm_bindgen(js_namespace = console)]
+    fn log(s: &str);
+
+    #[wasm_bindgen(js_namespace = console, js_name = log)]
+    fn log_u32(a: u32);
+
+    #[wasm_bindgen(js_namespace = console, js_name = log)]
+    fn log_many(a: &str, b: &str);
+}
+
 //http://www.codeslinger.co.uk/pages/projects/mastersystem/sound.html
 #[wasm_bindgen]
 pub struct Psg {
@@ -15,7 +28,7 @@ pub struct Psg {
     nr51: u8,
     nr52: u8,
     volumes: [f32; 0xF],
-    wave_table: [u8; 0xF]
+    wave_table: [u8; 0x10]
 }
 
 #[wasm_bindgen]
@@ -32,7 +45,7 @@ impl Psg {
             nr50: 0x00,
             nr51: 0x00,
             nr52: 0x00,
-            wave_table: [0x0; 0xF],
+            wave_table: [0x0; 0x10],
             volumes : {
                 let mut vol_table : [f32; 0xF] = [0.0; 0xF];
                 let mut curvol: f32 = MAX_VOLUME as f32;
@@ -90,7 +103,7 @@ impl Psg {
             0xFF24 => { self.nr50 = value },
             0xFF25 => { self.nr51 = value },
             0xFF26 => { self.nr52 = value },
-            0xFF30..=0xFF3F => { self.wave_table[ ((address & 0x000F - 1)) as usize] = value },
+            0xFF30..=0xFF3F => { self.wave_table[ (address & 0x000F) as usize] = value },
             _ => {},
         }
     }
@@ -105,7 +118,7 @@ impl Psg {
             0xFF24 => { self.nr50 },
             0xFF25 => { self.nr51 },
             0xFF26 => { self.nr52 },
-            0xFF30..=0xFF3F => { self.wave_table[((address & 0x000F) - 1 ) as usize] },
+            0xFF30..=0xFF3F => { self.wave_table[(address & 0x000F) as usize] },
             _ => { 0 },
         }
     }
