@@ -40,8 +40,10 @@ pub enum Speed {
 impl Mmu {
 
     pub fn new() -> Self {
+        let timer = Timer::new();
+        let psg = Psg::new(timer);
         return Mmu {
-            psg: Psg::new(),
+            psg: psg,
             wram: [0; 0x8000],
             wram_bank: 1,
             hram: [0; 0x7F],
@@ -53,7 +55,7 @@ impl Mmu {
             cartridge: Cartridge::new(),
             ppu: Ppu::new(),
             dma: Dma::new(),
-            timer: Timer::new(),
+            timer: timer,
             joypad: Joypad::new(),
             model: GameboyType::CLASSIC
         };

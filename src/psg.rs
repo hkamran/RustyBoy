@@ -1,4 +1,4 @@
-use crate::mmu::Mmu;
+use crate::timer::Timer;
 use wasm_bindgen::prelude::*;
 
 static MAX_VOLUME: u16 = 8000;
@@ -9,6 +9,7 @@ static VOLUME_LEVELS: usize = 0xF;
 #[wasm_bindgen]
 pub struct Psg {
     // Each channel has 5 registers
+    timer: Timer,
     channel: [[u8; 5]; 4],
     nr50: u8,
     nr51: u8,
@@ -17,9 +18,11 @@ pub struct Psg {
     wave_table: [u8; 0xF]
 }
 
+#[wasm_bindgen]
 impl Psg {
-    pub fn new() -> Self {
+    pub fn new(timer: Timer) -> Self {
         return Psg {
+            timer: timer,
             channel: [
                 [0x0F; 5], // channel 0: Tone and Sweep
                 [0x00; 5], // channel 1: Tone
@@ -52,12 +55,30 @@ impl Psg {
     }
 
     // https://gbdev.gg8.se/wiki/articles/Gameboy_sound_hardware#Trigger_Event
-    pub fn trigger(&self, index: usize) {
-        let channel = self.channel[index];
-
+    fn trigger(&self, index: usize) {
         // do nothing if trigger is not enabled
-        if ! (channel[4] & 0x40) == 0x40 { return }
+        let channel = self.channel[index];
+        let length; let volume; let period;
+        if ! (channel[4] & 0x40) == 0x40 { return };
+
+        match index {
+            0|1|3 => {
+                length = channel[1] & 0x3F;
+                volume = channel[1] & 0xF0 >> 4;
+                period = channel[2] & 0x7;
+            },
+            2 => {
+                length = channel[1];
+                volume = channel[1] & 0x60 >> 4;
+                period = channel[2] & 0x7;
+            },
+            _ => panic!("yabe")
+        };
+
+        //length will determine start and end time in js
     }
+
+
 
     pub fn write_byte(&mut self, address: u16, value: u8) {
         let reg_i: usize = (address & 0x000F % 0x5) as usize;
