@@ -23,6 +23,12 @@ import("../pkg/index.js")
         }
     });
 
+window.togglePower = () => {
+  window.runningFlag = !window.runningFlag;
+  gameboy.reset();
+  window.runRustyBoy();
+}
+
 window.clickLoadRom = () => {
         document.getElementById("cartridge-input").click();
 }
@@ -45,14 +51,16 @@ window.runningFlag = true;
 // Web-gl Rendering
 window.screen = new Screen(canvas);
 window.runRustyBoy = () => {
-        setTimeout(function() {
-                if (runningFlag) requestAnimationFrame(window.runRustyBoy);
-                window.gameboy.execute_ticks(27756);
-                let frame = window.gameboy.get_frame();
-                let buffer = screen.createBuffer();
-                buffer.data.set(frame);
-                screen.render(buffer);
-        }, 1000 / 60);
+    setTimeout(function() {
+        if (runningFlag) {
+          window.gameboy.execute_ticks(97756);
+          let frame = window.gameboy.get_frame();
+          let buffer = screen.createBuffer();
+          buffer.data.set(frame);
+          screen.render(buffer);
+          requestAnimationFrame(window.runRustyBoy);
+        }
+    }, 1000 / 60);
 }
 
 export const key_mapping = {
