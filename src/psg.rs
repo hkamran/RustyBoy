@@ -69,21 +69,68 @@ impl Psg {
 
     // https://gbdev.gg8.se/wiki/articles/Gameboy_sound_hardware#Trigger_Event
     fn trigger(&self, index: usize) {
+        let registers = self.channel[index];
+
         // do nothing if trigger is not enabled
-        let channel = self.channel[index];
-        let length; let volume; let period;
-        if ! (channel[4] & 0x40) == 0x40 { return };
+        if ! (registers[4] & 0x40) == 0x40 { return };
+
+        // common flags
+        let length; let volume;
+        let length_enable = if registers[4] & 0x40 == 0x40 { true } else { false };
+
+        // channel specific flags
+        let envelope_add;
+        let period;
+        let frequency;
+        let duty;
+
+        // wave flags
+        let dac;
+
+        // square 1 flags
+        let sweep;
+        let negate;
+        let shift;
+
+        // noise flags
+        let clock_shift;
+        let width_mode;
+        let divisor_code;
 
         match index {
-            0|1|3 => {
-                length = channel[1] & 0x3F;
-                volume = channel[1] & 0xF0 >> 4;
-                period = channel[2] & 0x7;
+            0 => { // Square 1
+                sweep = registers[0] & 0x07;
+                negate = if registers[0] & 0x08 == 0x08 { true } else { false };
+                shift = registers[0] & 0x07;
+                duty = registers[1] & 0xC0 >> 6;
+                length = registers[1] & 0x3F;
+                volume = registers[2] & 0xF0 >> 4;
+                period = registers[2] & 0x7;
+                envelope_add = if registers[2] & 0x08 == 0x08 { true } else { false };
+                frequency = registers[3] | ((registers[4] & 0x07) << 5);
             },
-            2 => {
-                length = channel[1];
-                volume = channel[1] & 0x60 >> 4;
-                period = channel[2] & 0x7;
+            1 => { // Square 2
+                dac = if registers[0] & 0x80 == 0x80 { true } else { false };
+                duty = registers[1] & 0xC0 >> 6;
+                length = registers[1] & 0x3F;
+                volume = registers[2] & 0xF0 >> 4;
+                period = registers[2] & 0x7;
+                envelope_add = if registers[2] & 0x08 == 0x08 { true } else { false };
+                frequency = registers[3] | ((registers[4] & 0x07) << 5);
+            },
+            2 => { // Wave
+                dac = if registers[0] & 0x80 == 0x80 { true } else { false };
+                length = registers[1];
+                volume = registers[2] & 0x60 >> 5;
+                frequency = registers[3] | ((registers[4] & 0x07) << 5);
+            }
+            3 => { // Noise
+                clock_shift = registers[3] & 0xF0 >> 4;
+                width_mode = if registers[3] & 0x80 == 0x80 { true } else { false };
+                divisor_code = registers[3] & 0x07;
+                length = registers[1] & 0x3F;
+                volume = registers[2] & 0xF0 >> 4;
+                period = registers[2] & 0x7;
             },
             _ => panic!("yabe")
         };
@@ -94,7 +141,8 @@ impl Psg {
 
 
     pub fn write_byte(&mut self, address: u16, value: u8) {
-        let reg_i: usize = (address & 0x000F % 0x5) as usize;
+        let reg_i: usize = ((address & 0x000F) % 0x5) as usize;
+        //log(format!("addr: {:#X}, value: {:#X}, reg_i: {:#X}", address, value, reg_i).as_str());
         match address {
             0xFF10..=0xFF14 => { self.channel[0][reg_i] = value; if ( reg_i == 0x4 ) {self.trigger(0)}},
             0xFF15..=0xFF19 => { self.channel[1][reg_i] = value; if ( reg_i == 0x4 ) {self.trigger(1)}},
