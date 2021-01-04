@@ -132,7 +132,7 @@ impl Psg {
                 volume = registers[2] & 0xF0 >> 4;
                 period = registers[2] & 0x7;
             },
-            _ => panic!("yabe")
+            _ => panic!("invalid channel index type")
         };
 
         //length will determine start and end time in js
@@ -151,8 +151,9 @@ impl Psg {
             0xFF24 => { self.nr50 = value },
             0xFF25 => { self.nr51 = value },
             0xFF26 => { self.nr52 = value },
+            0xFF27..=0xFF2F => { } //unused
             0xFF30..=0xFF3F => { self.wave_table[ (address & 0x000F) as usize] = value },
-            _ => {},
+            _ => panic!(format!("invalid memory address {} ", address))
         }
     }
 
@@ -166,8 +167,9 @@ impl Psg {
             0xFF24 => { self.nr50 },
             0xFF25 => { self.nr51 },
             0xFF26 => { self.nr52 },
+            0xFF27..=0xFF2F => { 0 } //unused
             0xFF30..=0xFF3F => { self.wave_table[(address & 0x000F) as usize] },
-            _ => { 0 },
+            _ => panic!(format!("invalid memory address {} ", address))
         }
     }
 }
